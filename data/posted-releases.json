@@ -1,4 +1,29 @@
 {
   "version": 1,
-  "releases": []
+  "releases": [
+    {
+      "releaseId": 303953269,
+      "tag": "v1.3.13",
+      "name": "v1.3.13",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.3.13",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-01T00:44:30Z",
+      "tweets": [
+        "OpenCode v1.3.13 released. TL;DR: mostly a correctness release; hardens async instance context across Effect runtimes; makes session revert/summary Effect-native; fixes project-scoped paths for worktrees, formatting, config writes, and event routing.",
+        "Under the hood, the active project/worktree context is now attached to managed runtimes, so Effect fibers can recover instance state even after deferred resumes outside AsyncLocalStorage. Finalizer cleanup also restores context before touching prompt state.",
+        "That mainly affects session lifecycle code: revert and diff summarization now run through shared services, assistant/compaction messages record the right cwd/root, and rollback cleanup can reliably trim later turns or later parts from the chosen point.",
+        "Lower-level tooling got the same treatment: DB transaction side effects stay bound to the instance; formatter subprocesses, config writes, and worktree creation use the right repo/dir; global event streams now report the correct directory too.",
+        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.12...v1.3.13"
+      ],
+      "tweetIds": [
+        "2039231027999031426",
+        "2039231028863148144",
+        "2039231029676830825",
+        "2039231030565966138",
+        "2039231031459332356"
+      ],
+      "postedAt": "2026-04-01T06:38:59.745Z"
+    }
+  ]
 }
