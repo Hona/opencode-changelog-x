@@ -86,7 +86,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] 
     githubProcessDrafts: readBoolean(env, "GITHUB_PROCESS_DRAFTS", false),
     upstreamRepoDir: env.UPSTREAM_REPO_DIR?.trim() || undefined,
     upstreamCloneUrl: readString(env, "UPSTREAM_CLONE_URL", `https://github.com/${githubOwner}/${githubRepo}.git`),
-    opencodeTimeoutMs: readPositiveInteger(env, "OPENCODE_TIMEOUT_MS", 120_000),
+    opencodeTimeoutMs: readPositiveInteger(env, "OPENCODE_TIMEOUT_MS", 600_000),
     stateFile: readString(env, "STATE_FILE", "data/posted-releases.json"),
     dryRun,
     targetTag: cli.targetTag,
