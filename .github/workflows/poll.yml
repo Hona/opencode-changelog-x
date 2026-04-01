@@ -18,9 +18,11 @@ on:
         required: false
         type: string
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
 
-concurrency: ${{ github.workflow }}
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: write

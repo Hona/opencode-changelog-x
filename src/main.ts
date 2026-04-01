@@ -2,17 +2,33 @@ import { readConfig } from "./config.js"
 import { THREAD_MAX_TWEETS } from "./constants.js"
 import { createThreadGenerator } from "./generate.js"
 import { getReleaseByTag, listReleases } from "./github.js"
-import { loadState, hasPostedRelease, recordPostedRelease, saveState } from "./state.js"
+import { getLatestPostedRelease, loadState, hasPostedRelease, recordPostedRelease, saveState } from "./state.js"
 import { postThread } from "./twitter.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 import { getWeightedLength, validateThread } from "./validate.js"
 
+function releaseTimestamp(release: { publishedAt: string | null; createdAt: string }) {
+  return release.publishedAt ?? release.createdAt
+}
+
 async function main() {
   const config = readConfig()
   const state = await loadState(config.stateFile)
+  const latestPostedRelease = getLatestPostedRelease(state)
   const pending = config.targetTag
     ? [await getReleaseByTag(config, config.targetTag)]
-    : (await listReleases(config)).filter((release) => !hasPostedRelease(state, release))
+    : (await listReleases(config)).filter((release) => {
+        if (hasPostedRelease(state, release)) return false
+        if (!latestPostedRelease) return true
+
+        const latestTimestamp = latestPostedRelease.publishedAt ?? latestPostedRelease.postedAt
+        const currentTimestamp = releaseTimestamp(release)
+
+        if (currentTimestamp > latestTimestamp) return true
+        if (currentTimestamp === latestTimestamp && release.id > latestPostedRelease.releaseId) return true
+
+        return false
+      })
 
   if (pending.length === 0) {
     console.log("No unposted releases found.")
@@ -20,6 +36,9 @@ async function main() {
   }
 
   console.log(`Found ${pending.length} unposted release(s).`)
+  if (!config.targetTag && latestPostedRelease) {
+    console.log(`Cron baseline: ${latestPostedRelease.tag}`)
+  }
   const checkout = await prepareUpstreamCheckout(config)
   console.log(`Using upstream repo at ${checkout.directory}`)
 

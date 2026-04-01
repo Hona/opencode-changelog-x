@@ -44,6 +44,24 @@ export function hasPostedRelease(state: StateFile, release: GithubRelease) {
   return state.releases.some((entry) => entry.releaseId === release.id || entry.tag === release.tag)
 }
 
+function postedReleaseTimestamp(release: PostedRelease) {
+  return release.publishedAt ?? release.postedAt
+}
+
+export function getLatestPostedRelease(state: StateFile) {
+  return state.releases.reduce<PostedRelease | undefined>((latest, release) => {
+    if (!latest) return release
+
+    const latestTimestamp = postedReleaseTimestamp(latest)
+    const releaseTimestamp = postedReleaseTimestamp(release)
+
+    if (releaseTimestamp > latestTimestamp) return release
+    if (releaseTimestamp === latestTimestamp && release.releaseId > latest.releaseId) return release
+
+    return latest
+  }, undefined)
+}
+
 export function recordPostedRelease(
   state: StateFile,
   release: GithubRelease,

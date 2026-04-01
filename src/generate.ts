@@ -41,6 +41,23 @@ function parseGeneratedThread(text: string) {
   throw new Error(`Failed to parse generated thread JSON from output:\n${text}`)
 }
 
+function validateThreadShape(range: ReleaseRange, tweets: string[]) {
+  const expectedFirstPrefix = `OpenCode ${range.toTag} released. TL;DR:`
+  const expectedFinalTweet = `Compare: ${range.compareUrl}`
+
+  if (tweets.length < 2) {
+    throw new Error(`Generated invalid thread for ${range.toTag}: expected at least 2 tweets`)
+  }
+
+  if (!tweets[0]?.startsWith(expectedFirstPrefix)) {
+    throw new Error(`Generated invalid thread for ${range.toTag}: first tweet format is wrong`)
+  }
+
+  if (tweets[tweets.length - 1] !== expectedFinalTweet) {
+    throw new Error(`Generated invalid thread for ${range.toTag}: final tweet must be the GitHub compare link`)
+  }
+}
+
 const SYSTEM_PROMPT = `You are a technical release analyst working in a git repository.
 
 Inspect code and diffs with read-only tools only.
@@ -95,18 +112,19 @@ JSON schema:
 }
 
 Rules:
-- Produce between 1 and ${THREAD_MAX_TWEETS} tweets.
+- Produce between 2 and ${THREAD_MAX_TWEETS} tweets.
 - Every tweet must be valid for X/Twitter weighted character rules.
 - Aim for ${THREAD_SOFT_TWEET_LENGTH} weighted characters or less per tweet when possible.
-- If everything fits in 1 tweet, use 1 tweet.
-- Otherwise use a thread, but never exceed ${THREAD_MAX_TWEETS} tweets.
 - Use as many tweets as needed up to ${THREAD_MAX_TWEETS}.
 - Plain text only. No markdown headings, no code fences.
 - The first tweet must start exactly with "OpenCode ${range.toTag} released. TL;DR:".
 - The first tweet should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
 - The first tweet should not be the deep dive.
 - If the first tweet summary would overflow, truncate it cleanly with "..." and continue the deeper detail in later tweets.
-- If there is more than one tweet, tweets 2-${THREAD_MAX_TWEETS} should be the deeper dive on subsystem summaries.
+- The final tweet must be exactly: "Compare: ${range.compareUrl}"
+- The final tweet is the GitHub compare link between tags ${range.fromTag ?? "<previous-tag>"} and ${range.toTag}.
+- Do not add any other text to the final tweet.
+- If there are more than 2 tweets, tweets 2-${THREAD_MAX_TWEETS - 1} should be the deeper dive on subsystem summaries.
 - In deeper-dive tweets, group related changes by subsystem/theme rather than listing commits.
 - Mention the tag range "${range.fromTag ? `${range.fromTag} -> ${range.toTag}` : range.toTag}" only if it fits naturally.
 - Keep the tone technical and evidence-driven, not marketing copy.
@@ -115,8 +133,6 @@ Rules:
 - For each point, emphasize what changed and why it matters.
 - Compress implementation detail into short subsystem summaries rather than listing many touched paths.
 - Avoid exhaustive enumerations.
-- If the thread has multiple tweets, put the compare URL in the final tweet.
-- If the thread is a single tweet, include the compare URL there.
 - Good: "improves async context propagation across session/runtime paths"
 - Bad: "adds InstanceRef and runtime attach logic"
 - Good: "adds Vertex Anthropic prompt-cache accounting"
@@ -124,7 +140,7 @@ Rules:
 - Good: "fixes Azure provider option remapping"
 - Bad: "transform.ts removed the special-case for @ai-sdk/azure"
 - Do not invent changes.
-- Use this compare URL: ${range.compareUrl}
+- Use this GitHub compare URL between tags: ${range.compareUrl}
 
 Release metadata:
 - Current tag: ${range.toTag}
@@ -191,6 +207,7 @@ export async function createThreadGenerator(config: AppConfig, repoDir: string) 
       if (errors.length > 0) {
         throw new Error(`Generated invalid thread for ${range.toTag}`)
       }
+      validateThreadShape(range, tweets)
 
       return {
         tag: range.release.tag,
