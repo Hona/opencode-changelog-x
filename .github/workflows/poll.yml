@@ -1,0 +1,75 @@
+name: poll-opencode-releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Generate threads without posting or updating state"
+        required: false
+        type: boolean
+        default: true
+      process_drafts:
+        description: "Include draft releases when token access allows it"
+        required: false
+        type: boolean
+        default: false
+      tag:
+        description: "Specific release tag to generate"
+        required: false
+        type: string
+  schedule:
+    - cron: "*/5 * * * *"
+
+concurrency: ${{ github.workflow }}
+
+permissions:
+  contents: write
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PROCESS_DRAFTS: ${{ inputs.process_drafts && 'true' || 'false' }}
+      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      TWITTER_APP_KEY: ${{ secrets.TWITTER_APP_KEY }}
+      TWITTER_APP_SECRET: ${{ secrets.TWITTER_APP_SECRET }}
+      TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+      TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run bot
+        run: |
+          ARGS=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          if [ -n "${{ inputs.tag }}" ]; then
+            ARGS+=(--tag "${{ inputs.tag }}")
+          fi
+          npm run bot -- "${ARGS[@]}"
+
+      - name: Persist state
+        if: inputs.dry_run != true
+        run: |
+          if git diff --quiet -- data/posted-releases.json; then
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/posted-releases.json
+          git commit -m "chore: record posted releases"
+          git push
