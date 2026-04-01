@@ -29,7 +29,7 @@ jobs:
   poll:
     runs-on: ubuntu-latest
     env:
-      GITHUB_PROCESS_DRAFTS: ${{ inputs.process_drafts && 'true' || 'false' }}
+      GITHUB_PROCESS_DRAFTS: ${{ github.event.inputs.process_drafts || 'false' }}
       GITHUB_TOKEN: ${{ github.token }}
       GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
@@ -51,18 +51,21 @@ jobs:
         run: npm ci
 
       - name: Run bot
+        env:
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          INPUT_TAG: ${{ github.event.inputs.tag || '' }}
         run: |
           ARGS=()
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "$INPUT_DRY_RUN" = "true" ]; then
             ARGS+=(--dry-run)
           fi
-          if [ -n "${{ inputs.tag }}" ]; then
-            ARGS+=(--tag "${{ inputs.tag }}")
+          if [ -n "$INPUT_TAG" ]; then
+            ARGS+=(--tag "$INPUT_TAG")
           fi
           npm run bot -- "${ARGS[@]}"
 
       - name: Persist state
-        if: inputs.dry_run != true
+        if: github.event.inputs.dry_run != 'true'
         run: |
           if git diff --quiet -- data/posted-releases.json; then
             exit 0
