@@ -54,6 +54,30 @@
         "2040501801049559327"
       ],
       "postedAt": "2026-04-04T18:48:34.837Z"
+    },
+    {
+      "releaseId": 305329658,
+      "tag": "v1.3.15",
+      "name": "v1.3.15",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.3.15",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-04T20:54:43Z",
+      "tweets": [
+        "OpenCode v1.3.15 released. TL;DR: fixes npm installs in compiled builds; the win carries into npm-backed providers/plugins/LSP/formatters; trims Kimi prompt redundancy; otherwise this is a small patch release.",
+        "The main behavioral change is in OpenCode's npm layer. It now skips lifecycle scripts during reify/install, and the compiled build no longer bakes in a node-gyp resolution path. Result: fewer install failures from the shipped binary.",
+        "Why it matters: this same npm path is reused for npm-backed model providers, npm plugins, auto-downloaded language servers, formatter binaries, and plugin project setup. One runtime fix improves several extension and tooling flows.",
+        "There is also a small Kimi-specific cleanup: its system prompt drops a duplicated skills section. No new capability here, but less redundant prompt overhead for Kimi sessions.",
+        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.14...v1.3.15"
+      ],
+      "tweetIds": [
+        "2040537037858537860",
+        "2040537038722633811",
+        "2040537039540539443",
+        "2040537040471638134",
+        "2040537041440506073"
+      ],
+      "postedAt": "2026-04-04T21:08:36.801Z"
     }
   ]
 }
