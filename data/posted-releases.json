@@ -24,6 +24,36 @@
         "2039231031459332356"
       ],
       "postedAt": "2026-04-01T06:38:59.745Z"
+    },
+    {
+      "releaseId": 304263019,
+      "tag": "v1.3.14",
+      "name": "v1.3.14",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.3.14",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-04T18:32:40Z",
+      "tweets": [
+        "OpenCode v1.3.14 released. TL;DR: git-backed review modes are back; provider/model wiring is smarter; TUI/plugin + desktop surfaces are more extensible; runtime got sturdier around snapshots, revert, and process control.",
+        "Review got real git awareness again. Core now exposes working-tree and merge-base diff modes, and the app restores both git and branch review modes. Review rendering also lazy-mounts nearby diffs, and line comments can @mention repo paths.",
+        "Provider/model plumbing changed in useful ways: GitHub Copilot OAuth now refreshes models from Copilot's /models endpoint, pulling real limits and capabilities while preserving local metadata. Plugins can also replace a provider's model catalog.",
+        "Integration got tighter. Non-OpenCode model calls now carry x-session-affinity and x-parent-session-id. ACP streams add message IDs to chunks and emit user_message_chunk too, so external clients can correlate both sides of a turn without heuristics.",
+        "TUI plugins got a bigger surface: they can replace or extend the home/session prompt, get prompt refs for focus/set/submit, and inject right-side prompt UI. Theme-only packages now load via oc-themes even without a TUI entrypoint.",
+        "Runtime hardening: snapshot diffing batches git blob reads; revert restores the prior snapshot before re-reverting; OpenAI-compatible tool-call loops no longer stop early on bad finish reasons; the JS SDK now tears down Windows child trees cleanly.",
+        "Desktop/ops cleanup: Electron now loads login-shell env before launching the sidecar, adds a real context menu plus fuller macOS Go/View menus, reads macOS MDM managed prefs as config, and can auto-write heap snapshots past 2GB RSS.",
+        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.13...v1.3.14"
+      ],
+      "tweetIds": [
+        "2040501794829398413",
+        "2040501795676692579",
+        "2040501796456804395",
+        "2040501797287309467",
+        "2040501798163878099",
+        "2040501799225032802",
+        "2040501800172933344",
+        "2040501801049559327"
+      ],
+      "postedAt": "2026-04-04T18:48:34.837Z"
     }
   ]
 }
