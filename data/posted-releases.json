@@ -101,6 +101,33 @@
       "status": "errored",
       "error": "Request failed with code 403: Reply to this conversation is not allowed because you have not been mentioned or otherwise engaged by the author of the post you are replying to. Partial tweets exist on X, but the previous run did not record their IDs.",
       "postedAt": "2026-04-06T03:49:19.000Z"
+    },
+    {
+      "releaseId": 305557001,
+      "tag": "v1.3.17",
+      "name": "v1.3.17",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.3.17",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-06T07:39:42Z",
+      "tweets": [
+        "OpenCode v1.3.17 released. TL;DR: Cloudflare auth/setup is much clearer. Windows TUI input backs out a kitty-keyboard workaround. Zen normalizes IPv6 and simplifies anonymous rate limiting.",
+        "Provider/auth: cloudflare-workers-ai and cloudflare-ai-gateway now prompt for missing Cloudflare account and gateway IDs during auth, not just a token. Those fields are stored with API auth and exposed through the auth API and JS SDK.",
+        "Cloudflare provider setup is less opaque: IDs can come from saved auth metadata or env, baseURL overrides bypass the ID check, and missing IDs now raise explicit setup errors instead of silently refusing to load.",
+        "TUI: the Windows-specific kitty keyboard workaround was reverted. OpenCode removes the special Ctrl+V key-release path and drops the win32-only kitty event config, simplifying terminal input handling.",
+        "Zen backend: x-real-ip is normalized before rate limiting, collapsing IPv6 addresses to a stable prefix. Anonymous free-tier limiting no longer branches on a special header and now uses default or per-model daily limits directly.",
+        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.16...v1.3.17"
+      ],
+      "tweetIds": [
+        "2041072529297551864",
+        "2041072572167577885",
+        "2041072615175942560",
+        "2041072658121375778",
+        "2041072701100413087",
+        "2041072744054370503"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-06T08:37:18.240Z"
     }
   ]
 }
