@@ -1,7 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname } from "node:path"
 import { z } from "zod"
-import type { GithubRelease, PostedRelease, StateFile } from "./types.js"
+import type { GithubRelease, PostedRelease, PostedReleaseStatus, ReleasePostProgress, StateFile } from "./types.js"
+
+const postedReleaseStatusSchema = z.enum(["posted", "errored"] satisfies PostedReleaseStatus[])
 
 const postedReleaseSchema = z.object({
   releaseId: z.number(),
@@ -13,6 +15,8 @@ const postedReleaseSchema = z.object({
   publishedAt: z.string().nullable(),
   tweets: z.array(z.string()),
   tweetIds: z.array(z.string()),
+  status: postedReleaseStatusSchema.optional(),
+  error: z.string().optional(),
   postedAt: z.string(),
 })
 
@@ -40,8 +44,21 @@ export async function loadState(filePath: string): Promise<StateFile> {
   }
 }
 
+export function getSavedRelease(state: StateFile, release: GithubRelease) {
+  return state.releases.find((entry) => entry.releaseId === release.id || entry.tag === release.tag)
+}
+
+export function isCompletePostedRelease(release: Pick<PostedRelease, "tweets" | "tweetIds">) {
+  return release.tweets.length > 0 && release.tweetIds.length === release.tweets.length
+}
+
+export function isFinishedPostedRelease(release: Pick<PostedRelease, "status" | "tweets" | "tweetIds">) {
+  return release.status === "posted" || release.status === "errored" || isCompletePostedRelease(release)
+}
+
 export function hasPostedRelease(state: StateFile, release: GithubRelease) {
-  return state.releases.some((entry) => entry.releaseId === release.id || entry.tag === release.tag)
+  const saved = getSavedRelease(state, release)
+  return saved ? isFinishedPostedRelease(saved) : false
 }
 
 function postedReleaseTimestamp(release: PostedRelease) {
@@ -49,7 +66,7 @@ function postedReleaseTimestamp(release: PostedRelease) {
 }
 
 export function getLatestPostedRelease(state: StateFile) {
-  return state.releases.reduce<PostedRelease | undefined>((latest, release) => {
+  return state.releases.filter(isFinishedPostedRelease).reduce<PostedRelease | undefined>((latest, release) => {
     if (!latest) return release
 
     const latestTimestamp = postedReleaseTimestamp(latest)
@@ -62,27 +79,24 @@ export function getLatestPostedRelease(state: StateFile) {
   }, undefined)
 }
 
-export function recordPostedRelease(
-  state: StateFile,
-  release: GithubRelease,
-  tweets: string[],
-  tweetIds: string[],
-): StateFile {
+export function recordPostingProgress(state: StateFile, progress: ReleasePostProgress): StateFile {
   const nextRelease: PostedRelease = {
-    releaseId: release.id,
-    tag: release.tag,
-    name: release.name,
-    url: release.url,
-    draft: release.draft,
-    prerelease: release.prerelease,
-    publishedAt: release.publishedAt,
-    tweets,
-    tweetIds,
+    releaseId: progress.release.id,
+    tag: progress.release.tag,
+    name: progress.release.name,
+    url: progress.release.url,
+    draft: progress.release.draft,
+    prerelease: progress.release.prerelease,
+    publishedAt: progress.release.publishedAt,
+    tweets: progress.tweets,
+    tweetIds: progress.tweetIds,
+    status: progress.status,
+    error: progress.error,
     postedAt: new Date().toISOString(),
   }
 
   const releases = state.releases
-    .filter((entry) => entry.releaseId !== release.id && entry.tag !== release.tag)
+    .filter((entry) => entry.releaseId !== progress.release.id && entry.tag !== progress.release.tag)
     .concat(nextRelease)
     .sort((left, right) => left.postedAt.localeCompare(right.postedAt))
 
@@ -90,6 +104,36 @@ export function recordPostedRelease(
     version: 1,
     releases,
   }
+}
+
+export function recordPostedRelease(
+  state: StateFile,
+  release: GithubRelease,
+  tweets: string[],
+  tweetIds: string[],
+): StateFile {
+  return recordPostingProgress(state, {
+    release,
+    tweets,
+    tweetIds,
+    status: "posted",
+  })
+}
+
+export function recordErroredRelease(
+  state: StateFile,
+  release: GithubRelease,
+  tweets: string[],
+  tweetIds: string[],
+  error: string,
+): StateFile {
+  return recordPostingProgress(state, {
+    release,
+    tweets,
+    tweetIds,
+    status: "errored",
+    error,
+  })
 }
 
 export async function saveState(filePath: string, state: StateFile) {

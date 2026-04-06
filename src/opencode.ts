@@ -12,6 +12,7 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
       ...process.env,
       OPENCODE_CONFIG_CONTENT: JSON.stringify({}),
     },
+    detached: process.platform !== "win32",
     stdio: ["ignore", "pipe", "pipe"],
   })
 
@@ -20,8 +21,34 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
     proc.once("close", () => resolve())
   })
 
+  async function killOpencodeTree() {
+    if (!proc.pid) {
+      return
+    }
+
+    if (process.platform === "win32") {
+      await new Promise<void>((resolve) => {
+        const killer = spawn("taskkill", ["/pid", String(proc.pid), "/t", "/f"], {
+          stdio: "ignore",
+        })
+        killer.once("error", () => resolve())
+        killer.once("close", () => resolve())
+      })
+      return
+    }
+
+    try {
+      process.kill(-proc.pid, "SIGKILL")
+    } catch {
+      if (proc.exitCode === null && !proc.killed) {
+        proc.kill("SIGKILL")
+      }
+    }
+  }
+
   const url = await new Promise<string>((resolve, reject) => {
     const timeout = setTimeout(() => {
+      void killOpencodeTree()
       reject(new Error(`Timeout waiting for opencode server startup\n${output}`))
     }, 10_000)
 
@@ -33,6 +60,7 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
         const match = line.match(/on\s+(https?:\/\/[^\s]+)/)
         if (!match) {
           clearTimeout(timeout)
+          void killOpencodeTree()
           reject(new Error(`Failed to parse opencode server URL\n${output}`))
           return
         }
@@ -50,10 +78,12 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
     proc.stderr?.on("data", onStderr)
     proc.once("error", (error) => {
       clearTimeout(timeout)
+      void killOpencodeTree()
       reject(error)
     })
     proc.once("close", (code) => {
       clearTimeout(timeout)
+      void killOpencodeTree()
       reject(new Error(`Opencode server exited early with code ${code}\n${output}`))
     })
   })
@@ -70,28 +100,12 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
       proc.stderr?.destroy()
 
       if (proc.exitCode === null && !proc.killed) {
-        if (process.platform === "win32") {
-          await new Promise<void>((resolve) => {
-            const killer = spawn("taskkill", ["/pid", String(proc.pid), "/t", "/f"], {
-              stdio: "ignore",
-            })
-            killer.once("error", () => resolve())
-            killer.once("close", () => resolve())
-          })
-        } else {
-          proc.kill("SIGKILL")
-        }
+        await killOpencodeTree()
       }
 
       const forceKillTimer = setTimeout(() => {
         if (proc.exitCode === null && !proc.killed) {
-          if (process.platform === "win32") {
-            spawn("taskkill", ["/pid", String(proc.pid), "/t", "/f"], {
-              stdio: "ignore",
-            })
-          } else {
-            proc.kill("SIGKILL")
-          }
+          void killOpencodeTree()
         }
       }, 5_000)
 

@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenCode changelog Discord preview bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/repos/opencode-changelog-x
+Environment=HOME=/root
+EnvironmentFile=-/etc/opencode-changelog-discord.env
+ExecStart=/usr/bin/bash -lc 'export NVM_DIR=/root/.nvm; . "$NVM_DIR/nvm.sh"; nvm use 24 >/dev/null; exec npm run discord'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -9,6 +9,8 @@ const generatedThreadSchema = z.object({
   tweets: z.array(z.string().min(1)).min(1),
 })
 
+const MAX_GENERATION_ATTEMPTS = 3
+
 function normalizeTweets(thread: GeneratedThread) {
   return thread.tweets.map((tweet) => tweet.replace(/\r/g, "").trim()).filter(Boolean)
 }
@@ -41,20 +43,57 @@ function parseGeneratedThread(text: string) {
   throw new Error(`Failed to parse generated thread JSON from output:\n${text}`)
 }
 
+function getExpectedFirstPrefix(range: ReleaseRange) {
+  if (range.kind === "preview") {
+    return range.fromTag ? `OpenCode preview since ${range.fromTag}. TL;DR:` : "OpenCode preview. TL;DR:"
+  }
+
+  return `OpenCode ${range.toLabel} released. TL;DR:`
+}
+
+function getDisplayRange(range: ReleaseRange) {
+  return range.fromTag ? `${range.fromTag} -> ${range.toLabel}` : range.toLabel
+}
+
+function getGitRange(range: ReleaseRange) {
+  return range.fromTag ? `${range.fromTag}..${range.toTag}` : range.toTag
+}
+
+function formatValidationErrors(tweets: string[]) {
+  const errors = validateThread(tweets, THREAD_MAX_TWEETS)
+  if (errors.length === 0) return null
+
+  return errors
+    .map((error) => (error.index >= 0 ? `tweet ${error.index + 1}: ${error.message}` : error.message))
+    .join("; ")
+}
+
+function parseAndValidateTweets(range: ReleaseRange, output: string) {
+  const tweets = normalizeTweets(parseGeneratedThread(output))
+  const validationError = formatValidationErrors(tweets)
+
+  if (validationError) {
+    throw new Error(validationError)
+  }
+
+  validateThreadShape(range, tweets)
+  return tweets
+}
+
 function validateThreadShape(range: ReleaseRange, tweets: string[]) {
-  const expectedFirstPrefix = `OpenCode ${range.toTag} released. TL;DR:`
+  const expectedFirstPrefix = getExpectedFirstPrefix(range)
   const expectedFinalTweet = `Compare: ${range.compareUrl}`
 
   if (tweets.length < 2) {
-    throw new Error(`Generated invalid thread for ${range.toTag}: expected at least 2 tweets`)
+    throw new Error(`Generated invalid thread for ${range.toLabel}: expected at least 2 tweets`)
   }
 
   if (!tweets[0]?.startsWith(expectedFirstPrefix)) {
-    throw new Error(`Generated invalid thread for ${range.toTag}: first tweet format is wrong`)
+    throw new Error(`Generated invalid thread for ${range.toLabel}: first tweet format is wrong`)
   }
 
   if (tweets[tweets.length - 1] !== expectedFinalTweet) {
-    throw new Error(`Generated invalid thread for ${range.toTag}: final tweet must be the GitHub compare link`)
+    throw new Error(`Generated invalid thread for ${range.toLabel}: final tweet must be the GitHub compare link`)
   }
 }
 
@@ -75,13 +114,23 @@ const READ_ONLY_PERMISSIONS = [
   { permission: "bash", pattern: "git *", action: "allow" as const },
 ]
 
-function buildGenerationPrompt(range: ReleaseRange, config: AppConfig) {
-  return `Analyze the git tag range ${range.fromTag ? `${range.fromTag} -> ${range.toTag}` : range.toTag} in the current repository.
+function buildGenerationPrompt(range: ReleaseRange) {
+  const firstTweetPrefix = getExpectedFirstPrefix(range)
+  const displayRange = getDisplayRange(range)
+  const gitRange = getGitRange(range)
+  const goal =
+    range.kind === "preview"
+      ? "Produce a concise technical TL;DR X thread preview for unreleased OpenCode commits after the latest GitHub release."
+      : "Produce a concise technical TL;DR X thread for the shipped OpenCode release."
+
+  return `Analyze the git range ${displayRange} in the current repository.
+
+When you run git commands, use the exact ref range ${gitRange}.
 
 Use the repository tools to inspect the code itself. Do not use GitHub release text or any pre-written release notes.
 
 Goal:
-Produce a concise technical TL;DR X thread for OpenCode followers who care about concrete implementation changes.
+${goal}
 
 Write for highly technical users, but summarize at the subsystem/behavior level instead of narrating exact code symbols.
 
@@ -117,7 +166,7 @@ Rules:
 - Aim for ${THREAD_SOFT_TWEET_LENGTH} weighted characters or less per tweet when possible.
 - Use as many tweets as needed up to ${THREAD_MAX_TWEETS}.
 - Plain text only. No markdown headings, no code fences.
-- The first tweet must start exactly with "OpenCode ${range.toTag} released. TL;DR:".
+- The first tweet must start exactly with "${firstTweetPrefix}".
 - The first tweet should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
 - The first tweet should not be the deep dive.
 - If the first tweet summary would overflow, truncate it cleanly with "..." and continue the deeper detail in later tweets.
@@ -126,13 +175,14 @@ Rules:
 - Do not add any other text to the final tweet.
 - If there are more than 2 tweets, tweets 2-${THREAD_MAX_TWEETS - 1} should be the deeper dive on subsystem summaries.
 - In deeper-dive tweets, group related changes by subsystem/theme rather than listing commits.
-- Mention the tag range "${range.fromTag ? `${range.fromTag} -> ${range.toTag}` : range.toTag}" only if it fits naturally.
+- Mention the range "${displayRange}" only if it fits naturally.
 - Keep the tone technical and evidence-driven, not marketing copy.
 - Prefer high-level technical summaries over exact variable, class, function, file, or test names.
 - Only mention exact names when they are user-facing or ecosystem-facing: provider names, model names, package names, CLI commands, config keys, protocols, platforms.
 - For each point, emphasize what changed and why it matters.
 - Compress implementation detail into short subsystem summaries rather than listing many touched paths.
 - Avoid exhaustive enumerations.
+- If this is a preview, describe the changes as unreleased work after the latest GitHub release. Do not say they were already released.
 - Good: "improves async context propagation across session/runtime paths"
 - Bad: "adds InstanceRef and runtime attach logic"
 - Good: "adds Vertex Anthropic prompt-cache accounting"
@@ -143,10 +193,14 @@ Rules:
 - Use this GitHub compare URL between tags: ${range.compareUrl}
 
 Release metadata:
-- Current tag: ${range.toTag}
+- Mode: ${range.kind}
 - Previous tag: ${range.fromTag ?? "none found"}
+- Display range: ${displayRange}
+- Exact git ref range: ${gitRange}
+- Current ref label: ${range.toLabel}
+- Current ref: ${range.toTag}
 - Compare URL: ${range.compareUrl}
-- Release URL: ${range.release.url}`
+- Release URL: ${range.release?.url ?? "none (preview)"}`
 }
 
 type PromptBody = {
@@ -193,6 +247,34 @@ export async function createThreadGenerator(config: AppConfig, repoDir: string) 
     return output
   }
 
+  async function generateTweets(sessionID: string, range: ReleaseRange) {
+    let nextPrompt = buildGenerationPrompt(range)
+    let lastError: Error | undefined
+
+    for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt += 1) {
+      const output = await prompt(sessionID, nextPrompt)
+
+      try {
+        return parseAndValidateTweets(range, output)
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+
+        if (attempt >= MAX_GENERATION_ATTEMPTS) {
+          break
+        }
+
+        nextPrompt = [
+          `Your previous output was invalid: ${lastError.message}`,
+          "Return corrected strict JSON only.",
+          `The first tweet must start exactly with: \"${getExpectedFirstPrefix(range)}\"`,
+          `The final tweet must be exactly: \"Compare: ${range.compareUrl}\"`,
+        ].join("\n")
+      }
+    }
+
+    throw new Error(`Generated invalid thread for ${range.toLabel} after ${MAX_GENERATION_ATTEMPTS} attempts: ${lastError?.message ?? "unknown error"}`)
+  }
+
   return {
     async generateReport(range: ReleaseRange): Promise<ReleaseThreadReport> {
       const session = await opencode.client.session.create({
@@ -201,21 +283,17 @@ export async function createThreadGenerator(config: AppConfig, repoDir: string) 
       const sessionID = session.data?.id
       if (!sessionID) throw new Error("OpenCode session creation returned no session ID")
 
-      const output = await prompt(sessionID, buildGenerationPrompt(range, config))
-      const tweets = normalizeTweets(parseGeneratedThread(output))
-      const errors = validateThread(tweets, THREAD_MAX_TWEETS)
-      if (errors.length > 0) {
-        throw new Error(`Generated invalid thread for ${range.toTag}`)
-      }
-      validateThreadShape(range, tweets)
+      const tweets = await generateTweets(sessionID, range)
 
       return {
-        tag: range.release.tag,
-        releaseUrl: range.release.url,
+        kind: range.kind,
+        tag: range.release?.tag ?? "preview",
+        releaseUrl: range.release?.url ?? null,
         compareUrl: range.compareUrl,
         fromTag: range.fromTag,
         toTag: range.toTag,
-        draft: range.release.draft,
+        toLabel: range.toLabel,
+        draft: range.release?.draft ?? false,
         model: MODEL,
         tweets,
       }

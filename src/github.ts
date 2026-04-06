@@ -16,6 +16,26 @@ const releaseSchema = z.object({
 
 const releasesSchema = z.array(releaseSchema)
 
+async function fetchReleasesPage(config: AppConfig, page: number) {
+  const url = new URL(`https://api.github.com/repos/${config.githubOwner}/${config.githubRepo}/releases`)
+  url.searchParams.set("per_page", String(config.githubReleaseLimit))
+  url.searchParams.set("page", String(page))
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "opencode-changelog-x",
+      ...(config.githubToken ? { Authorization: `Bearer ${config.githubToken}` } : {}),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`GitHub releases request failed (${response.status} ${response.statusText})`)
+  }
+
+  return releasesSchema.parse(await response.json())
+}
+
 function mapRelease(release: z.infer<typeof releaseSchema>): GithubRelease {
   return {
     id: release.id,
@@ -34,27 +54,33 @@ function releaseTimestamp(release: GithubRelease) {
   return release.publishedAt ?? release.createdAt
 }
 
-export async function listReleases(config: AppConfig): Promise<GithubRelease[]> {
-  const url = new URL(`https://api.github.com/repos/${config.githubOwner}/${config.githubRepo}/releases`)
-  url.searchParams.set("per_page", String(config.githubReleaseLimit))
+function isEligibleRelease(config: AppConfig, release: GithubRelease) {
+  return config.githubProcessDrafts || !release.draft
+}
 
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "User-Agent": "opencode-changelog-x",
-      ...(config.githubToken ? { Authorization: `Bearer ${config.githubToken}` } : {}),
-    },
-  })
+export async function getLatestRelease(config: AppConfig): Promise<GithubRelease | null> {
+  for (let page = 1; ; page += 1) {
+    const releases = await fetchReleasesPage(config, page)
+    const latest = releases.map(mapRelease).find((release) => isEligibleRelease(config, release))
 
-  if (!response.ok) {
-    throw new Error(`GitHub releases request failed (${response.status} ${response.statusText})`)
+    if (latest) return latest
+    if (releases.length < config.githubReleaseLimit) return null
   }
+}
 
-  const payload = releasesSchema.parse(await response.json())
+export async function listReleases(config: AppConfig): Promise<GithubRelease[]> {
+  const payload = []
+
+  for (let page = 1; ; page += 1) {
+    const releases = await fetchReleasesPage(config, page)
+    payload.push(...releases)
+
+    if (releases.length < config.githubReleaseLimit) break
+  }
 
   return payload
     .map(mapRelease)
-    .filter((release) => config.githubProcessDrafts || !release.draft)
+    .filter((release) => isEligibleRelease(config, release))
     .sort((left, right) => releaseTimestamp(left).localeCompare(releaseTimestamp(right)))
 }
 

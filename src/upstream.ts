@@ -8,6 +8,7 @@ import type { GithubRelease, ReleaseRange } from "./types.js"
 type UpstreamCheckout = {
   directory: string
   resolveRange: (release: GithubRelease) => Promise<ReleaseRange>
+  resolvePreviewRange: (fromTag: string | null) => Promise<ReleaseRange>
   close: () => Promise<void>
 }
 
@@ -57,17 +58,58 @@ async function resolvePreviousTag(directory: string, tag: string) {
   }
 }
 
+async function resolveHeadSha(directory: string) {
+  return run("git", ["rev-parse", "HEAD"], directory)
+}
+
+async function resolveShortSha(directory: string, ref: string) {
+  return run("git", ["rev-parse", "--short=12", ref], directory)
+}
+
+async function countCommits(directory: string, fromRef: string | null, toRef: string) {
+  const range = fromRef ? `${fromRef}..${toRef}` : toRef
+  const output = await run("git", ["rev-list", "--count", range], directory)
+  const count = Number.parseInt(output, 10)
+
+  if (!Number.isInteger(count) || count < 0) {
+    throw new Error(`Invalid commit count for range ${range}: ${output}`)
+  }
+
+  return count
+}
+
 function createCheckout(directory: string, config: AppConfig, close: () => Promise<void>): UpstreamCheckout {
   return {
     directory,
     async resolveRange(release) {
       const fromTag = await resolvePreviousTag(directory, release.tag)
+      const commitCount = await countCommits(directory, fromTag, release.tag)
+
       return {
+        kind: "release",
         release,
         fromTag,
         toTag: release.tag,
+        toLabel: release.tag,
         compareUrl: createCompareUrl(config, fromTag, release.tag),
         repoDir: directory,
+        commitCount,
+      }
+    },
+    async resolvePreviewRange(fromTag) {
+      const toTag = await resolveHeadSha(directory)
+      const shortSha = await resolveShortSha(directory, toTag)
+      const commitCount = await countCommits(directory, fromTag, toTag)
+
+      return {
+        kind: "preview",
+        release: null,
+        fromTag,
+        toTag,
+        toLabel: `HEAD (${shortSha})`,
+        compareUrl: createCompareUrl(config, fromTag, toTag),
+        repoDir: directory,
+        commitCount,
       }
     },
     close,

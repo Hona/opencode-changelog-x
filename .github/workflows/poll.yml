@@ -17,9 +17,8 @@ on:
         description: "Specific release tag to generate"
         required: false
         type: string
-  # Temporarily disabled scheduled polling.
-  # schedule:
-  #   - cron: "*/30 * * * *"
+  schedule:
+    - cron: "*/30 * * * *"
 
 concurrency:
   group: ${{ github.workflow }}
@@ -68,7 +67,7 @@ jobs:
           npm run bot -- "${ARGS[@]}"
 
       - name: Persist state
-        if: github.event.inputs.dry_run != 'true'
+        if: always() && github.event.inputs.dry_run != 'true'
         run: |
           if git diff --quiet -- data/posted-releases.json; then
             exit 0

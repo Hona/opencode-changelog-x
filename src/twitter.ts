@@ -1,7 +1,15 @@
+import { setTimeout as sleep } from "node:timers/promises"
 import { TwitterApi } from "twitter-api-v2"
 import type { AppConfig } from "./config.js"
 
-export async function postThread(tweets: string[], config: AppConfig) {
+const THREAD_POST_DELAY_MS = 10_000
+
+type PostThreadOptions = {
+  existingTweetIds?: string[]
+  onProgress?: (tweetIds: string[]) => Promise<void> | void
+}
+
+export async function postThread(tweets: string[], config: AppConfig, options: PostThreadOptions = {}) {
   if (config.dryRun || !config.twitter) {
     console.log("DRY RUN: thread preview")
     for (const [index, tweet] of tweets.entries()) {
@@ -17,10 +25,21 @@ export async function postThread(tweets: string[], config: AppConfig) {
     accessSecret: config.twitter.accessSecret,
   })
 
-  const tweetIds: string[] = []
-  let replyTo: string | undefined
+  const tweetIds = [...(options.existingTweetIds ?? [])]
+  let replyTo = tweetIds.at(-1)
 
-  for (const tweet of tweets) {
+  if (tweetIds.length >= tweets.length) {
+    return tweetIds
+  }
+
+  let isFirstNewTweet = true
+
+  for (const tweet of tweets.slice(tweetIds.length)) {
+    if (!isFirstNewTweet) {
+      console.log(`Waiting ${THREAD_POST_DELAY_MS / 1000}s before next post...`)
+      await sleep(THREAD_POST_DELAY_MS)
+    }
+
     const response = await client.v2.tweet(
       replyTo
         ? {
@@ -36,6 +55,8 @@ export async function postThread(tweets: string[], config: AppConfig) {
 
     tweetIds.push(response.data.id)
     replyTo = response.data.id
+    isFirstNewTweet = false
+    await options.onProgress?.(tweetIds)
   }
 
   return tweetIds

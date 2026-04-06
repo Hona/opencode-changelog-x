@@ -24,6 +24,15 @@ export type AppConfig = {
   twitter?: TwitterCredentials
 }
 
+type SharedConfig = Omit<AppConfig, "dryRun" | "targetTag" | "twitter">
+
+export type DiscordConfig = AppConfig & {
+  discordToken: string
+  discordChannelId: string
+}
+
+const DISCORD_PREVIEW_CHANNEL_ID = "1472697640880701523"
+
 function readString(env: NodeJS.ProcessEnv, name: string, fallback?: string) {
   const value = env[name]?.trim()
   if (value) return value
@@ -72,13 +81,11 @@ function readCliArgs(argv: string[]) {
   return { dryRun, targetTag }
 }
 
-export function readConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] = process.argv.slice(2)): AppConfig {
-  const cli = readCliArgs(argv)
-  const dryRun = cli.dryRun ?? readBoolean(env, "DRY_RUN", false)
+function readSharedConfig(env: NodeJS.ProcessEnv): SharedConfig {
   const githubOwner = readString(env, "GITHUB_OWNER", "anomalyco")
   const githubRepo = readString(env, "GITHUB_REPO", "opencode")
 
-  const config: AppConfig = {
+  return {
     githubOwner,
     githubRepo,
     githubToken: env.GITHUB_API_TOKEN?.trim() || env.GITHUB_TOKEN?.trim() || undefined,
@@ -88,6 +95,15 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] 
     upstreamCloneUrl: readString(env, "UPSTREAM_CLONE_URL", `https://github.com/${githubOwner}/${githubRepo}.git`),
     opencodeTimeoutMs: readPositiveInteger(env, "OPENCODE_TIMEOUT_MS", 600_000),
     stateFile: readString(env, "STATE_FILE", "data/posted-releases.json"),
+  }
+}
+
+export function readConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] = process.argv.slice(2)): AppConfig {
+  const cli = readCliArgs(argv)
+  const dryRun = cli.dryRun ?? readBoolean(env, "DRY_RUN", false)
+
+  const config: AppConfig = {
+    ...readSharedConfig(env),
     dryRun,
     targetTag: cli.targetTag,
   }
@@ -102,4 +118,15 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env, argv: string[] 
   }
 
   return config
+}
+
+export function readDiscordConfig(env: NodeJS.ProcessEnv = process.env): DiscordConfig {
+  return {
+    ...readSharedConfig(env),
+    dryRun: true,
+    targetTag: undefined,
+    twitter: undefined,
+    discordToken: readString(env, "DISCORD_TOKEN"),
+    discordChannelId: DISCORD_PREVIEW_CHANNEL_ID,
+  }
 }

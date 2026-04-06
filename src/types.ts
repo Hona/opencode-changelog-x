@@ -10,12 +10,17 @@ export type GithubRelease = {
   publishedAt: string | null
 }
 
+export type ChangelogKind = "release" | "preview"
+
 export type ReleaseRange = {
-  release: GithubRelease
+  kind: ChangelogKind
+  release: GithubRelease | null
   fromTag: string | null
   toTag: string
+  toLabel: string
   compareUrl: string
   repoDir: string
+  commitCount?: number
 }
 
 export type GeneratedThread = {
@@ -23,11 +28,13 @@ export type GeneratedThread = {
 }
 
 export type ReleaseThreadReport = {
+  kind: ChangelogKind
   tag: string
-  releaseUrl: string
+  releaseUrl: string | null
   compareUrl: string
   fromTag: string | null
   toTag: string
+  toLabel: string
   draft: boolean
   model: {
     providerID: "opencode"
@@ -36,6 +43,8 @@ export type ReleaseThreadReport = {
   }
   tweets: string[]
 }
+
+export type PostedReleaseStatus = "posted" | "errored"
 
 export type PostedRelease = {
   releaseId: number
@@ -47,7 +56,17 @@ export type PostedRelease = {
   publishedAt: string | null
   tweets: string[]
   tweetIds: string[]
+  status?: PostedReleaseStatus
+  error?: string
   postedAt: string
+}
+
+export type ReleasePostProgress = {
+  release: GithubRelease
+  tweets: string[]
+  tweetIds: string[]
+  status?: PostedReleaseStatus
+  error?: string
 }
 
 export type StateFile = {

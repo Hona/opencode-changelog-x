@@ -78,6 +78,29 @@
         "2040537041440506073"
       ],
       "postedAt": "2026-04-04T21:08:36.801Z"
+    },
+    {
+      "releaseId": 305518093,
+      "tag": "v1.3.16",
+      "name": "v1.3.16",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.3.16",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-06T03:45:09Z",
+      "tweets": [
+        "OpenCode v1.3.16 released. TL;DR: ACP session controls are more protocol-native. Console-managed providers and org switching now show up in the TUI. Plugin resolution is sturdier on npm alias/git specs and Windows. Token/provider accounting bugs were fixed.",
+        "ACP got more protocol-native session control: session responses now publish selectable model/mode options, and OpenCode implements ACP's config-option setter to change them. ACP clients need less OpenCode-specific logic.",
+        "There is also a new experimental Console API surface: fetch active Console-managed provider metadata, list available orgs across accounts, and switch the active org. The generated JS SDK/OpenAPI was updated with those endpoints.",
+        "TUI/provider UX now consumes that state end to end. Console-managed providers are labeled with the active org, blocked from local reconnect flows, and a new org switcher shows up when multiple orgs exist.",
+        "TUI input behavior is more controllable too: mouse capture can be disabled via tui.json or OPENCODE_DISABLE_MOUSE, and on Windows Ctrl+Z now defaults to prompt undo while terminal suspend is suppressed when unsupported.",
+        "Plugin/package resolution is more robust. OpenCode now parses plugin specs with npm-package-arg, so aliases and git/npm protocol specs resolve correctly, and Windows cache paths sanitize illegal characters that used to break installs.",
+        "Model/runtime fixes: Azure options are sent under both openai and azure namespaces so settings survive either AI SDK path, and usage accounting no longer double-counts reasoning tokens. Vertex Anthropic cache-write tokens are now separated too.",
+        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.15...v1.3.16"
+      ],
+      "tweetIds": [],
+      "status": "errored",
+      "error": "Request failed with code 403: Reply to this conversation is not allowed because you have not been mentioned or otherwise engaged by the author of the post you are replying to. Partial tweets exist on X, but the previous run did not record their IDs.",
+      "postedAt": "2026-04-06T03:49:19.000Z"
     }
   ]
 }
