@@ -18,7 +18,7 @@ on:
         required: false
         type: string
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
 
 concurrency:
   group: ${{ github.workflow }}
