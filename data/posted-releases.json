@@ -128,6 +128,39 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-06T08:37:18.240Z"
+    },
+    {
+      "releaseId": 306340983,
+      "tag": "v1.4.0",
+      "name": "v1.4.0",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.0",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-08T00:32:55Z",
+      "tweets": [
+        "OpenCode v1.4.0 released. TL;DR: remote workspace transport got a real proxy layer; subagent UX is much better; review diffs moved to patch-based rendering; OTLP observability landed.",
+        "Core transport changed a lot. Workspaces now resolve to local or remote targets, and remote ones proxy both HTTP and WebSocket traffic instead of relying on custom fetch-only adaptors. The control plane is less Bun-specific now.",
+        "OTLP export is now first-class: OTEL_EXPORTER_OTLP_ENDPOINT plus optional headers attaches a runtime-wide observability layer with service and environment metadata. The runtime also abstracts PTY handling across Bun and Node backends.",
+        "Tooling/runtime got cleaned up. The old batch tool is gone, task and skill descriptions are generated against the active agent's permissions, and TUI plugins no longer manage workspace-scoped clients. Workspace routing is centralized in core now.",
+        "Subagents got real product work. Child sessions now show parent/task context in the header, disable inappropriate composer and follow-up flows, and the TUI worker can keep multiple event streams alive instead of swapping a single global stream.",
+        "Review data is now patch-first. Session snapshots and live VCS diffs use separate patch-based schemas, the review UI normalizes both paths, lazily mounts visible diffs, and adds a render-anyway guard for very large changes.",
+        "Prompt attachments now treat PDFs as first-class media: file pickers accept them, drag/drop and optimistic request assembly preserve them, and prompt restoration rebuilds PDF attachments from stored message parts.",
+        "Fixes worth noting: plain-text rate-limit failures now retry correctly, including Alibaba-style messages; model variants stay scoped to the selected model; login errors are more actionable; and opencode run gained --dangerously-skip-permissions.",
+        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.17...v1.4.0"
+      ],
+      "tweetIds": [
+        "2041678272074076634",
+        "2041678315048858050",
+        "2041678358258622839",
+        "2041678401287942320",
+        "2041678444338278462",
+        "2041678487350866326",
+        "2041678530904518895",
+        "2041678574055485495",
+        "2041678617105854475"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-08T00:44:49.703Z"
     }
   ]
 }
