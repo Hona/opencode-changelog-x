@@ -23,11 +23,11 @@ export type ReleaseRange = {
   commitCount?: number
 }
 
-export type GeneratedThread = {
-  tweets: string[]
+export type GeneratedPost = {
+  post: string
 }
 
-export type ReleaseThreadReport = {
+export type ReleasePostReport = {
   kind: ChangelogKind
   tag: string
   releaseUrl: string | null
@@ -38,10 +38,10 @@ export type ReleaseThreadReport = {
   draft: boolean
   model: {
     providerID: "opencode"
-    modelID: "gpt-5.4"
+    modelID: "gemini-3.1-pro"
     variant: "high"
   }
-  tweets: string[]
+  post: string
 }
 
 export type PostedReleaseStatus = "posted" | "errored"

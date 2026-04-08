@@ -1,28 +1,33 @@
 import { z } from "zod";
 import type { AppConfig } from "./config.js";
-import {
-    MODEL,
-    THREAD_MAX_TWEETS,
-    THREAD_SOFT_TWEET_LENGTH,
-} from "./constants.js";
+import { MODEL, POST_MAX_LENGTH } from "./constants.js";
 import { startOpencode } from "./opencode.js";
 import type {
-    GeneratedThread,
+    GeneratedPost,
     ReleaseRange,
-    ReleaseThreadReport,
+    ReleasePostReport,
 } from "./types.js";
-import { validateThread } from "./validate.js";
+import { validatePost } from "./validate.js";
 
-const generatedThreadSchema = z.object({
-    tweets: z.array(z.string().min(1)).min(1),
+const generatedPostSchema = z.object({
+    post: z.string().min(1),
 });
 
 const MAX_GENERATION_ATTEMPTS = 3;
 
-function normalizeTweets(thread: GeneratedThread) {
-    return thread.tweets
-        .map((tweet) => tweet.replace(/\r/g, "").trim())
-        .filter(Boolean);
+function normalizePost(post: GeneratedPost) {
+    return post.post.replace(/\r/g, "").trim();
+}
+
+function normalizeBodyBullets(post: string) {
+    const lines = post.split("\n");
+
+    return lines
+        .map((line, index) => {
+            if (index === 0 || index === lines.length - 1) return line;
+            return line.replace(/^(\s*)-\s+/, "$1• ");
+        })
+        .join("\n");
 }
 
 function extractText(result: unknown) {
@@ -37,7 +42,7 @@ function extractText(result: unknown) {
         ?.text?.trim();
 }
 
-function parseGeneratedThread(text: string) {
+function parseGeneratedPost(text: string) {
     const candidates = [
         text,
         text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1],
@@ -51,14 +56,14 @@ function parseGeneratedThread(text: string) {
 
     for (const candidate of candidates) {
         try {
-            return generatedThreadSchema.parse(JSON.parse(candidate));
+            return generatedPostSchema.parse(JSON.parse(candidate));
         } catch {
             continue;
         }
     }
 
     throw new Error(
-        `Failed to parse generated thread JSON from output:\n${text}`,
+        `Failed to parse generated post JSON from output:\n${text}`,
     );
 }
 
@@ -82,50 +87,55 @@ function getGitRange(range: ReleaseRange) {
     return range.fromTag ? `${range.fromTag}..${range.toTag}` : range.toTag;
 }
 
-function formatValidationErrors(tweets: string[]) {
-    const errors = validateThread(tweets, THREAD_MAX_TWEETS);
+function formatValidationErrors(post: string) {
+    const errors = validatePost(post, POST_MAX_LENGTH);
     if (errors.length === 0) return null;
 
-    return errors
-        .map((error) =>
-            error.index >= 0
-                ? `tweet ${error.index + 1}: ${error.message}`
-                : error.message,
-        )
-        .join("; ");
+    return errors.join("; ");
 }
 
-function parseAndValidateTweets(range: ReleaseRange, output: string) {
-    const tweets = normalizeTweets(parseGeneratedThread(output));
-    const validationError = formatValidationErrors(tweets);
+function parseAndValidatePost(range: ReleaseRange, output: string) {
+    const post = normalizeBodyBullets(normalizePost(parseGeneratedPost(output)));
+    const validationError = formatValidationErrors(post);
 
     if (validationError) {
         throw new Error(validationError);
     }
 
-    validateThreadShape(range, tweets);
-    return tweets;
+    validatePostShape(range, post);
+    return post;
 }
 
-function validateThreadShape(range: ReleaseRange, tweets: string[]) {
+function validatePostShape(range: ReleaseRange, post: string) {
     const expectedFirstPrefix = getExpectedFirstPrefix(range);
-    const expectedFinalTweet = `Compare: ${range.compareUrl}`;
+    const expectedFinalLine = `Compare: ${range.compareUrl}`;
+    const lines = post
+        .split("\n")
+        .map((line) => line.trimEnd())
+        .filter(Boolean);
 
-    if (tweets.length < 2) {
+    if (lines.length < 3) {
         throw new Error(
-            `Generated invalid thread for ${range.toLabel}: expected at least 2 tweets`,
+            `Generated invalid post for ${range.toLabel}: expected a TL;DR line, body, and compare footer`,
         );
     }
 
-    if (!tweets[0]?.startsWith(expectedFirstPrefix)) {
+    if (!post.startsWith(expectedFirstPrefix)) {
         throw new Error(
-            `Generated invalid thread for ${range.toLabel}: first tweet format is wrong`,
+            `Generated invalid post for ${range.toLabel}: TL;DR header format is wrong`,
         );
     }
 
-    if (tweets[tweets.length - 1] !== expectedFinalTweet) {
+    if (lines.at(-1) !== expectedFinalLine) {
         throw new Error(
-            `Generated invalid thread for ${range.toLabel}: final tweet must be the GitHub compare link`,
+            `Generated invalid post for ${range.toLabel}: final line must be the GitHub compare link`,
+        );
+    }
+
+    const body = lines.slice(1, -1).join("\n").trim();
+    if (!body) {
+        throw new Error(
+            `Generated invalid post for ${range.toLabel}: body is empty`,
         );
     }
 }
@@ -153,8 +163,8 @@ function buildGenerationPrompt(range: ReleaseRange) {
     const gitRange = getGitRange(range);
     const goal =
         range.kind === "preview"
-            ? "Produce a concise technical TL;DR X thread preview for unreleased OpenCode commits after the latest GitHub release."
-            : "Produce a concise technical TL;DR X thread for the shipped OpenCode release.";
+            ? "Produce a concise technical TL;DR X post preview for unreleased OpenCode commits after the latest GitHub release."
+            : "Produce a concise technical TL;DR X post for the shipped OpenCode release.";
 
     return `Analyze the git range ${displayRange} in the current repository.
 
@@ -166,6 +176,7 @@ Goal:
 ${goal}
 
 Write for highly technical users, but summarize at the subsystem/behavior level instead of narrating exact code symbols.
+You are writing one longer X post, not a thread.
 
 Suggested investigation:
 1. Inspect the commit list for the tag range.
@@ -190,24 +201,24 @@ Return strict JSON only. Do not wrap it in markdown fences.
 
 JSON schema:
 {
-  "tweets": ["tweet 1", "tweet 2"]
+  "post": "full post text"
 }
 
 Rules:
-- Produce between 2 and ${THREAD_MAX_TWEETS} tweets.
-- Every tweet must be valid for X/Twitter weighted character rules.
-- Aim for ${THREAD_SOFT_TWEET_LENGTH} weighted characters or less per tweet when possible.
-- Use as many tweets as needed up to ${THREAD_MAX_TWEETS}.
-- Plain text only. No markdown headings, no code fences.
-- The first tweet must start exactly with "${firstTweetPrefix}".
-- The first tweet should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
-- The first tweet should not be the deep dive.
-- If the first tweet summary would overflow, truncate it cleanly with "..." and continue the deeper detail in later tweets.
-- The final tweet must be exactly: "Compare: ${range.compareUrl}"
-- The final tweet is the GitHub compare link between tags ${range.fromTag ?? "<previous-tag>"} and ${range.toTag}.
-- Do not add any other text to the final tweet.
-- If there are more than 2 tweets, tweets 2-${THREAD_MAX_TWEETS - 1} should be the deeper dive on subsystem summaries.
-- In deeper-dive tweets, group related changes by subsystem/theme rather than listing commits.
+- Produce exactly one X post.
+- Keep the total output within ${POST_MAX_LENGTH} characters.
+- Plain text only. No code fences.
+- Line breaks are allowed.
+- Use the Unicode bullet character '•' (U+2022) for body points when helpful.
+- The post must start exactly with "${firstTweetPrefix}".
+- The first line should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
+- After the first line, include a compact body with grouped subsystem summaries.
+- The body can use short paragraphs and/or '•' bullet points.
+- Use blank lines between sections when it improves readability.
+- The final line must be exactly: "Compare: ${range.compareUrl}"
+- The final line is the GitHub compare link between tags ${range.fromTag ?? "<previous-tag>"} and ${range.toTag}.
+- Do not add any other text after the final line.
+- Do not split the release into multiple tweets.
 - Mention the range "${displayRange}" only if it fits naturally.
 - Keep the tone technical and evidence-driven, not marketing copy.
 - Prefer high-level technical summaries over exact variable, class, function, file, or test names.
@@ -223,8 +234,8 @@ Rules:
 - Good: "fixes Azure provider option remapping"
 - Bad: "transform.ts removed the special-case for @ai-sdk/azure"
 - Do not invent changes.
-- For truely small releases, e.g. a tiny bug fix for a small feature, then the output should be small. Don't try to fit \`n\` number of tweets for no reason. Example would be the first tldr tweet, then 1 body tweet, then one compare tweet.
-- If a feature added in a release is truely massive, then celebrate it - not just technical details. Example would be the first tldr tweet - including the emotive emphasis on the feature, then x number of body tweets, ordered by importance, then one final compare tweet.
+- For truely small releases, keep the post tight. Do not pad it with unnecessary sections.
+- If a feature added in a release is truely massive, use the extra space for a structured breakdown in the same post.
 - Use this GitHub compare URL between tags: ${range.compareUrl}
 
 Release metadata:
@@ -252,7 +263,7 @@ type PromptBody = {
     }>;
 };
 
-export async function createThreadGenerator(
+export async function createPostGenerator(
     config: AppConfig,
     repoDir: string,
 ) {
@@ -285,7 +296,7 @@ export async function createThreadGenerator(
         return output;
     }
 
-    async function generateTweets(sessionID: string, range: ReleaseRange) {
+    async function generatePost(sessionID: string, range: ReleaseRange) {
         let nextPrompt = buildGenerationPrompt(range);
         let lastError: Error | undefined;
 
@@ -297,7 +308,7 @@ export async function createThreadGenerator(
             const output = await prompt(sessionID, nextPrompt);
 
             try {
-                return parseAndValidateTweets(range, output);
+                return parseAndValidatePost(range, output);
             } catch (error) {
                 lastError =
                     error instanceof Error ? error : new Error(String(error));
@@ -309,21 +320,21 @@ export async function createThreadGenerator(
                 nextPrompt = [
                     `Your previous output was invalid: ${lastError.message}`,
                     "Return corrected strict JSON only.",
-                    `The first tweet must start exactly with: \"${getExpectedFirstPrefix(range)}\"`,
-                    `The final tweet must be exactly: \"Compare: ${range.compareUrl}\"`,
+                    `The post must start exactly with: \"${getExpectedFirstPrefix(range)}\"`,
+                    `The final line must be exactly: \"Compare: ${range.compareUrl}\"`,
                 ].join("\n");
             }
         }
 
         throw new Error(
-            `Generated invalid thread for ${range.toLabel} after ${MAX_GENERATION_ATTEMPTS} attempts: ${lastError?.message ?? "unknown error"}`,
+            `Generated invalid post for ${range.toLabel} after ${MAX_GENERATION_ATTEMPTS} attempts: ${lastError?.message ?? "unknown error"}`,
         );
     }
 
     return {
         async generateReport(
             range: ReleaseRange,
-        ): Promise<ReleaseThreadReport> {
+        ): Promise<ReleasePostReport> {
             const session = await opencode.client.session.create({
                 permission: READ_ONLY_PERMISSIONS,
             });
@@ -333,7 +344,7 @@ export async function createThreadGenerator(
                     "OpenCode session creation returned no session ID",
                 );
 
-            const tweets = await generateTweets(sessionID, range);
+            const post = await generatePost(sessionID, range);
 
             return {
                 kind: range.kind,
@@ -345,7 +356,7 @@ export async function createThreadGenerator(
                 toLabel: range.toLabel,
                 draft: range.release?.draft ?? false,
                 model: MODEL,
-                tweets,
+                post,
             };
         },
         async close() {

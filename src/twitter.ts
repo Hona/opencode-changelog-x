@@ -9,6 +9,42 @@ type PostThreadOptions = {
   onProgress?: (tweetIds: string[]) => Promise<void> | void
 }
 
+type PostMessageOptions = {
+  existingTweetIds?: string[]
+  onProgress?: (tweetIds: string[]) => Promise<void> | void
+}
+
+function createTwitterClient(config: AppConfig) {
+  return new TwitterApi({
+    appKey: config.twitter!.appKey,
+    appSecret: config.twitter!.appSecret,
+    accessToken: config.twitter!.accessToken,
+    accessSecret: config.twitter!.accessSecret,
+  })
+}
+
+export async function postMessage(post: string, config: AppConfig, options: PostMessageOptions = {}) {
+  if (config.dryRun || !config.twitter) {
+    console.log("DRY RUN: post preview")
+    console.log(`\n${post}`)
+    return []
+  }
+
+  const tweetIds = [...(options.existingTweetIds ?? [])]
+  if (tweetIds.length > 0) {
+    return tweetIds.slice(0, 1)
+  }
+
+  const client = createTwitterClient(config)
+  const response = await client.v2.tweet({
+    text: post,
+  })
+  const nextTweetIds = [response.data.id]
+
+  await options.onProgress?.(nextTweetIds)
+  return nextTweetIds
+}
+
 export async function postThread(tweets: string[], config: AppConfig, options: PostThreadOptions = {}) {
   if (config.dryRun || !config.twitter) {
     console.log("DRY RUN: thread preview")
@@ -18,12 +54,7 @@ export async function postThread(tweets: string[], config: AppConfig, options: P
     return []
   }
 
-  const client = new TwitterApi({
-    appKey: config.twitter.appKey,
-    appSecret: config.twitter.appSecret,
-    accessToken: config.twitter.accessToken,
-    accessSecret: config.twitter.accessSecret,
-  })
+  const client = createTwitterClient(config)
 
   const tweetIds = [...(options.existingTweetIds ?? [])]
   let replyTo = tweetIds.at(-1)

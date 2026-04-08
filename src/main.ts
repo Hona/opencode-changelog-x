@@ -1,6 +1,6 @@
 import { readConfig } from "./config.js"
-import { MODEL, THREAD_MAX_TWEETS } from "./constants.js"
-import { createThreadGenerator } from "./generate.js"
+import { MODEL, POST_MAX_LENGTH, THREAD_MAX_TWEETS } from "./constants.js"
+import { createPostGenerator } from "./generate.js"
 import { getReleaseByTag, listReleases } from "./github.js"
 import {
   getLatestPostedRelease,
@@ -13,9 +13,9 @@ import {
   recordPostingProgress,
   saveState,
 } from "./state.js"
-import { postThread } from "./twitter.js"
+import { postMessage, postThread } from "./twitter.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
-import { getWeightedLength, validateThread } from "./validate.js"
+import { getCharacterLength, getWeightedLength, validatePost, validateThread } from "./validate.js"
 
 function releaseTimestamp(release: { publishedAt: string | null; createdAt: string }) {
   return release.publishedAt ?? release.createdAt
@@ -62,7 +62,7 @@ async function main() {
   console.log(`Using upstream repo at ${checkout.directory}`)
 
   try {
-    const generator = await createThreadGenerator(config, checkout.directory)
+    const generator = await createPostGenerator(config, checkout.directory)
 
     try {
       let nextState = state
@@ -73,39 +73,107 @@ async function main() {
         console.log(`Tag range: ${range.fromTag ?? "<none>"} -> ${range.toLabel}`)
 
         const savedRelease = getSavedRelease(nextState, release)
-        const report =
-          !config.dryRun && savedRelease && !isFinishedPostedRelease(savedRelease) && savedRelease.tweetIds.length > 0
-            ? {
-                kind: "release" as const,
-                tag: release.tag,
-                releaseUrl: release.url,
-                compareUrl: range.compareUrl,
-                fromTag: range.fromTag,
-                toTag: range.toTag,
-                toLabel: range.toLabel,
-                draft: release.draft,
-                model: MODEL,
-                tweets: savedRelease.tweets,
-              }
-            : await generator.generateReport(range)
+        const savedLegacyThread = !config.dryRun && savedRelease && !isFinishedPostedRelease(savedRelease) && savedRelease.tweets.length > 1
+          ? savedRelease
+          : null
+        const savedPost = !config.dryRun && savedRelease && !isFinishedPostedRelease(savedRelease) && savedRelease.tweets.length === 1
+          ? savedRelease
+          : null
+
+        if (savedLegacyThread) {
+          console.log(`Resuming saved legacy thread with ${savedLegacyThread.tweets.length} tweet(s).`)
+
+          const validationErrors = validateThread(savedLegacyThread.tweets, THREAD_MAX_TWEETS)
+          if (validationErrors.length > 0) {
+            throw new Error(`Saved legacy thread for ${release.tag} is invalid`)
+          }
+
+          for (const [index, tweet] of savedLegacyThread.tweets.entries()) {
+            console.log(`legacy tweet ${index + 1}: ${getWeightedLength(tweet)}/280`)
+          }
+
+          let latestTweetIds = savedLegacyThread.tweetIds
+
+          if (!config.dryRun) {
+            nextState = recordPostingProgress(nextState, {
+              release,
+              tweets: savedLegacyThread.tweets,
+              tweetIds: savedLegacyThread.tweetIds,
+            })
+            await saveState(config.stateFile, nextState)
+          }
+
+          let tweetIds: string[]
+          try {
+            tweetIds = await postThread(savedLegacyThread.tweets, config, {
+              existingTweetIds: savedLegacyThread.tweetIds,
+              onProgress: async (partialTweetIds) => {
+                latestTweetIds = partialTweetIds
+
+                if (config.dryRun) return
+
+                nextState = recordPostingProgress(nextState, {
+                  release,
+                  tweets: savedLegacyThread.tweets,
+                  tweetIds: partialTweetIds,
+                })
+                await saveState(config.stateFile, nextState)
+              },
+            })
+          } catch (error) {
+            if (!config.dryRun) {
+              const errorMessage = toErrorMessage(error)
+              console.error(`Marking ${release.tag} as errored after ${latestTweetIds.length}/${savedLegacyThread.tweets.length} post(s).`)
+              nextState = recordErroredRelease(nextState, release, savedLegacyThread.tweets, latestTweetIds, errorMessage)
+              await saveState(config.stateFile, nextState)
+            }
+
+            throw error
+          }
+
+          if (!config.dryRun) {
+            nextState = recordPostedRelease(nextState, release, savedLegacyThread.tweets, tweetIds)
+            await saveState(config.stateFile, nextState)
+          }
+
+          continue
+        }
+
+        const savedPostText = savedPost?.tweets[0]
+        if (savedPost && !savedPostText) {
+          throw new Error(`Saved post for ${release.tag} is empty`)
+        }
+
+        const report = savedPostText
+          ? {
+              kind: range.kind,
+              tag: release.tag,
+              releaseUrl: release.url,
+              compareUrl: range.compareUrl,
+              fromTag: range.fromTag,
+              toTag: range.toTag,
+              toLabel: range.toLabel,
+              draft: release.draft,
+              model: MODEL,
+              post: savedPostText,
+            }
+          : await generator.generateReport(range)
         console.log(JSON.stringify(report, null, 2))
 
-        const validationErrors = validateThread(report.tweets, THREAD_MAX_TWEETS)
+        const validationErrors = validatePost(report.post, POST_MAX_LENGTH)
         if (validationErrors.length > 0) {
-          throw new Error(`Generated thread for ${release.tag} is invalid`)
+          throw new Error(`Generated post for ${release.tag} is invalid: ${validationErrors.join("; ")}`)
         }
 
-        for (const [index, tweet] of report.tweets.entries()) {
-          console.log(`tweet ${index + 1}: ${getWeightedLength(tweet)}/280`)
-        }
+        console.log(`post: ${getCharacterLength(report.post)}/${POST_MAX_LENGTH}`)
 
-        const existingTweetIds = !config.dryRun && savedRelease && !isFinishedPostedRelease(savedRelease) ? savedRelease.tweetIds : []
+        const existingTweetIds = savedPost ? savedPost.tweetIds.slice(0, 1) : []
         let latestTweetIds = existingTweetIds
 
         if (!config.dryRun) {
           nextState = recordPostingProgress(nextState, {
             release,
-            tweets: report.tweets,
+            tweets: [report.post],
             tweetIds: existingTweetIds,
           })
           await saveState(config.stateFile, nextState)
@@ -113,7 +181,7 @@ async function main() {
 
         let tweetIds: string[]
         try {
-          tweetIds = await postThread(report.tweets, config, {
+          tweetIds = await postMessage(report.post, config, {
             existingTweetIds,
             onProgress: async (partialTweetIds) => {
               latestTweetIds = partialTweetIds
@@ -122,7 +190,7 @@ async function main() {
 
               nextState = recordPostingProgress(nextState, {
                 release,
-                tweets: report.tweets,
+                tweets: [report.post],
                 tweetIds: partialTweetIds,
               })
               await saveState(config.stateFile, nextState)
@@ -131,8 +199,8 @@ async function main() {
         } catch (error) {
           if (!config.dryRun) {
             const errorMessage = toErrorMessage(error)
-            console.error(`Marking ${release.tag} as errored after ${latestTweetIds.length}/${report.tweets.length} post(s).`)
-            nextState = recordErroredRelease(nextState, release, report.tweets, latestTweetIds, errorMessage)
+            console.error(`Marking ${release.tag} as errored after ${latestTweetIds.length}/1 post(s).`)
+            nextState = recordErroredRelease(nextState, release, [report.post], latestTweetIds, errorMessage)
             await saveState(config.stateFile, nextState)
           }
 
@@ -140,7 +208,7 @@ async function main() {
         }
 
         if (!config.dryRun) {
-          nextState = recordPostedRelease(nextState, release, report.tweets, tweetIds)
+          nextState = recordPostedRelease(nextState, release, [report.post], tweetIds)
           await saveState(config.stateFile, nextState)
         }
       }

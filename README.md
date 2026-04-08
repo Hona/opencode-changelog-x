@@ -1,6 +1,6 @@
 # OpenCode Changelog X Bot
 
-Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each unseen release, lets OpenCode inspect the actual code diff, validates the tweets, posts them, and records which releases were already handled.
+Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each unseen release, lets OpenCode inspect the actual code diff, validates the generated X post, publishes it, and records which releases were already handled.
 
 ## Stack
 
@@ -14,7 +14,7 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 ## Hardcoded Model
 
 - provider: `opencode`
-- model: `gpt-5.4`
+- model: `gemini-3.1-pro`
 - variant: `high`
 
 ## How It Works
@@ -24,8 +24,8 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 3. Resolve the previous tag for each release and compute the compare range.
 4. Feed that tag range into OpenCode and let it inspect the repository with read-only tools.
 5. Print the generated report JSON.
-6. Validate every generated tweet against X's weighted character rules.
-7. Post the thread when not in dry-run mode.
+6. Validate the generated post against X Premium long-post limits.
+7. Post the single X message when not in dry-run mode.
 8. Persist posted release metadata back to `data/posted-releases.json`.
 
 ## Discord Preview Bot
@@ -34,8 +34,8 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 - Listens only in the hardcoded channel `1472697640880701523`.
 - Waits for the exact command `!previewchangelog`.
 - Uses the latest GitHub release tag as the baseline.
-- Generates a preview thread for commits after that release up to the current upstream `HEAD`.
-- Creates a Discord thread on the command message and posts one embed per generated tweet.
+- Generates a preview post for commits after that release up to the current upstream `HEAD`.
+- Creates a Discord thread on the command message and posts the generated post as one or more embeds if needed for Discord limits.
 
 This is intended to be deployed separately from the Twitter release cron. A typical setup is:
 

@@ -9,14 +9,15 @@ import {
   type Message,
 } from "discord.js"
 import { readDiscordConfig, type DiscordConfig } from "./config.js"
-import { createThreadGenerator } from "./generate.js"
+import { createPostGenerator } from "./generate.js"
 import { getLatestRelease } from "./github.js"
 import { getLatestPostedRelease, loadState } from "./state.js"
-import type { ReleaseThreadReport } from "./types.js"
+import type { ReleasePostReport } from "./types.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 
 const PREVIEW_COMMAND = "!previewchangelog"
 const PREVIEW_EMBED_COLOR = 0x5865f2
+const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
@@ -34,15 +35,46 @@ function buildInfoEmbed(title: string, description: string) {
     .setDescription(description)
 }
 
-function buildTweetEmbed(report: ReleaseThreadReport, tweet: string, index: number) {
-  return new EmbedBuilder()
-    .setColor(PREVIEW_EMBED_COLOR)
-    .setTitle(`Preview ${index + 1}/${report.tweets.length}`)
-    .setDescription(tweet)
-    .setURL(report.compareUrl)
-    .setFooter({
-      text: report.fromTag ? `${report.fromTag} -> ${report.toLabel}` : report.toLabel,
-    })
+function splitPreviewText(text: string, maxLength: number) {
+  const chunks: string[] = []
+  let remaining = text.replace(/\r/g, "").trim()
+
+  while (remaining.length > maxLength) {
+    let splitIndex = remaining.lastIndexOf("\n\n", maxLength)
+    if (splitIndex < Math.floor(maxLength / 2)) {
+      splitIndex = remaining.lastIndexOf("\n", maxLength)
+    }
+    if (splitIndex < Math.floor(maxLength / 2)) {
+      splitIndex = remaining.lastIndexOf(" ", maxLength)
+    }
+    if (splitIndex <= 0) {
+      splitIndex = maxLength
+    }
+
+    chunks.push(remaining.slice(0, splitIndex).trim())
+    remaining = remaining.slice(splitIndex).trim()
+  }
+
+  if (remaining) {
+    chunks.push(remaining)
+  }
+
+  return chunks.length > 0 ? chunks : [text]
+}
+
+function buildPostEmbeds(report: ReleasePostReport) {
+  const chunks = splitPreviewText(report.post, DISCORD_EMBED_DESCRIPTION_LIMIT)
+
+  return chunks.map((chunk, index) =>
+    new EmbedBuilder()
+      .setColor(PREVIEW_EMBED_COLOR)
+      .setTitle(chunks.length === 1 ? "Preview" : `Preview ${index + 1}/${chunks.length}`)
+      .setDescription(chunk)
+      .setURL(report.compareUrl)
+      .setFooter({
+        text: report.fromTag ? `${report.fromTag} -> ${report.toLabel}` : report.toLabel,
+      }),
+  )
 }
 
 type ThreadSender = {
@@ -137,13 +169,13 @@ async function generatePreview(message: Message<true>, config: DiscordConfig) {
     await thread.setName(buildThreadName(range.fromTag))
     console.log(`Starting preview for ${message.author.tag}: ${range.fromTag ?? "<none>"} -> ${range.toLabel}`)
 
-    const generator = await createThreadGenerator(config, checkout.directory)
+    const generator = await createPostGenerator(config, checkout.directory)
 
     try {
       const report = await generator.generateReport(range)
 
-      for (const [index, tweet] of report.tweets.entries()) {
-        await sendThreadEmbed(thread, buildTweetEmbed(report, tweet, index))
+      for (const embed of buildPostEmbeds(report)) {
+        await sendThreadEmbed(thread, embed)
       }
 
       console.log(`Preview posted for ${message.author.tag}: ${report.fromTag ?? "<none>"} -> ${report.toLabel}`)
