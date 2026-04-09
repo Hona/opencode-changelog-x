@@ -161,6 +161,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-08T00:44:49.703Z"
+    },
+    {
+      "releaseId": 306916867,
+      "tag": "v1.4.1",
+      "name": "v1.4.1",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.1",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-09T07:12:43Z",
+      "tweets": [
+        "OpenCode v1.4.1 released. TL;DR: GitLab DWS tool approval integration • CLI removed from Electron app • LSP and UI rendering fixes.\n\nCapabilities & Integrations\n• Integrates GitLab DWS tool approval directly with the internal permission system.\n• Introduces an OpenCode Go upsell modal that triggers when usage limits are reached.\n\nDesktop & Platform\n• Removes the bundled CLI from the Electron application build.\n• Skips redundant URL password configuration when the server and web app share the same origin.\n• Ensures `/providers` and `/shell` endpoints are correctly typed in the SDK and OpenAPI schemas.\n\nTooling & Engine\n• Removes `CMakeLists.txt` and `Makefile` from clangd root markers, improving C/C++ workspace resolution in the LSP.\n• Propagates abort signals to the inline read tool for proper cancellation handling.\n• Refines model configuration by cleanly separating development model schemas from runtime config schemas.\n• Refactors the Effect-based engine to build the task tool directly from agent services and inlines session processor interrupt cleanup.\n\nUI & Rendering\n• Fixes sticky session diff headers and normalizes diff list displays in the app.\n• Corrects patch tool diff rendering.\n• Simplifies the organization display in the TUI console.\n• Hides invalid model variants from the provider selection.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.0...v1.4.1"
+      ],
+      "tweetIds": [
+        "2042139506585882719"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-09T07:16:14.260Z"
     }
   ]
 }
