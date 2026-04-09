@@ -178,6 +178,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-09T07:16:14.260Z"
+    },
+    {
+      "releaseId": 307152928,
+      "tag": "v1.4.2",
+      "name": "v1.4.2",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.2",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-09T16:25:08Z",
+      "tweets": [
+        "OpenCode v1.4.2 released. TL;DR: Preserves partial output for interrupted bash commands • Fixes concurrent tool call state tracking • Removes artificial app loading delays\n\nTool Execution & Protocol\n• Interrupted bash commands now preserve their partial output and forward it to the model instead of dropping the context\n• Ensures pending tool calls always return a result when aborted, preventing dangling tool_use blocks that fail strict Anthropic/Claude APIs\n• Fixes state desyncs during rapid generation by cleanly re-fetching tool call state from storage\n• Refactors internal task execution to drop AbortSignal in favor of direct fiber interruption for cleaner cancellation\n• Fixes an initialization crash with session-scoped pre-approved tools in GitLab workflows\n\nApp & Telemetry\n• Removes an artificial 1.2s minimum loading duration during connection health checks, speeding up app startup\n• Preserves accurate text stream start times to reliably track time-to-first-token metrics\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.1...v1.4.2"
+      ],
+      "tweetIds": [
+        "2042285421174919204"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-09T16:56:03.052Z"
     }
   ]
 }
