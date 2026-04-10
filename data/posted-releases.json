@@ -195,6 +195,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-09T16:56:03.052Z"
+    },
+    {
+      "releaseId": 307311950,
+      "tag": "v1.4.3",
+      "name": "v1.4.3",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.3",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-10T01:00:36Z",
+      "tweets": [
+        "OpenCode v1.4.3 released. TL;DR: fast mode model variants • custom MCP OAuth redirect URIs • graceful tool interruption handling.\n\nModels & Providers\n• Introduces \"fast modes\" for supported Claude and GPT models, dynamically generating model variants that inject custom provider options and cost overrides while preserving base model capabilities and context limits.\n• Fixes `agent create` failures during OpenAI OAuth sessions by gracefully remapping system instructions into provider-specific options.\n\nMCP & Tooling\n• Adds configurable `redirectUri` support for MCP server OAuth. The local callback server now parses the custom URI and dynamically binds to the correct port to unblock strict dynamic client registration flows.\n• Hardens tool interruption handling. Canceled loops now allow running tools (like background `bash` processes) to cleanly truncate and finalize their output via normal completion paths, preserving execution metadata.\n\nArchitecture & TUI\n• Extracts session execution tracking and concurrency locks from the prompt engine into a standalone `SessionRunState` effect service.\n• Restores the default hidden scrollbar preference in the TUI session view.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.2...v1.4.3"
+      ],
+      "tweetIds": [
+        "2042415474164507102"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-10T01:32:50.077Z"
     }
   ]
 }
