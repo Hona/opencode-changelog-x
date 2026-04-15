@@ -212,6 +212,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-10T01:32:50.077Z"
+    },
+    {
+      "releaseId": 309093147,
+      "tag": "v1.4.4",
+      "name": "v1.4.4",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.4",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-15T00:04:10Z",
+      "tweets": [
+        "OpenCode v1.4.4 released. TL;DR: Effect architecture migration • Embedded WASM Ripgrep • PII redaction for exports • Alibaba Cloud support\n\n• Core Architecture\nReplaced global async runtime facades with Effect, unifying service injection, contextual logging, and improving composability across core subsystems. Swapped the external Ripgrep binary backend for an embedded WASM version, improving platform portability and shrinking the standalone executable size.\n\n• Providers\nAdded Alibaba Cloud Model Studio provider package and cache support. Upgraded GitHub Copilot to use the new messages API when available. Guarded reasoningSummary injection for @ai-sdk/openai-compatible proxies (e.g. LiteLLM) to prevent API rejection.\n\n• Tools & Capabilities\nAdded a --sanitize flag to opencode export to strip PII and confidential information before sharing session transcripts. Exposed workspace adaptors to plugins, allowing custom workspace strategies. Added experimental.compaction.autocontinue plugin hook to disable the synthetic auto-continue prompt after compaction.\n\n• UI & TUI\nAdded an interactive burst animation to the TUI logo and fixed contrast for diff line numbers across built-in themes.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.3...v1.4.4"
+      ],
+      "tweetIds": [
+        "2044217880271536617"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-15T00:54:57.205Z"
     }
   ]
 }
