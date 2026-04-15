@@ -246,6 +246,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-15T05:59:36.702Z"
+    },
+    {
+      "releaseId": 309189075,
+      "tag": "v1.4.6",
+      "name": "v1.4.6",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.6",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-15T07:26:50Z",
+      "tweets": [
+        "OpenCode v1.4.6 released. TL;DR: Git snapshot scaling improvements • Expanded OpenCode Go models • Observability and UI state fixes\n\nCore & Snapshot\n• Re-architected Git snapshot staging to stream pathspecs over stdin, resolving ENAMETOOLONG crashes on massive workspaces.\n• Scopes ignore and add operations strictly to candidate sets, significantly improving performance for large active file trees.\n\nOpenCode Go & Models\n• Added new models to the Go tier: Qwen3.5 & Qwen3.6 Plus, GLM-5 & GLM-5.1, Kimi K2.5, MiMo-V2-Pro & Omni, and MiniMax M2.5 & M2.7.\n• Updated provider limits and workspace UI to surface the new backend targets (Alibaba Cloud, DeepInfra, Z.ai, Xiaomi, Moonshot, MiniMax).\n\nUI & Observability\n• Fixed OpenTelemetry exporter parsing to correctly handle OTEL headers containing '=' characters, ensuring support for Base64 auth tokens.\n• Batched signal updates in the prompt submission flow to eliminate UI state tearing during draft execution.\n• Prevented tooltip re-trigger loops when clicking active anchor elements.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.5...v1.4.6"
+      ],
+      "tweetIds": [
+        "2044329933950816319"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-15T08:20:12.828Z"
     }
   ]
 }
