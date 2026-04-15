@@ -229,6 +229,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-15T00:54:57.205Z"
+    },
+    {
+      "releaseId": 309143627,
+      "tag": "v1.4.5",
+      "name": "v1.4.5",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.5",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-15T04:25:45Z",
+      "tweets": [
+        "OpenCode v1.4.5 released. TL;DR: Parallelized core service bootstrap | Fixed macOS desktop shell paths | Extracted agent questioning API schemas | Added OpenTelemetry AI SDK tracing\n\nCore & Architecture\n• Parallelized the instance bootstrap phase (LSP, VCS, formatting, and file services) to significantly reduce startup time while ensuring strict plugin initialization order.\n• Extracted the Question request/reply HTTP API schemas and handler factory into the @opencode-ai/server package, standardizing the agent-to-user prompting contract.\n• Integrated @effect/opentelemetry to export native AI SDK trace spans for better model request observability.\n\nDesktop & App\n• Fixed macOS Tauri shell execution and ripgrep failures by correctly routing the default working directory from root (/) to the user's home directory.\n• Suppressed noisy app-level bootstrap error popups during the initial global sync process.\n• Pinned console asset downloads to the stable v1.4.3 build to prevent fetching potentially unstable edge releases.\n\nCloud & Infrastructure\n• Introduced an interval-based rate limiter for API key traffic against the Zen proxy, isolating anonymous IP constraints from registered key limits.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.4...v1.4.5"
+      ],
+      "tweetIds": [
+        "2044294550076682509"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-15T05:59:36.702Z"
     }
   ]
 }
