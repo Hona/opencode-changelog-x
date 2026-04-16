@@ -263,6 +263,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-15T08:20:12.828Z"
+    },
+    {
+      "releaseId": 310066008,
+      "tag": "v1.4.7",
+      "name": "v1.4.7",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.7",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-16T21:55:19Z",
+      "tweets": [
+        "OpenCode v1.4.7 released. TL;DR: Claude Opus 4.7 with xhigh reasoning • Non-blocking git initialization • Flat exports refactor\n\nModels & Providers\n• Added Claude Opus 4.7 support across Anthropic, Bedrock, Vertex, SAP, and Gateway providers.\n• Enabled the new xhigh adaptive reasoning effort for Opus 4.7, defaulting to summarized thinking display.\n• Dropped max_tokens for OpenAI reasoning models on Cloudflare AI Gateway to fix completion bounds.\n• Scaled down GitHub Copilot gpt-5 reasoning effort to low by default.\n• Ensured Azure provider models default to store = true.\n\nCore Architecture\n• Migrated internal namespaces to flat exports to resolve circular dependencies and improve tree-shaking.\n• Made VCS initialization non-blocking by forking git branch resolution to a background scope.\n• Eagerly loaded configuration during bootstrap for better initialization tracing.\n• Improved Npm installation errors to explicitly surface the target directory and failed packages.\n• Fixed TUI plugin resolution to use the correct project context when multiple workspace directories are open.\n\nApp & Sync\n• Began migrating the desktop app's bootstrap data fetching to TanStack Query.\n• Added a Beta badge and fixed download asset names for the desktop beta channel.\n• Restored .gitignore scaffolding in configuration directories to prevent committing local dependencies.\n• Passed authentication data directly to workspace creation flows for experimental workspaces.\n\nCompare: https://github.com/anomalyco/opencode/compare/github-v1.2.22...v1.4.7"
+      ],
+      "tweetIds": [
+        "2044904225671458859"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-16T22:22:14.656Z"
     }
   ]
 }
