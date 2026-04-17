@@ -280,6 +280,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-16T22:22:14.656Z"
+    },
+    {
+      "releaseId": 310357361,
+      "tag": "v1.4.8",
+      "name": "v1.4.8",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.8",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-17T13:37:31Z",
+      "tweets": [
+        "OpenCode v1.4.8 released. TL;DR: config system migrated to Effect • massive TS namespace unwrapping • TUI & Windows keybinding fixes • UI stability & animation improvements\n\n**Core & Architecture**\n• Migrated the core config loading subsystem to the Effect framework to improve parsing concurrency and reliability.\n• Executed a massive codebase refactor unwrapping internal TypeScript namespaces in favor of standard ES module self-reexports, improving tree-shaking and module boundaries.\n• Refactored server routing (moving project, config, and provider routes to HttpApi) to clarify workspace responsibilities.\n• Opt-in config schemas: LSP and formatter configurations are now explicitly opt-in rather than default.\n• Sped up skill directory discovery during initialization.\n\n**App & UI**\n• Added a new setting to hide desktop titlebar tools, allowing for a cleaner UI footprint.\n• Fixed a prompt state issue where input was lost across unmount/remount cycles in the application UI.\n• Refined the workspace loading path to properly persist ready state and migrated global sync to use TanStack Query for better cache coherency.\n• Prompt metadata transitions now fade in smoothly.\n\n**Terminal UI (TUI)**\n• Fixed native terminal suspend on Windows: POSIX suspend (ctrl+z) is unsupported, so it's now cleanly mapped to input undo to avoid conflicts.\n• Enhanced resiliency when the local workspace daemon dies; disabled the directory filter in the session list to ensure sessions remain accessible.\n• Added an animated GO logo and a radial pulse shimmer effect to the free-limit upsell dialog.\n• Stabilized the ordering of TUI session dialogs to prevent flickering.\n• Improved file diff reverting by preferring real undo filenames over /dev/null.\n\n**Providers & Plugins**\n• Azure Provider: Ensured the prompt cache key is set by default when communicating with Azure endpoints.\n• Plugin System: Tool metadata is now properly preserved in tool execution results.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.7...v1.4.8"
+      ],
+      "tweetIds": [
+        "2045139536750018793"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-17T13:57:17.188Z"
     }
   ]
 }
