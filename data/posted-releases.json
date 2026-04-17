@@ -297,6 +297,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-17T13:57:17.188Z"
+    },
+    {
+      "releaseId": 310434071,
+      "tag": "v1.4.9",
+      "name": "v1.4.9",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.9",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-17T16:20:14Z",
+      "tweets": [
+        "OpenCode v1.4.9 released. TL;DR: LLM Gateway provider support • Exponential backoff for workspace reconnects • TPM rate limiting in Zen routing • TUI & Desktop UI fixes.\n\nProviders & Zen Proxy\n• Adds the LLM Gateway provider to the core SDK and standardizes its usage accounting alongside OpenRouter.\n• Implements TPM (Tokens Per Minute) tracking and limit enforcement in the Zen proxy router, dynamically filtering failover targets based on usage.\n• Restricts reasoning effort to \"medium\" for GitHub Copilot's opus-4.7 model variants.\n\nCore & Workspace\n• Replaces flat 1-second polling with an exponential backoff strategy (up to 2 minutes) for global workspace sync SSE reconnects.\n\nUI & TUI\n• Fixes TUI session resumption when using the --session-id flag by deferring navigation until after router initialization.\n• Restricts default file tree visibility on desktop builds strictly to the beta release channel.\n• Fixes incorrect light mode rendering in the Ghostty terminal emulator.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.8...v1.4.9"
+      ],
+      "tweetIds": [
+        "2045195060224905682"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-17T17:37:55.013Z"
     }
   ]
 }
