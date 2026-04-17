@@ -314,6 +314,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-17T17:37:55.013Z"
+    },
+    {
+      "releaseId": 310528439,
+      "tag": "v1.4.10",
+      "name": "v1.4.10",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.10",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-17T20:13:50Z",
+      "tweets": [
+        "OpenCode v1.4.10 released. TL;DR: Historical workspace sync • TUI workspace enhancements • Exa websearch rate limit fix\n\nCore & Observability\n• Adds historical synchronization when connecting to a workspace\n• Moves instance middleware to execute after control plane routes for correct routing priority\n• Normalizes provider metadata and tags OpenTelemetry runs\n• Passes OpenTelemetry configuration to the workspace environment\n• Untraces streaming event hot paths to improve performance and adds tracing for flock acquisition\n\nTUI\n• Improves workspace UX with a new unavailable dialog and sidebar updates\n• Fixes agent cycling and polishes prompt metadata\n\nProviders & Tooling\n• Passes `EXA_API_KEY` to the `websearch` tool to prevent rate limiting\n• Updates `@ai-sdk/anthropic` to 3.0.71, `gitlab-ai-provider` to 6.6.0, and core `ai` dependencies\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.9...v1.4.10"
+      ],
+      "tweetIds": [
+        "2045238907638337866"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-17T20:32:09.074Z"
     }
   ]
 }
