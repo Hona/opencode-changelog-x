@@ -331,6 +331,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-17T20:32:09.074Z"
+    },
+    {
+      "releaseId": 310551510,
+      "tag": "v1.4.11",
+      "name": "v1.4.11",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.4.11",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-18T00:29:42Z",
+      "tweets": [
+        "OpenCode v1.4.11 released. TL;DR: Config system ported to Effect Schema • Comprehensive tracing for all server routes • Copilot disabled-models fix • Share sync optimization\n\nArchitecture & Configuration\n• Migrated internal configuration schemas (LSP, MCP, plugins, skills, formatting, permissions) from Zod to Effect Schema for improved type safety and runtime validation.\n• Enhanced the effect-zod adapter with tuple support and translations of Effect Schema.check filters into Zod superRefine rules.\n• Refactored the internal NPM install API to use object-based package specifications for robust version resolution.\n\nServer & Telemetry\n• Wrapped remaining HTTP API handlers (files, sessions, providers, pty, mcp) with dedicated request wrappers, emitting accurate spans for comprehensive observability.\n• Fixed a control-plane routing bug to ensure experimental workspace endpoints properly pass through the instance middleware.\n\nProviders & Sync\n• GitHub Copilot: The provider now respects policy states, explicitly filtering out models disabled by organization administrators.\n• Sharing: Fixed a bug where local, unshared sessions unnecessarily queued data and attempted network syncs. Added a local cache to efficiently skip these attempts.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.10...v1.4.11"
+      ],
+      "tweetIds": [
+        "2045303632849985793"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-18T00:49:20.746Z"
     }
   ]
 }
