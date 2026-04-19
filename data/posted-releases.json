@@ -365,6 +365,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-19T03:58:59.592Z"
+    },
+    {
+      "releaseId": 310839951,
+      "tag": "v1.14.18",
+      "name": "v1.14.18",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.18",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-19T09:36:58Z",
+      "tweets": [
+        "OpenCode v1.14.18 released. TL;DR: Zen Mode for credit-only users • Native ripgrep backend restored • Full-session TUI forks • Major Effect Schema config migration\n\nCore & Providers\n• Zen Mode now permits access for users with available credits but no payment method.\n• Restored the native `rg` (ripgrep) backend, removing the worker-based implementation for better performance and reliability.\n• Attachments now robustly detect MIME types directly from file contents rather than relying solely on file extensions.\n• Reduced token usage in the core Skills evaluation logic via prompt optimizations.\n• Fixed the GitHub Copilot provider rejecting Claude Haiku by omitting the unsupported `eager_input_streaming` flag.\n• Amazon Bedrock tool payloads now default to `display: summarized`.\n\nTUI & Desktop\n• The TUI session dialog now allows complete, full-session forks directly from the timeline.\n• Non-production TUI channels now expose the active session ID directly in the sidebar.\n• Desktop startup reliability is improved by enforcing JSON migrations to complete before spawning the core sidecar.\n• Resolved a bug routing to incorrect config directories on Desktop by lazily loading `electron-store`.\n\nArchitecture & Observability\n• Migrated the entire core configuration layer (agent, permissions, providers, keybinds, server) from Zod to Effect Schema.\n• Expanded `effect-zod` interop capabilities with `ZodPreprocess`, native transforms, `withDecodingDefault`, and `StructWithRest` catch-all support.\n• Extracted session stepping logic into a dedicated module, isolating complex event-to-entry state machine conversions.\n• Assistant entries now capture detailed error context for retry attempts, exposing transient failures like rate limits or provider overloads directly to the user.\n• Extensively refactored core services (File, worktree, LSP) to leverage explicit `InstanceState` context injection over ambient reads.\n• Standardized OpenTelemetry attributes across the stack, added route parameter auto-tagging, and introduced support for custom `OTEL_RESOURCE_ATTRIBUTES`.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.11...v1.14.18"
+      ],
+      "tweetIds": [
+        "2045805744457715974"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-19T10:04:33.507Z"
     }
   ]
 }
