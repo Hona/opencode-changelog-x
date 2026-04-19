@@ -348,6 +348,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-18T00:49:20.746Z"
+    },
+    {
+      "releaseId": 310798000,
+      "tag": "v1.14.17",
+      "name": "v1.14.17",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.17",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-19T03:02:16Z",
+      "tweets": [
+        "OpenCode v1.14.17 released. TL;DR: Effect Schema config migration • Extracted session orchestration engine • TUI session timeline forks • Enhanced provider and media handling\n\n**Architecture & Core**\n• Migrated all primary configuration definitions (agent, config, keybinds, layout, permission, provider, server) to Effect Schema for stricter runtime validation.\n• Extracted session event reduction into a dedicated, Immer-backed stepper engine to deterministically track state transitions, tool execution flows, and retry contexts.\n• Refactored core services (file, format, worktree) to explicitly pass instance context, eliminating ambient state reads.\n• Optimized token efficiency for `skill` tool definitions during system prompt ingestion.\n\n**Providers & Tooling**\n• Hardened the `read` tool with byte-level MIME sniffing to reliably detect and attach image/PDF contents while preventing opaque binary reads.\n• Fixed GitHub Copilot plugin compatibility with Haiku models by stripping the unsupported `eager_input_streaming` tool parameter.\n• Ensured AWS Bedrock models default to summarized display modes.\n• Resolved package re-installation loops in plugin workflows by proactively validating local module targets.\n• Guaranteed correct Unix executable permissions inside unpacked tarballs for direct Docker execution.\n\n**TUI & Observability**\n• Enabled full-session forks directly from the timeline dialog for rapid branching from historical states.\n• Added native support for the `OTEL_RESOURCE_ATTRIBUTES` environment variable to automatically decode and attach custom OpenTelemetry labels.\n• Standardized telemetry structures by automatically tagging route spans with session and message IDs, aligning with OTel semantic conventions.\n• Fixed TUI boot sequences to accurately display sync loading states.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.11...v1.14.17"
+      ],
+      "tweetIds": [
+        "2045713747092652051"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-19T03:58:59.592Z"
     }
   ]
 }
