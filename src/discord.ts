@@ -267,18 +267,18 @@ function startReleasePollLoop() {
 }
 
 function formatTriggeredAlert(alert: WorkflowAlert): string {
-  return `\`${alert.actor}\` triggered release\n[View workflow run](${alert.url})`
+  return `\`${alert.actor}\` triggered release\n[View workflow run](<${alert.url}>)`
 }
 
 function formatCompletedAlert(alert: WorkflowAlert, tag: string | null): string {
   if (alert.success && tag) {
-    return `\`${alert.actor}\` triggered \`${tag}\` release\n[View workflow run](${alert.url})`
+    return `\`${alert.actor}\` triggered \`${tag}\` release\n[View workflow run](<${alert.url}>)`
   }
   if (alert.success) {
-    return `\`${alert.actor}\` triggered release — **published**\n[View workflow run](${alert.url})`
+    return `\`${alert.actor}\` triggered release — **published**\n[View workflow run](<${alert.url}>)`
   }
   const verb = alert.conclusion === "cancelled" ? "cancelled" : "failed"
-  return `\`${alert.actor}\` triggered release — **${verb}**\n[Open logs](${alert.url})`
+  return `\`${alert.actor}\` triggered release — **${verb}**\n[Open logs](<${alert.url}>)`
 }
 
 async function checkPublishWorkflows(
@@ -373,7 +373,7 @@ function formatBetaAge(ageMs: number): string {
 function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null): string {
   let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
   if (failureUrl) {
-    msg += `\n[Last failure](${failureUrl})`
+    msg += `\n[Last failure](<${failureUrl}>)`
   }
   return msg
 }
