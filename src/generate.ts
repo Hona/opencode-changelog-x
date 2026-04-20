@@ -207,9 +207,14 @@ JSON schema:
 Rules:
 - Produce exactly one X post.
 - Keep the total output within ${POST_MAX_LENGTH} characters.
-- Plain text only. No code fences.
+- Plain text only. No code fences. No markdown.
+- X/Twitter does NOT support markdown. **bold**, *italic*, __underline__ will render literally as asterisks/underscores.
+- For visual emphasis, use Unicode formatting characters instead:
+  • '•' (U+2022) for bullet points
+  • '▸' (U+25B8) for sub-bullets
+  • '𝗕𝗼𝗹𝗱' (Mathematical Bold, U+1D5D4 range) sparingly for section headers
+  • '─' (U+2500) as a section separator line if helpful
 - Line breaks are allowed.
-- Use the Unicode bullet character '•' (U+2022) for body points when helpful.
 - The post must start exactly with "${firstTweetPrefix}".
 - The first line should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
 - After the first line, include a compact body with grouped subsystem summaries.
@@ -263,10 +268,18 @@ type PromptBody = {
     }>;
 };
 
+type ModelConfig = {
+    providerID: string;
+    modelID: string;
+    variant: string;
+};
+
 export async function createPostGenerator(
     config: AppConfig,
     repoDir: string,
+    modelOverride?: ModelConfig,
 ) {
+    const activeModel = modelOverride ?? MODEL;
     const opencode = await startOpencode(repoDir);
 
     async function prompt(sessionID: string, text: string) {
@@ -274,10 +287,10 @@ export async function createPostGenerator(
             {
                 sessionID,
                 model: {
-                    providerID: MODEL.providerID,
-                    modelID: MODEL.modelID,
+                    providerID: activeModel.providerID,
+                    modelID: activeModel.modelID,
                 },
-                variant: MODEL.variant,
+                variant: activeModel.variant,
                 system: SYSTEM_PROMPT,
                 parts: [
                     {
@@ -355,7 +368,7 @@ export async function createPostGenerator(
                 toTag: range.toTag,
                 toLabel: range.toLabel,
                 draft: range.release?.draft ?? false,
-                model: MODEL,
+                model: activeModel,
                 post,
             };
         },

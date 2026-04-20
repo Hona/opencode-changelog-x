@@ -12,6 +12,7 @@ import {
   type Message,
 } from "discord.js"
 import { readDiscordConfig, type DiscordConfig } from "./config.js"
+import { PREVIEW_MODEL } from "./constants.js"
 import { createPostGenerator } from "./generate.js"
 import { getLatestRelease } from "./github.js"
 import { getLatestPostedRelease, loadState } from "./state.js"
@@ -192,7 +193,7 @@ async function generatePreview(message: Message<true>, config: DiscordConfig) {
     await thread.setName(buildThreadName(range.fromTag))
     console.log(`Starting preview for ${message.author.tag}: ${range.fromTag ?? "<none>"} -> ${range.toLabel}`)
 
-    const generator = await createPostGenerator(config, checkout.directory)
+    const generator = await createPostGenerator(config, checkout.directory, PREVIEW_MODEL)
 
     try {
       const report = await generator.generateReport(range)

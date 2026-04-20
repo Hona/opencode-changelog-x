@@ -37,9 +37,9 @@ export type ReleasePostReport = {
   toLabel: string
   draft: boolean
   model: {
-    providerID: "opencode"
-    modelID: "gemini-3.1-pro"
-    variant: "high"
+    providerID: string
+    modelID: string
+    variant: string
   }
   post: string
 }
