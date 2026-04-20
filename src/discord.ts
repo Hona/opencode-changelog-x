@@ -272,7 +272,8 @@ function formatCompletedAlert(alert: WorkflowAlert, tag: string | null): string 
   if (alert.success) {
     return `\`${alert.actor}\` triggered release — **published**\n[View workflow run](${alert.url})`
   }
-  return `\`${alert.actor}\` triggered release — **failed**\n[Open logs](${alert.url})`
+  const verb = alert.conclusion === "cancelled" ? "cancelled" : "failed"
+  return `\`${alert.actor}\` triggered release — **${verb}**\n[Open logs](${alert.url})`
 }
 
 async function checkPublishWorkflows(
