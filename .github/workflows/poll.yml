@@ -17,8 +17,6 @@ on:
         description: "Specific release tag to generate"
         required: false
         type: string
-  schedule:
-    - cron: "*/15 * * * *"
 
 concurrency:
   group: ${{ github.workflow }}

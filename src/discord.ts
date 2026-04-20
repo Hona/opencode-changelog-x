@@ -1,10 +1,13 @@
+import { exec } from "node:child_process"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
+import { promisify } from "node:util"
 import {
   Client,
   EmbedBuilder,
   Events,
   GatewayIntentBits,
+  TextChannel,
   ThreadAutoArchiveDuration,
   type Message,
 } from "discord.js"
@@ -14,10 +17,25 @@ import { getLatestRelease } from "./github.js"
 import { getLatestPostedRelease, loadState } from "./state.js"
 import type { ReleasePostReport } from "./types.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
+import {
+  fetchLatestReleaseTag,
+  fetchPublishWorkflowRuns,
+  getAllRunIds,
+  getCompletedRunIds,
+  getNewAlerts,
+  getNewlySeenRuns,
+  loadWorkflowState,
+  saveWorkflowState,
+  type WorkflowAlert,
+} from "./workflows.js"
+
+const execAsync = promisify(exec)
 
 const PREVIEW_COMMAND = "!previewchangelog"
 const PREVIEW_EMBED_COLOR = 0x5865f2
 const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096
+const RELEASE_POLL_INTERVAL_MS = 10 * 60 * 1000
+const WORKFLOW_POLL_INTERVAL_MS = 5 * 60 * 1000
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
@@ -197,7 +215,7 @@ async function handleMessage(message: Message, config: DiscordConfig, busy: { ac
   if (message.content.trim() !== PREVIEW_COMMAND) return
 
   if (busy.active) {
-    await message.reply("A changelog preview is already running in this bot process.")
+    await message.reply("Another operation is already running. Try again shortly.")
     return
   }
 
@@ -220,6 +238,126 @@ async function handleMessage(message: Message, config: DiscordConfig, busy: { ac
   }
 }
 
+type AlertChannel = {
+  send(content: string): Promise<{ id: string }>
+  editMessage(messageId: string, content: string): Promise<void>
+}
+
+async function dispatchReleasePoll() {
+  try {
+    await execAsync("gh workflow run poll.yml -f dry_run=false", { timeout: 30_000 })
+    console.log("Release poll dispatched.")
+  } catch (error) {
+    console.error(`Release poll dispatch failed: ${getErrorMessage(error)}`)
+  }
+}
+
+function startReleasePollLoop() {
+  async function tick() {
+    await dispatchReleasePoll()
+    setTimeout(tick, RELEASE_POLL_INTERVAL_MS)
+  }
+
+  setTimeout(tick, 30_000)
+}
+
+function formatTriggeredAlert(alert: WorkflowAlert): string {
+  return `\`${alert.actor}\` triggered release\n[View workflow run](${alert.url})`
+}
+
+function formatCompletedAlert(alert: WorkflowAlert, tag: string | null): string {
+  if (alert.success && tag) {
+    return `\`${alert.actor}\` triggered \`${tag}\` release\n[View workflow run](${alert.url})`
+  }
+  if (alert.success) {
+    return `\`${alert.actor}\` triggered release — **published**\n[View workflow run](${alert.url})`
+  }
+  return `\`${alert.actor}\` triggered release — **failed**\n[Open logs](${alert.url})`
+}
+
+async function checkPublishWorkflows(
+  config: DiscordConfig,
+  channel: AlertChannel,
+  pendingMessages: Map<number, string>,
+) {
+  const workflowStateFile = join(dirname(config.stateFile), "publish-workflow-state.json")
+
+  const [runs, state] = await Promise.all([
+    fetchPublishWorkflowRuns(config.githubOwner, config.githubRepo),
+    loadWorkflowState(workflowStateFile),
+  ])
+
+  if (state.seenRunIds.length === 0 && state.reportedRunIds.length === 0) {
+    const allIds = getAllRunIds(runs)
+    const completedIds = getCompletedRunIds(runs)
+    if (allIds.length > 0) {
+      console.log(`Seeding workflow state with ${allIds.length} existing run(s).`)
+      await saveWorkflowState(workflowStateFile, { seenRunIds: allIds, reportedRunIds: completedIds })
+      return
+    }
+  }
+
+  let dirty = false
+  let nextSeen = state.seenRunIds
+  let nextReported = state.reportedRunIds
+
+  const triggered = getNewlySeenRuns(runs, state)
+  for (const alert of triggered) {
+    const sent = await channel.send(formatTriggeredAlert(alert))
+    pendingMessages.set(alert.runId, sent.id)
+    console.log(`Posted triggered alert: run ${alert.runId} by ${alert.actor}`)
+  }
+  if (triggered.length > 0) {
+    nextSeen = [...nextSeen, ...triggered.map((a) => a.runId)].slice(-100)
+    dirty = true
+  }
+
+  const completed = getNewAlerts(runs, state)
+  for (const alert of completed) {
+    const tag = alert.success
+      ? await fetchLatestReleaseTag(config.githubOwner, config.githubRepo)
+      : null
+    const content = formatCompletedAlert(alert, tag)
+    const messageId = pendingMessages.get(alert.runId)
+
+    if (messageId) {
+      try {
+        await channel.editMessage(messageId, content)
+        pendingMessages.delete(alert.runId)
+      } catch {
+        await channel.send(content)
+      }
+    } else {
+      await channel.send(content)
+    }
+
+    console.log(`Posted completion alert: ${alert.conclusion} run ${alert.runId} by ${alert.actor}${tag ? ` (${tag})` : ""}`)
+  }
+  if (completed.length > 0) {
+    nextReported = [...nextReported, ...completed.map((a) => a.runId)].slice(-100)
+    dirty = true
+  }
+
+  if (dirty) {
+    await saveWorkflowState(workflowStateFile, { seenRunIds: nextSeen, reportedRunIds: nextReported })
+  }
+}
+
+function startWorkflowMonitorLoop(config: DiscordConfig, channel: AlertChannel) {
+  const pendingMessages = new Map<number, string>()
+
+  async function tick() {
+    try {
+      await checkPublishWorkflows(config, channel, pendingMessages)
+    } catch (error) {
+      console.error(`Workflow monitor error: ${getErrorMessage(error)}`)
+    }
+    setTimeout(tick, WORKFLOW_POLL_INTERVAL_MS)
+  }
+
+  setTimeout(tick, 5_000)
+}
+
 async function main() {
   const config = readDiscordConfig()
   const client = new Client({
@@ -231,8 +369,32 @@ async function main() {
   })
   const busy = { active: false }
 
-  client.once(Events.ClientReady, (readyClient) => {
+  client.once(Events.ClientReady, async (readyClient) => {
     console.log(`Discord preview bot ready as ${readyClient.user.tag}`)
+
+    startReleasePollLoop()
+
+    try {
+      const channel = await readyClient.channels.fetch(config.discordChannelId)
+      if (channel instanceof TextChannel) {
+        const alertChannel: AlertChannel = {
+          async send(content) {
+            const msg = await channel.send(content)
+            return { id: msg.id }
+          },
+          async editMessage(messageId, content) {
+            const msg = await channel.messages.fetch(messageId)
+            await msg.edit(content)
+          },
+        }
+        startWorkflowMonitorLoop(config, alertChannel)
+        console.log("Workflow monitor started.")
+      } else {
+        console.error(`Channel ${config.discordChannelId} not found or not a text channel, workflow monitoring disabled.`)
+      }
+    } catch (error) {
+      console.error(`Failed to fetch channel for workflow monitoring: ${getErrorMessage(error)}`)
+    }
   })
 
   client.on(Events.MessageCreate, (message) => {

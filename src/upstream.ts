@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process"
 import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { join } from "node:path"
 import type { AppConfig } from "./config.js"
 import type { GithubRelease, ReleaseRange } from "./types.js"
 
@@ -117,10 +117,6 @@ function createCheckout(directory: string, config: AppConfig, close: () => Promi
 }
 
 export async function prepareUpstreamCheckout(config: AppConfig): Promise<UpstreamCheckout> {
-  if (config.upstreamRepoDir) {
-    return createCheckout(resolve(config.upstreamRepoDir), config, async () => {})
-  }
-
   const root = await mkdtemp(join(tmpdir(), "opencode-changelog-x-"))
   const directory = join(root, "upstream")
   await run("git", ["clone", "--quiet", "--tags", config.upstreamCloneUrl, directory])

@@ -15,7 +15,6 @@ export type AppConfig = {
   githubToken?: string
   githubReleaseLimit: number
   githubProcessDrafts: boolean
-  upstreamRepoDir?: string
   upstreamCloneUrl: string
   opencodeTimeoutMs: number
   stateFile: string
@@ -91,7 +90,6 @@ function readSharedConfig(env: NodeJS.ProcessEnv): SharedConfig {
     githubToken: env.GITHUB_API_TOKEN?.trim() || env.GITHUB_TOKEN?.trim() || undefined,
     githubReleaseLimit: readPositiveInteger(env, "GITHUB_RELEASE_LIMIT", 20),
     githubProcessDrafts: readBoolean(env, "GITHUB_PROCESS_DRAFTS", false),
-    upstreamRepoDir: env.UPSTREAM_REPO_DIR?.trim() || undefined,
     upstreamCloneUrl: readString(env, "UPSTREAM_CLONE_URL", `https://github.com/${githubOwner}/${githubRepo}.git`),
     opencodeTimeoutMs: readPositiveInteger(env, "OPENCODE_TIMEOUT_MS", 600_000),
     stateFile: readString(env, "STATE_FILE", "data/posted-releases.json"),
