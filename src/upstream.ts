@@ -7,7 +7,10 @@ import type { GithubRelease, ReleaseRange } from "./types.js"
 
 type UpstreamCheckout = {
   directory: string
-  resolveRange: (release: GithubRelease) => Promise<ReleaseRange>
+  resolveRange: (
+    release: GithubRelease,
+    fromTag: string | null,
+  ) => Promise<ReleaseRange>
   resolvePreviewRange: (fromTag: string | null) => Promise<ReleaseRange>
   close: () => Promise<void>
 }
@@ -50,14 +53,6 @@ function createCompareUrl(config: AppConfig, fromTag: string | null, toTag: stri
   return `https://github.com/${config.githubOwner}/${config.githubRepo}/tree/${toTag}`
 }
 
-async function resolvePreviousTag(directory: string, tag: string) {
-  try {
-    return await run("git", ["describe", "--tags", "--abbrev=0", `${tag}^`], directory)
-  } catch {
-    return null
-  }
-}
-
 async function resolveHeadSha(directory: string) {
   return run("git", ["rev-parse", "HEAD"], directory)
 }
@@ -81,8 +76,7 @@ async function countCommits(directory: string, fromRef: string | null, toRef: st
 function createCheckout(directory: string, config: AppConfig, close: () => Promise<void>): UpstreamCheckout {
   return {
     directory,
-    async resolveRange(release) {
-      const fromTag = await resolvePreviousTag(directory, release.tag)
+    async resolveRange(release, fromTag) {
       const commitCount = await countCommits(directory, fromTag, release.tag)
 
       return {

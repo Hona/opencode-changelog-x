@@ -1,7 +1,7 @@
 import { readConfig } from "./config.js"
 import { MODEL, POST_MAX_LENGTH, THREAD_MAX_TWEETS } from "./constants.js"
 import { createPostGenerator } from "./generate.js"
-import { getReleaseByTag, listReleases } from "./github.js"
+import { listReleases } from "./github.js"
 import {
   getLatestPostedRelease,
   getSavedRelease,
@@ -13,6 +13,7 @@ import {
   recordPostingProgress,
   saveState,
 } from "./state.js"
+import type { GithubRelease } from "./types.js"
 import { postMessage, postThread } from "./twitter.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 import { getCharacterLength, getWeightedLength, validatePost, validateThread } from "./validate.js"
@@ -25,13 +26,46 @@ function toErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
 }
 
+function buildPreviousReleaseTagByTag(releases: GithubRelease[]) {
+  const previousReleaseTagByTag = new Map<string, string | null>()
+
+  for (const [index, release] of releases.entries()) {
+    previousReleaseTagByTag.set(release.tag, index > 0 ? releases[index - 1]!.tag : null)
+  }
+
+  return previousReleaseTagByTag
+}
+
+function getPreviousReleaseTag(
+  previousReleaseTagByTag: Map<string, string | null>,
+  release: GithubRelease,
+) {
+  if (!previousReleaseTagByTag.has(release.tag)) {
+    throw new Error(`No release-order baseline found for ${release.tag}`)
+  }
+
+  return previousReleaseTagByTag.get(release.tag) ?? null
+}
+
+function getTargetRelease(releases: GithubRelease[], targetTag: string) {
+  const release = releases.find((release) => release.tag === targetTag)
+
+  if (!release) {
+    throw new Error(`${targetTag} was not found in the eligible GitHub releases list`)
+  }
+
+  return release
+}
+
 async function main() {
   const config = readConfig()
   const state = await loadState(config.stateFile)
   const latestPostedRelease = getLatestPostedRelease(state)
+  const releases = await listReleases(config)
+  const previousReleaseTagByTag = buildPreviousReleaseTagByTag(releases)
   const resolvedPending = config.targetTag
-    ? [await getReleaseByTag(config, config.targetTag)]
-    : (await listReleases(config)).filter((release) => {
+    ? [getTargetRelease(releases, config.targetTag)]
+    : releases.filter((release) => {
         if (hasPostedRelease(state, release)) return false
         if (!latestPostedRelease) return true
 
@@ -69,7 +103,10 @@ async function main() {
 
       for (const release of resolvedPending) {
         console.log(`\nProcessing ${release.tag}${release.draft ? " (draft)" : ""}...`)
-        const range = await checkout.resolveRange(release)
+        const range = await checkout.resolveRange(
+          release,
+          getPreviousReleaseTag(previousReleaseTagByTag, release),
+        )
         console.log(`Tag range: ${range.fromTag ?? "<none>"} -> ${range.toLabel}`)
 
         const savedRelease = getSavedRelease(nextState, release)

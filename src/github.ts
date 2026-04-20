@@ -54,6 +54,12 @@ function releaseTimestamp(release: GithubRelease) {
   return release.publishedAt ?? release.createdAt
 }
 
+function compareReleaseOrder(left: GithubRelease, right: GithubRelease) {
+  const timestampComparison = releaseTimestamp(left).localeCompare(releaseTimestamp(right))
+  if (timestampComparison !== 0) return timestampComparison
+  return left.id - right.id
+}
+
 function isEligibleRelease(config: AppConfig, release: GithubRelease) {
   return config.githubProcessDrafts || !release.draft
 }
@@ -81,7 +87,7 @@ export async function listReleases(config: AppConfig): Promise<GithubRelease[]> 
   return payload
     .map(mapRelease)
     .filter((release) => isEligibleRelease(config, release))
-    .sort((left, right) => releaseTimestamp(left).localeCompare(releaseTimestamp(right)))
+    .sort(compareReleaseOrder)
 }
 
 export async function getReleaseByTag(config: AppConfig, tag: string): Promise<GithubRelease> {
