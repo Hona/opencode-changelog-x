@@ -382,6 +382,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-19T10:04:33.507Z"
+    },
+    {
+      "releaseId": 311031521,
+      "tag": "v1.14.19",
+      "name": "v1.14.19",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.19",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-20T07:21:48Z",
+      "tweets": [
+        "OpenCode v1.14.19 released. TL;DR: Massive Effect Schema configuration migration • Context compaction & retention upgrades • Native ripgrep ARM64 support • TUI & Desktop stability fixes\n\n─\n\n𝗖𝗼𝗿𝗲 𝗘𝗻𝗴𝗶𝗻𝗲 & 𝗔𝗿𝗰𝗵𝗶𝘁𝗲𝗰𝘁𝘂𝗿𝗲\n• Completed a major migration of the configuration system (Agent, Provider, Keybinds, Server, and Layout) to Effect Schema, standardizing Zod preprocessing, transforms, and default value handling.\n• Restored the native ripgrep backend and bumped to v15.1.0 to ensure proper ARM64 support.\n• Context window and session compaction now budgets for retained media and actively preserves recent dialogue turns to prevent aggressive pruning of immediate context.\n• Flipped the default behavior for toolcall pruning.\n• Plumbed InstanceState context through the File service, LSP, and formatters to remove ambient instance reads.\n• Fixed a bug where parallel file edits could occasionally overwrite each other.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗢𝗯𝘀𝗲𝗿𝘃𝗮𝗯𝗶𝗹𝗶𝘁𝘆\n• Auto-tagging for route spans now includes route parameters (like session and message IDs), aligning with OTel semantic conventions. Added support for OTEL_RESOURCE_ATTRIBUTES.\n• Improved GitHub Copilot compatibility by disabling eager input streaming for Claude 3 Haiku.\n• Amazon Bedrock integration now defaults to sending a summarized display.\n• Added NVIDIA to the list of popular providers, docs, and attribution headers.\n\n𝗧𝗨𝗜, 𝗗𝗲𝘀𝗸𝘁𝗼𝗽 & 𝗪𝗲𝗯\n• TUI now supports forking full sessions directly from the session dialog.\n• Introduced terminal font settings in the app, bundling JetBrains Mono Nerd Font as the default terminal typeface.\n• Stabilized TUI theme persistence and KV writes.\n• Fixed Desktop Electron startup by ensuring JSON migrations complete before spawning the sidecar process.\n• Lazily loaded electron-store to resolve incorrect config directory pathing.\n• Users with credits but no payment method can now access Zen mode.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.4.11...v1.14.19"
+      ],
+      "tweetIds": [
+        "2046127799191449615"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-20T07:24:17.297Z"
     }
   ]
 }
