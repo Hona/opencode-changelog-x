@@ -28,17 +28,32 @@ export type WorkflowAlert = {
   conclusion: string
 }
 
+type WorkflowRunApiResponse = {
+  workflow_runs: Array<{
+    id: number
+    conclusion: string | null
+    status: string
+    triggering_actor: { login: string }
+    html_url: string
+    display_title: string
+  }>
+}
+
 export async function fetchPublishWorkflowRuns(owner: string, repo: string): Promise<WorkflowRunJson[]> {
   const { stdout } = await execFileAsync("gh", [
-    "run", "list",
-    "--repo", `${owner}/${repo}`,
-    "--workflow", "publish.yml",
-    "--event", "workflow_dispatch",
-    "--limit", "20",
-    "--json", "databaseId,conclusion,status,actor,url,displayTitle",
+    "api", `repos/${owner}/${repo}/actions/workflows/publish.yml/runs?event=workflow_dispatch&per_page=20`,
   ], { timeout: 30_000 })
 
-  return JSON.parse(stdout) as WorkflowRunJson[]
+  const response = JSON.parse(stdout) as WorkflowRunApiResponse
+
+  return response.workflow_runs.map((run) => ({
+    databaseId: run.id,
+    conclusion: run.conclusion ?? "",
+    status: run.status,
+    actor: { login: run.triggering_actor.login },
+    url: run.html_url,
+    displayTitle: run.display_title,
+  }))
 }
 
 export async function loadWorkflowState(filePath: string): Promise<WorkflowState> {
