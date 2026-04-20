@@ -18,6 +18,7 @@ import { getLatestPostedRelease, loadState } from "./state.js"
 import type { ReleasePostReport } from "./types.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 import {
+  checkBetaNpmStaleness,
   fetchLatestReleaseTag,
   fetchPublishWorkflowRuns,
   getAllRunIds,
@@ -26,6 +27,7 @@ import {
   getNewlySeenRuns,
   loadWorkflowState,
   saveWorkflowState,
+  type BetaNpmStatus,
   type WorkflowAlert,
 } from "./workflows.js"
 
@@ -36,6 +38,8 @@ const PREVIEW_EMBED_COLOR = 0x5865f2
 const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096
 const RELEASE_POLL_INTERVAL_MS = 10 * 60 * 1000
 const WORKFLOW_POLL_INTERVAL_MS = 5 * 60 * 1000
+const BETA_CHECK_INTERVAL_MS = 10 * 60 * 1000
+const BETA_NPM_PACKAGE = "opencode-ai"
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
@@ -359,6 +363,57 @@ function startWorkflowMonitorLoop(config: DiscordConfig, channel: AlertChannel) 
   setTimeout(tick, 5_000)
 }
 
+function formatBetaAge(ageMs: number): string {
+  const hours = Math.floor(ageMs / (60 * 60 * 1000))
+  const mins = Math.floor((ageMs % (60 * 60 * 1000)) / (60 * 1000))
+  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+}
+
+function formatBetaStaleAlert(status: BetaNpmStatus): string {
+  return `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
+}
+
+function formatBetaResolvedAlert(status: BetaNpmStatus): string {
+  return `~~Beta release was stale~~ — resolved (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
+}
+
+function startBetaMonitorLoop(channel: AlertChannel) {
+  let alertMessageId: string | null = null
+
+  async function tick() {
+    try {
+      const status = await checkBetaNpmStaleness(BETA_NPM_PACKAGE)
+      if (!status) return
+
+      if (status.stale && !alertMessageId) {
+        const sent = await channel.send(formatBetaStaleAlert(status))
+        alertMessageId = sent.id
+        console.log(`Beta stale alert: ${status.version} is ${formatBetaAge(status.ageMs)} old`)
+      } else if (status.stale && alertMessageId) {
+        try {
+          await channel.editMessage(alertMessageId, formatBetaStaleAlert(status))
+        } catch {
+          const sent = await channel.send(formatBetaStaleAlert(status))
+          alertMessageId = sent.id
+        }
+      } else if (!status.stale && alertMessageId) {
+        try {
+          await channel.editMessage(alertMessageId, formatBetaResolvedAlert(status))
+        } catch {
+          // Message might have been deleted, just clear state.
+        }
+        alertMessageId = null
+        console.log(`Beta stale alert resolved: ${status.version}`)
+      }
+    } catch (error) {
+      console.error(`Beta monitor error: ${getErrorMessage(error)}`)
+    }
+    setTimeout(tick, BETA_CHECK_INTERVAL_MS)
+  }
+
+  setTimeout(tick, 15_000)
+}
+
 async function main() {
   const config = readDiscordConfig()
   const client = new Client({
@@ -389,7 +444,9 @@ async function main() {
           },
         }
         startWorkflowMonitorLoop(config, alertChannel)
+        startBetaMonitorLoop(alertChannel)
         console.log("Workflow monitor started.")
+        console.log("Beta monitor started.")
       } else {
         console.error(`Channel ${config.discordChannelId} not found or not a text channel, workflow monitoring disabled.`)
       }

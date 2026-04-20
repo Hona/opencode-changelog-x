@@ -124,3 +124,45 @@ export function getNewAlerts(runs: WorkflowRunJson[], state: WorkflowState): Wor
       conclusion: run.conclusion,
     }))
 }
+
+const BETA_STALE_THRESHOLD_MS = 3 * 60 * 60 * 1000
+
+type NpmPackument = {
+  "dist-tags"?: Record<string, string>
+  time?: Record<string, string>
+}
+
+export type BetaNpmStatus = {
+  version: string
+  publishedAt: string
+  ageMs: number
+  stale: boolean
+}
+
+export async function checkBetaNpmStaleness(packageName: string): Promise<BetaNpmStatus | null> {
+  try {
+    const response = await fetch(`https://registry.npmjs.org/${packageName}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!response.ok) return null
+
+    const data = (await response.json()) as NpmPackument
+    const betaVersion = data["dist-tags"]?.beta
+    if (!betaVersion) return null
+
+    const publishedAt = data.time?.[betaVersion]
+    if (!publishedAt) return null
+
+    const ageMs = Date.now() - new Date(publishedAt).getTime()
+
+    return {
+      version: betaVersion,
+      publishedAt,
+      ageMs,
+      stale: ageMs > BETA_STALE_THRESHOLD_MS,
+    }
+  } catch {
+    return null
+  }
+}
