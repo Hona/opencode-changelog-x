@@ -139,6 +139,43 @@ export type BetaNpmStatus = {
   stale: boolean
 }
 
+export async function fetchLatestBetaFailureUrl(owner: string, repo: string): Promise<string | null> {
+  type RunsResponse = {
+    workflow_runs: Array<{
+      conclusion: string | null
+      status: string
+      html_url: string
+      created_at: string
+    }>
+  }
+
+  async function fetchRuns(workflow: string, branch?: string) {
+    const params = new URLSearchParams({ per_page: "5" })
+    if (branch) params.set("branch", branch)
+
+    const { stdout } = await execFileAsync("gh", [
+      "api", `repos/${owner}/${repo}/actions/workflows/${workflow}/runs?${params}`,
+    ], { timeout: 30_000 })
+
+    return (JSON.parse(stdout) as RunsResponse).workflow_runs
+  }
+
+  try {
+    const [betaRuns, publishRuns] = await Promise.all([
+      fetchRuns("beta.yml"),
+      fetchRuns("publish.yml", "beta"),
+    ])
+
+    const latestFailure = [...betaRuns, ...publishRuns]
+      .filter((run) => run.status === "completed" && run.conclusion !== null && run.conclusion !== "success")
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+
+    return latestFailure?.html_url ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function checkBetaNpmStaleness(packageName: string): Promise<BetaNpmStatus | null> {
   try {
     const response = await fetch(`https://registry.npmjs.org/${packageName}`, {

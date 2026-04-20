@@ -19,6 +19,7 @@ import type { ReleasePostReport } from "./types.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 import {
   checkBetaNpmStaleness,
+  fetchLatestBetaFailureUrl,
   fetchLatestReleaseTag,
   fetchPublishWorkflowRuns,
   getAllRunIds,
@@ -369,15 +370,19 @@ function formatBetaAge(ageMs: number): string {
   return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 }
 
-function formatBetaStaleAlert(status: BetaNpmStatus): string {
-  return `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
+function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null): string {
+  let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
+  if (failureUrl) {
+    msg += `\n[Last failure](${failureUrl})`
+  }
+  return msg
 }
 
 function formatBetaResolvedAlert(status: BetaNpmStatus): string {
   return `~~Beta release was stale~~ — resolved (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
 }
 
-function startBetaMonitorLoop(channel: AlertChannel) {
+function startBetaMonitorLoop(config: DiscordConfig, channel: AlertChannel) {
   let alertMessageId: string | null = null
 
   async function tick() {
@@ -385,18 +390,23 @@ function startBetaMonitorLoop(channel: AlertChannel) {
       const status = await checkBetaNpmStaleness(BETA_NPM_PACKAGE)
       if (!status) return
 
-      if (status.stale && !alertMessageId) {
-        const sent = await channel.send(formatBetaStaleAlert(status))
-        alertMessageId = sent.id
-        console.log(`Beta stale alert: ${status.version} is ${formatBetaAge(status.ageMs)} old`)
-      } else if (status.stale && alertMessageId) {
-        try {
-          await channel.editMessage(alertMessageId, formatBetaStaleAlert(status))
-        } catch {
-          const sent = await channel.send(formatBetaStaleAlert(status))
+      if (status.stale) {
+        const failureUrl = await fetchLatestBetaFailureUrl(config.githubOwner, config.githubRepo)
+        const content = formatBetaStaleAlert(status, failureUrl)
+
+        if (!alertMessageId) {
+          const sent = await channel.send(content)
           alertMessageId = sent.id
+          console.log(`Beta stale alert: ${status.version} is ${formatBetaAge(status.ageMs)} old`)
+        } else {
+          try {
+            await channel.editMessage(alertMessageId, content)
+          } catch {
+            const sent = await channel.send(content)
+            alertMessageId = sent.id
+          }
         }
-      } else if (!status.stale && alertMessageId) {
+      } else if (alertMessageId) {
         try {
           await channel.editMessage(alertMessageId, formatBetaResolvedAlert(status))
         } catch {
@@ -444,7 +454,7 @@ async function main() {
           },
         }
         startWorkflowMonitorLoop(config, alertChannel)
-        startBetaMonitorLoop(alertChannel)
+        startBetaMonitorLoop(config, alertChannel)
         console.log("Workflow monitor started.")
         console.log("Beta monitor started.")
       } else {
