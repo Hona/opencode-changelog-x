@@ -2,10 +2,13 @@
 
 ## Overview
 
-This repo has two separate runtimes:
+The Discord bot (`npm run discord`) is the single long-running process on the VPS. It handles:
 
-- Twitter release posting via `npm run bot`
-- Discord preview bot via `npm run discord`
+- `!previewchangelog` command in the hardcoded channel
+- Release polling — dispatches the `poll.yml` GitHub Actions workflow every 10 minutes via `gh` CLI
+- Workflow monitoring — checks `anomalyco/opencode` `publish.yml` workflow_dispatch runs every 5 minutes and posts triggered/completed/failed alerts to Discord
+
+Twitter release posting runs in GitHub Actions (the `poll.yml` workflow), not on the VPS.
 
 Current Discord deployment target:
 
@@ -14,7 +17,7 @@ Current Discord deployment target:
 - Service: `opencode-changelog-discord.service`
 - Env file: `/etc/opencode-changelog-discord.env`
 
-The Discord preview bot listens only in the hardcoded channel:
+The bot posts only to the hardcoded channel:
 
 - `1472697640880701523`
 
@@ -24,7 +27,8 @@ Remote host assumptions:
 
 - Debian with `systemd`
 - Node 24 available via root `nvm`
-- app checked out or copied to `/repos/opencode-changelog-x`
+- `gh` CLI installed and authenticated (`gh auth status` should show logged in with `repo` and `workflow` scopes)
+- App checked out or copied to `/repos/opencode-changelog-x`
 - Discord bot already invited to the server
 - Discord bot has Message Content intent enabled
 
@@ -47,7 +51,6 @@ Optional:
 ```bash
 OPENCODE_API_KEY=...
 GITHUB_API_TOKEN=...
-UPSTREAM_REPO_DIR=...
 ```
 
 Notes:
@@ -55,6 +58,7 @@ Notes:
 - Do not commit secrets into this repo.
 - `GITHUB_API_TOKEN` is recommended to avoid GitHub release API rate limits.
 - If omitted, the bot can fall back to cached/latest-known release state, but authenticated GitHub access is better.
+- Twitter credentials are NOT needed on the VPS. They stay in GitHub Actions secrets.
 
 ## First-Time Setup
 
@@ -120,6 +124,8 @@ Expected healthy startup log:
 
 ```text
 Discord preview bot ready as OpenAssist#0141
+Workflow monitor started.
+Release poll dispatched.
 ```
 
 ## Logs
@@ -139,8 +145,13 @@ ssh root@cloud.hona.dev "journalctl -u opencode-changelog-discord.service -f"
 Useful log lines:
 
 - `Discord preview bot ready as ...`
+- `Workflow monitor started.`
+- `Release poll dispatched.`
 - `Starting preview for ...`
 - `Preview posted for ...`
+- `Posted triggered alert: ...`
+- `Posted completion alert: ...`
+- `Seeding workflow state with ...`
 - `Falling back to cached latest release ...`
 
 ## Update Flow
@@ -169,6 +180,7 @@ Useful files on the VPS:
 - Env file: `/etc/opencode-changelog-discord.env`
 - Posted release state: `/repos/opencode-changelog-x/data/posted-releases.json`
 - Cached latest GitHub release: `/repos/opencode-changelog-x/data/latest-github-release.json`
+- Workflow monitor state: `/repos/opencode-changelog-x/data/publish-workflow-state.json`
 
 ## Monitoring
 
@@ -197,6 +209,17 @@ If GitHub lookups fail:
 
 - add `GITHUB_API_TOKEN` to `/etc/opencode-changelog-discord.env`
 - restart the service
+
+If release poll dispatch fails:
+
+- confirm `gh auth status` shows logged in with `repo` and `workflow` scopes
+- confirm the working directory `/repos/opencode-changelog-x` has a git remote pointing to the repo with `poll.yml`
+
+If workflow monitoring is not posting alerts:
+
+- check that the channel ID is a `TextChannel` (not a thread, voice, or forum channel)
+- check `journalctl` for `Workflow monitor error:` lines
+- confirm `gh run list --repo anomalyco/opencode --workflow publish.yml` works on the VPS
 
 If the bot starts but previews hang for a while:
 
