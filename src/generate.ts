@@ -213,8 +213,9 @@ Rules:
   • '•' (U+2022) for bullet points
   • '▸' (U+25B8) for sub-bullets
   • '𝗕𝗼𝗹𝗱' (Mathematical Bold, U+1D5D4 range) sparingly for section headers
-  • '─' (U+2500) as a section separator line if helpful
 - Line breaks are allowed.
+- Never use separator lines or divider rows of any kind, including "---", "___", or repeated "─" characters.
+- Do not spend characters or vertical space on visual dividers.
 - The post must start exactly with "${firstTweetPrefix}".
 - The first line should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
 - After the first line, include a compact body with grouped subsystem summaries.
