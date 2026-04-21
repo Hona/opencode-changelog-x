@@ -399,6 +399,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-20T07:24:17.297Z"
+    },
+    {
+      "releaseId": 311874824,
+      "tag": "v1.14.20",
+      "name": "v1.14.20",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.20",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-21T19:07:38Z",
+      "tweets": [
+        "OpenCode v1.14.20 released. TL;DR: Desktop sandbox & context isolation • GET /config on HttpApi • Workspace debug server • Custom oc:// Electron protocol\n\nDESKTOP & ELECTRON\n• Enabled contextIsolation and sandbox across Electron windows for stronger isolation\n• Switched to a custom oc:// protocol for renderer web content, tightening IPC\n• Added CORS headers to the main window webRequest to unblock native API calls\n\nCORE & PLATFORM\n• Bridged GET /config and /config/providers to the experimental Effect HttpApi\n• Replaced Schema.Class with annotated Schema.Struct for pure-object DTOs, removing strict instanceof requirements for parsed plain objects\n• Added run-workspace-server script and debug-workspace-plugin for simulating remote workspace environments locally\n• Fixed permissions routing drops when executing against a remote workspace in the TUI\n• Fixed dynamic import() paths on Windows+Node by converting absolute paths to file:// URLs\n\nAPP & UI\n• Added setting to disable the session progress bar animation\n• Fixed prompt input component animations triggering continuously on render loops\n• Switched assistant message syncing to use strict parentID matching instead of positional scanning\n• Fixed produce mutator wrapping in setProjects sync reducers\n• Reverted an incorrect patch that caused system theme fallback regressions\n\nPROVIDERS\n• Promoted Kimi k2.6 and m2.7 models in Go and Zen\n• Adjusted Zen TPM-based routing limits\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.19...v1.14.20"
+      ],
+      "tweetIds": [
+        "2046669741457092910"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-21T19:17:46.419Z"
     }
   ]
 }
