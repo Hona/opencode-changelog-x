@@ -433,6 +433,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-23T05:55:23.820Z"
+    },
+    {
+      "releaseId": 312793441,
+      "tag": "v1.14.22",
+      "name": "v1.14.22",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.22",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-23T15:56:51Z",
+      "tweets": [
+        "OpenCode v1.14.22 released. TL;DR: Custom project icons • .npmrc support for NPM installs • Hy3 Preview Free on Zen\n\n𝗣𝗿𝗼𝗷𝗲𝗰𝘁𝘀 & 𝗨𝗜\n• Adds an icon_url_override field to project metadata, allowing custom icons to take precedence over auto-discovered favicons\n• Fixes component reactivity bugs in the sidebar and message timeline by enforcing keyed rendering\n• Removes redundant pending state checks in the message timeline working memo\n\n𝗘𝗰𝗼𝘀𝘆𝘀𝘁𝗲𝗺 & 𝗠𝗼𝗱𝗲𝗹𝘀\n• NPM package installation now loads and respects project .npmrc configurations (such as omit=dev) via @npmcli/config\n• Introduces the hy3-preview-free model on OpenCode Zen\n• Migrates qwen3.5-plus and qwen3.6-plus to the @ai-sdk/openai-compatible provider on OpenCode Zen\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.21...v1.14.22"
+      ],
+      "tweetIds": [
+        "2047346619280941211"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-23T16:07:26.667Z"
     }
   ]
 }
