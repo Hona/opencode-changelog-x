@@ -416,6 +416,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-21T19:17:46.419Z"
+    },
+    {
+      "releaseId": 312550304,
+      "tag": "v1.14.21",
+      "name": "v1.14.21",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.21",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-23T05:45:23Z",
+      "tweets": [
+        "OpenCode v1.14.21 released. TL;DR:\n• LSP pull diagnostics for C#/Kotlin\n• Refactored session compaction for token efficiency\n• Mistral Small reasoning support\n• BOM preservation in text tools\n\nLSP & Language Servers\n• Added comprehensive support for LSP pull diagnostics (`textDocument/diagnostic` and `workspace/diagnostic`).\n▸ Solves missing diagnostics for languages that rely on client pulls (like C# and Kotlin) by seamlessly merging push and pull diagnostics natively.\n• Replaced `csharp-ls` with `roslyn-language-server` as the default C# provider, delivering vastly improved, Roslyn-powered language intelligence.\n\nSession Compaction\n• Re-engineered context compaction to use a strict, structured Markdown template that preserves file paths, errors, and task states accurately.\n• Compaction now seamlessly anchors off previous summaries, intelligently hiding prior compaction turns from the prompt to maximize token budgets.\n• Turn splitting is now calculated at the message boundary, preventing token overflow when a single large turn exceeds the preservation budget.\n• Truncates tool output at 2000 characters during summarization passes to prevent context window explosion.\n\nModels & Tools\n• Added reasoning variant support (`reasoningEffort`) for Mistral Small (`mistral-small-latest`, `mistral-small-2603`).\n• Text tools (`edit`, `write`, `apply_patch`) now strictly preserve Byte Order Marks (BOM) during file read/write round-trips.\n• The TUI now fails fast with clear errors when attaching to a corrupted or invalid session, preventing hangs.\n• Fixed project caching for bare Git repositories by correctly resolving the Git common directory.\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.20...v1.14.21"
+      ],
+      "tweetIds": [
+        "2047192592505266688"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-23T05:55:23.820Z"
     }
   ]
 }
