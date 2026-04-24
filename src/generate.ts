@@ -14,6 +14,7 @@ const generatedPostSchema = z.object({
 });
 
 const MAX_GENERATION_ATTEMPTS = 3;
+const STYLED_OPENCODE = "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚";
 
 function normalizePost(post: GeneratedPost) {
     return post.post.replace(/\r/g, "").trim();
@@ -70,11 +71,11 @@ function parseGeneratedPost(text: string) {
 function getExpectedFirstPrefix(range: ReleaseRange) {
     if (range.kind === "preview") {
         return range.fromTag
-            ? `𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 preview since ${range.fromTag}. TL;DR:`
-            : "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 preview. TL;DR:";
+            ? `${STYLED_OPENCODE} preview since ${range.fromTag}. TL;DR:`
+            : `${STYLED_OPENCODE} preview. TL;DR:`;
     }
 
-    return `𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 ${range.toLabel} released. TL;DR:`;
+    return `${STYLED_OPENCODE} ${range.toLabel} released. TL;DR:`;
 }
 
 function getDisplayRange(range: ReleaseRange) {
@@ -247,7 +248,7 @@ Rules:
 - Use this GitHub compare URL between tags: ${range.compareUrl}
 
 <example_format>
-𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.21 released. TL;DR:
+${STYLED_OPENCODE} v1.14.21 released. TL;DR:
 • abc
 • def
 • hj
