@@ -16,6 +16,7 @@ export type ReleaseRange = {
   kind: ChangelogKind
   release: GithubRelease | null
   fromTag: string | null
+  fromReleaseTimestamp?: string | null
   toTag: string
   toLabel: string
   compareUrl: string

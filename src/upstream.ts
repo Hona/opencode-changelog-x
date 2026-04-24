@@ -11,7 +11,10 @@ type UpstreamCheckout = {
     release: GithubRelease,
     fromTag: string | null,
   ) => Promise<ReleaseRange>
-  resolvePreviewRange: (fromTag: string | null) => Promise<ReleaseRange>
+  resolvePreviewRange: (
+    fromTag: string | null,
+    fromReleaseTimestamp?: string | null,
+  ) => Promise<ReleaseRange>
   close: () => Promise<void>
 }
 
@@ -90,7 +93,7 @@ function createCheckout(directory: string, config: AppConfig, close: () => Promi
         commitCount,
       }
     },
-    async resolvePreviewRange(fromTag) {
+    async resolvePreviewRange(fromTag, fromReleaseTimestamp) {
       const toTag = await resolveHeadSha(directory)
       const shortSha = await resolveShortSha(directory, toTag)
       const commitCount = await countCommits(directory, fromTag, toTag)
@@ -99,6 +102,7 @@ function createCheckout(directory: string, config: AppConfig, close: () => Promi
         kind: "preview",
         release: null,
         fromTag,
+        fromReleaseTimestamp,
         toTag,
         toLabel: `HEAD (${shortSha})`,
         compareUrl: createCompareUrl(config, fromTag, toTag),

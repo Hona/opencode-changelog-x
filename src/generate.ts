@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { AppConfig } from "./config.js";
 import { MODEL, POST_MAX_LENGTH } from "./constants.js";
+import { buildBundleSizeSection } from "./npm.js";
 import { startOpencode } from "./opencode.js";
 import type {
     GeneratedPost,
@@ -66,6 +67,20 @@ function parseGeneratedPost(text: string) {
     throw new Error(
         `Failed to parse generated post JSON from output:\n${text}`,
     );
+}
+
+function insertSectionBeforeCompareLine(post: string, section: string | null) {
+    if (!section) return post;
+
+    const lines = post.replace(/\r/g, "").trim().split("\n");
+    const compareLine = lines.pop();
+    if (!compareLine) return post;
+
+    while (lines.at(-1) === "") {
+        lines.pop();
+    }
+
+    return [...lines, "", section, "", compareLine].join("\n");
 }
 
 function getExpectedFirstPrefix(range: ReleaseRange) {
@@ -386,7 +401,20 @@ export async function createPostGenerator(
                     "OpenCode session creation returned no session ID",
                 );
 
-            const post = await generatePost(sessionID, range);
+            const [generatedPost, bundleSizeSection] = await Promise.all([
+                generatePost(sessionID, range),
+                buildBundleSizeSection(range),
+            ]);
+            const post = insertSectionBeforeCompareLine(
+                generatedPost,
+                bundleSizeSection,
+            );
+            const validationError = formatValidationErrors(post);
+            if (validationError) {
+                throw new Error(validationError);
+            }
+
+            validatePostShape(range, post);
 
             return {
                 kind: range.kind,

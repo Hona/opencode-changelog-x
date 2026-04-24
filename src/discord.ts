@@ -16,7 +16,7 @@ import { PREVIEW_MODEL } from "./constants.js"
 import { createPostGenerator } from "./generate.js"
 import { getLatestRelease } from "./github.js"
 import { getLatestPostedRelease, loadState } from "./state.js"
-import type { ReleasePostReport } from "./types.js"
+import type { GithubRelease, ReleasePostReport } from "./types.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 import {
   checkBetaNpmStaleness,
@@ -105,9 +105,17 @@ type ThreadSender = {
   send: (options: { embeds: EmbedBuilder[] }) => Promise<unknown>
 }
 
-type LatestReleaseCache = {
+type LatestReleaseBaseline = {
   tag: string
+  releaseTimestamp: string | null
+}
+
+type LatestReleaseCache = LatestReleaseBaseline & {
   cachedAt: string
+}
+
+function getReleaseTimestamp(release: { publishedAt: string | null; createdAt: string }) {
+  return release.publishedAt ?? release.createdAt
 }
 
 async function sendThreadEmbed(channel: ThreadSender, embed: EmbedBuilder) {
@@ -122,7 +130,14 @@ async function readLatestReleaseCache(filePath: string) {
   try {
     const text = await readFile(filePath, "utf8")
     const payload = JSON.parse(text) as Partial<LatestReleaseCache>
-    return typeof payload.tag === "string" && payload.tag.trim() ? payload.tag.trim() : null
+    if (typeof payload.tag !== "string" || !payload.tag.trim()) {
+      return null
+    }
+
+    return {
+      tag: payload.tag.trim(),
+      releaseTimestamp: typeof payload.releaseTimestamp === "string" ? payload.releaseTimestamp : null,
+    } satisfies LatestReleaseBaseline
   } catch (error) {
     if (typeof error === "object" && error && "code" in error && error.code === "ENOENT") {
       return null
@@ -132,16 +147,16 @@ async function readLatestReleaseCache(filePath: string) {
   }
 }
 
-async function writeLatestReleaseCache(filePath: string, tag: string) {
+async function writeLatestReleaseCache(filePath: string, release: LatestReleaseBaseline) {
   await mkdir(dirname(filePath), { recursive: true })
   await writeFile(
     filePath,
-    `${JSON.stringify({ tag, cachedAt: new Date().toISOString() } satisfies LatestReleaseCache, null, 2)}\n`,
+    `${JSON.stringify({ ...release, cachedAt: new Date().toISOString() } satisfies LatestReleaseCache, null, 2)}\n`,
     "utf8",
   )
 }
 
-async function resolveLatestReleaseTag(config: DiscordConfig) {
+async function resolveLatestReleaseBaseline(config: DiscordConfig) {
   const cacheFile = buildLatestReleaseCachePath(config)
 
   try {
@@ -151,20 +166,27 @@ async function resolveLatestReleaseTag(config: DiscordConfig) {
       return await readLatestReleaseCache(cacheFile)
     }
 
-    await writeLatestReleaseCache(cacheFile, latestRelease.tag)
-    return latestRelease.tag
+    const baseline = {
+      tag: latestRelease.tag,
+      releaseTimestamp: getReleaseTimestamp(latestRelease),
+    } satisfies LatestReleaseBaseline
+    await writeLatestReleaseCache(cacheFile, baseline)
+    return baseline
   } catch (error) {
-    const cachedTag = await readLatestReleaseCache(cacheFile)
-    if (cachedTag) {
-      console.warn(`Falling back to cached latest release ${cachedTag}: ${getErrorMessage(error)}`)
-      return cachedTag
+    const cachedRelease = await readLatestReleaseCache(cacheFile)
+    if (cachedRelease) {
+      console.warn(`Falling back to cached latest release ${cachedRelease.tag}: ${getErrorMessage(error)}`)
+      return cachedRelease
     }
 
     const state = await loadState(config.stateFile)
-    const postedTag = getLatestPostedRelease(state)?.tag ?? null
-    if (postedTag) {
-      console.warn(`Falling back to posted release state ${postedTag}: ${getErrorMessage(error)}`)
-      return postedTag
+    const postedRelease = getLatestPostedRelease(state)
+    if (postedRelease) {
+      console.warn(`Falling back to posted release state ${postedRelease.tag}: ${getErrorMessage(error)}`)
+      return {
+        tag: postedRelease.tag,
+        releaseTimestamp: postedRelease.publishedAt ?? postedRelease.postedAt,
+      } satisfies LatestReleaseBaseline
     }
 
     throw error
@@ -172,7 +194,8 @@ async function resolveLatestReleaseTag(config: DiscordConfig) {
 }
 
 async function generatePreview(message: Message<true>, config: DiscordConfig) {
-  const latestReleaseTag = await resolveLatestReleaseTag(config)
+  const latestRelease = await resolveLatestReleaseBaseline(config)
+  const latestReleaseTag = latestRelease?.tag ?? null
   const thread = await message.startThread({
     name: buildThreadName(latestReleaseTag),
     autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
@@ -182,7 +205,10 @@ async function generatePreview(message: Message<true>, config: DiscordConfig) {
   const checkout = await prepareUpstreamCheckout(config)
 
   try {
-    const range = await checkout.resolvePreviewRange(latestReleaseTag)
+    const range = await checkout.resolvePreviewRange(
+      latestReleaseTag,
+      latestRelease?.releaseTimestamp ?? null,
+    )
 
     if (range.commitCount === 0) {
       const baseline = latestReleaseTag ?? "the repository start"
