@@ -95,7 +95,9 @@ function formatValidationErrors(post: string) {
 }
 
 function parseAndValidatePost(range: ReleaseRange, output: string) {
-    const post = normalizeBodyBullets(normalizePost(parseGeneratedPost(output)));
+    const post = normalizeBodyBullets(
+        normalizePost(parseGeneratedPost(output)),
+    );
     const validationError = formatValidationErrors(post);
 
     if (validationError) {
@@ -244,6 +246,33 @@ Rules:
 - If a feature added in a release is truely massive, use the extra space for a structured breakdown in the same post.
 - Use this GitHub compare URL between tags: ${range.compareUrl}
 
+<example_format>
+OpenCode v1.14.21 released. TL;DR:
+• abc
+• def
+• hj
+• dfa
+
+𝗧𝗨𝗜
+• Added xyz protocol for asdf (thing and thing)
+▸ This solves users attempting to use XYZ server
+• asdf
+
+𝗗𝗲𝘀𝗸𝘁𝗼𝗽
+• asdf
+• asdf
+
+𝗖𝗼𝗿𝗲 & 𝗦𝗗𝗞
+• asdf
+• asdf
+
+𝗭𝗲𝗻 & 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀
+• asdf
+• asdf
+
+Compare: https://github.com/anomalyco/opencode/compare/v1.14.20...v1.14.21
+</example_format>
+
 Release metadata:
 - Mode: ${range.kind}
 - Previous tag: ${range.fromTag ?? "none found"}
@@ -346,9 +375,7 @@ export async function createPostGenerator(
     }
 
     return {
-        async generateReport(
-            range: ReleaseRange,
-        ): Promise<ReleasePostReport> {
+        async generateReport(range: ReleaseRange): Promise<ReleasePostReport> {
             const session = await opencode.client.session.create({
                 permission: READ_ONLY_PERMISSIONS,
             });
