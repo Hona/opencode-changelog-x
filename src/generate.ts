@@ -247,7 +247,7 @@ Rules:
 - Use this GitHub compare URL between tags: ${range.compareUrl}
 
 <example_format>
-OpenCode v1.14.21 released. TL;DR:
+𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.21 released. TL;DR:
 • abc
 • def
 • hj
