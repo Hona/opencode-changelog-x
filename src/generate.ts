@@ -70,11 +70,11 @@ function parseGeneratedPost(text: string) {
 function getExpectedFirstPrefix(range: ReleaseRange) {
     if (range.kind === "preview") {
         return range.fromTag
-            ? `OpenCode preview since ${range.fromTag}. TL;DR:`
-            : "OpenCode preview. TL;DR:";
+            ? `𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 preview since ${range.fromTag}. TL;DR:`
+            : "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 preview. TL;DR:";
     }
 
-    return `OpenCode ${range.toLabel} released. TL;DR:`;
+    return `𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 ${range.toLabel} released. TL;DR:`;
 }
 
 function getDisplayRange(range: ReleaseRange) {
