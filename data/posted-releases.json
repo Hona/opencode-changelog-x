@@ -450,6 +450,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-23T16:07:26.667Z"
+    },
+    {
+      "releaseId": 312830666,
+      "tag": "v1.14.23",
+      "name": "v1.14.23",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.23",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-24T13:17:15Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.23 released. TL;DR:\n• Migrated core domains to Effect Schema\n• New editor context protocol for TUI\n• Configurable tool truncation limits\n• DeepSeek V4 reasoning fixes\n\n𝗧𝗨𝗜 & 𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Added a built-in WebSocket protocol for handling context from external editors\n▸ Syncs file selections and mentions directly to the TUI prompt using MCP-style JSON-RPC\n• Upgraded the prompt shell mode UI with a dedicated cancel button, custom icon, and example placeholders\n• Fixed a desktop update loop by verifying an update is fully downloaded before attempting a restart\n• Fixed TUI rendering to ensure all non-synthetic text parts of user messages are displayed\n\n𝗖𝗼𝗿𝗲 & 𝗦𝗗𝗞\n• Migrated the Tool framework, Session, Provider, and BusEvent domains to Effect Schema\n• Added configurable max_lines and max_bytes limits for tool output truncation in the config\n• Bridged workspace read endpoints to the new experimental HTTP API\n• Fixed NPM version lookups to respect .npmrc configuration by deferring to local package manager CLI tools\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed DeepSeek V4 thinking mode by preserving empty reasoning content in OpenAI-compatible provider transforms\n• Added support for the max reasoning effort variant for DeepSeek V4 models\n• Accounted for an additional OpenAI API retry case\n\nBundle size change\n\nmacOS arm64\n• Total: 99.5 MB -> 99.5 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 13.8 MB -> 13.8 MB (+17.7 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (+653 B)\n• Native addons: 1.6 MB -> 1.6 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 79.9 KB -> 77.5 KB (-2.4 KB)\n\nLinux x64\n• Total: 139.0 MB -> 139.0 MB (+16.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 13.8 MB -> 13.8 MB (+17.7 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (+653 B)\n• Native addons: 5.3 MB -> 5.3 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 69.4 KB -> 67.0 KB (-2.4 KB)\n\nWindows x64\n• Total: 151.0 MB -> 151.0 MB (+18.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+142 B)\n• CLI/TUI JS: 13.8 MB -> 13.8 MB (+17.7 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (+653 B)\n• Native addons: 2.0 MB -> 2.0 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 66.6 KB -> 66.6 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.22...v1.14.23"
+      ],
+      "tweetIds": [
+        "2047667170310492437"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-24T13:21:11.989Z"
     }
   ]
 }
