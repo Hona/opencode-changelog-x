@@ -1,6 +1,6 @@
 export const MODEL = {
   providerID: "opencode",
-  modelID: "gemini-3.1-pro",
+  modelID: "gpt-5.5",
   variant: "high",
 } as const
 

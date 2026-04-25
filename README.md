@@ -14,7 +14,7 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 ## Hardcoded Model
 
 - provider: `opencode`
-- model: `gemini-3.1-pro`
+- model: `gpt-5.5`
 - variant: `high`
 
 ## How It Works
