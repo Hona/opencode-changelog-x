@@ -552,6 +552,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-27T04:33:01.769Z"
+    },
+    {
+      "releaseId": 314736986,
+      "tag": "v1.14.29",
+      "name": "v1.14.29",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.29",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-28T18:34:51Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.29 released. TL;DR: HttpApi parity work; sessions gain workspace-relative paths; TUI editor context is safer/toggleable; provider/tool edge cases fixed.\n\n𝗔𝗣𝗜 & 𝗦𝗗𝗞\n• Experimental Effect HttpApi can now run as the server path behind OPENCODE_EXPERIMENTAL_HTTPAPI, with fetch-only Bun/Node adapters and instance selection via directory/workspace query or header.\n• OpenAPI/JS SDK parity tightened: global/control routes included, instance query params documented, SSE responses shaped, boolean query params accept true/false strings, session create accepts an empty body, and MCP/provider OAuth errors preserve legacy behavior.\n• Sessions now persist and sync a worktree-relative path, while optional session fields are omitted instead of serialized as undefined-shaped schema output.\n\n𝗧𝗨𝗜 & 𝗘𝗱𝗶𝘁𝗼𝗿 𝗖𝗼𝗻𝘁𝗲𝘅𝘁\n• File context is now explicitly toggleable from the command palette. Editor/Zed selections are injected as system reminders with source/selection metadata, then cleared after prompt submit to avoid stale implicit context.\n• Zed polling is more responsive and less lossy: terminal focus/unavailable states do not wipe the last good selection, and polling stays at 1s instead of exponential reconnect backoff.\n• Dialog Enter handling now consumes the key event, reducing accidental fall-through actions.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗧𝗼𝗼𝗹𝘀\n• Moonshot/Kimi tool schemas are sanitized for $ref sibling keywords and tuple-style array items, avoiding provider-side schema rejection.\n• DeepSeek OpenAI-compatible configs default to interleaved reasoning_content when models are configured locally; Anthropic-SDK non-Claude/Vertex-Anthropic paths disable tool streaming to match provider behavior.\n• LSP workspaceSymbol now accepts a query string, so agents can request scoped project-wide symbol search instead of always sending an empty query.\n\n𝗔𝗴𝗲𝗻𝘁𝘀 & 𝗦𝗲𝘀𝘀𝗶𝗼𝗻 𝗥𝘂𝗻𝘁𝗶𝗺𝗲\n• opencode agent create now writes permission-based agent frontmatter rather than legacy tools booleans; --tools remains an alias for the new permission selection.\n• Shell cancellation is hardened so aborted user commands finalize their assistant/tool parts instead of leaving running state behind.\n• Compaction summaries dropped markdown divider rows, reducing summary artifacts carried forward in long sessions.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽 / 𝗪𝗲𝗯 / 𝗚𝗼\n• App sync moved more global/project/MCP/LSP loads onto TanStack Query with explicit cache invalidation, and per-workspace icon overrides from localStorage are preserved across repo/sandbox views.\n• Usage charts now bucket costs using the viewer timezone instead of raw UTC dates; Go coupon handling adds 3/6/12-month 100% promos and DeepSeek cache-pricing estimates were updated.\n\nBundle size change\n\nmacOS arm64\n• Total: 99.6 MB -> 99.6 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 14.0 MB -> 14.0 MB (+22.8 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (-1.2 KB)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 81.8 KB -> 76.2 KB (-5.6 KB)\n\nLinux x64\n• Total: 139.3 MB -> 139.3 MB (+12.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.0 MB -> 14.0 MB (+14.8 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (-1.2 KB)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 68.7 KB -> 67.1 KB (-1.7 KB)\n\nWindows x64\n• Total: 151.1 MB -> 151.2 MB (+13.0 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-165 B)\n• CLI/TUI JS: 14.0 MB -> 14.0 MB (+14.8 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (-1.2 KB)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 66.4 KB -> 65.9 KB (-504 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.28...v1.14.29"
+      ],
+      "tweetIds": [
+        "2049197337956995400"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-28T18:41:32.372Z"
     }
   ]
 }
