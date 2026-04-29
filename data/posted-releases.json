@@ -569,6 +569,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-28T18:41:32.372Z"
+    },
+    {
+      "releaseId": 315495922,
+      "tag": "v1.14.30",
+      "name": "v1.14.30",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.30",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-04-29T23:33:41Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.30 released. TL;DR: Effect HTTP API parity + workspace routing; desktop path/session identity fixes; scoped session lists; provider/TUI/editor stability fixes.\n\n𝗖𝗼𝗿𝗲 & 𝗦𝗗𝗞\n• Expanded the experimental Effect HTTP API backend into route groups/handlers across sessions, files, providers, PTY, sync, TUI, config, and workspaces, while Hono remains the stable default.\n• Added explicit backend selection/telemetry via OPENCODE_EXPERIMENTAL_HTTPAPI and kept generated OpenAPI/JS SDK parity during the migration.\n• Reworked workspace routing/proxy boundaries so instance routes resolve directory/workspace context consistently and can proxy remote workspace HTTP/WebSocket traffic safely.\n• Session listing now supports project-relative path filtering and scope=project, exposed through the SDK.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽 & 𝗪𝗲𝗯\n• Fixed missing sessions caused by path key mismatches: workspace/session cache keys now normalize slash style, trailing slashes, and Windows drive roots, with legacy storage migration so existing data survives.\n• Fixed beta desktop download asset names after the electron → desktop package rename.\n• Disabled Windows updater code-signature verification where packaging/signing mismatches were blocking updates.\n\n𝗧𝗨𝗜 & 𝗘𝗱𝗶𝘁𝗼𝗿𝘀\n• TUI session lists now default to the current project-relative path, with a command-palette toggle to show all project sessions instead.\n• Paste summaries can now be toggled directly in the TUI and persist independently of config defaults.\n• Editor context reconnects against the active session directory, so Claude/IDE lock-file selection follows the workspace you are actually using.\n• Zed selection handling now converts UTF-8 byte offsets correctly, fixing non-ASCII/emoji ranges.\n• Repeated submits no longer resend the same editor selection context, and invalid custom themes are ignored instead of crashing startup.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗧𝗼𝗼𝗹𝘀\n• Azure requests now align closer to OpenAI defaults, including store=false and ID stripping for Azure/OpenAI request bodies, fixing reasoning item sequence errors.\n• Added reasoning variant support for mistral-medium-3.5 and made DeepSeek model matching case-insensitive.\n• GitHub Copilot model variants now sync from remote capability data instead of preserving stale local variants.\n• Removed the broken codesearch tool path from agent permissions, registry, CLI/TUI, and UI rendering.\n• Fixed bash parser tree cleanup, timeout cleanup after rejected promises, and compaction tail_start_id remapping when forking sessions.\n• System prompt assembly now orders instructions as Global, Project, then Skills.\n\nBundle size change\n\nmacOS arm64\n• Total: 99.6 MB -> 99.7 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 14.0 MB -> 14.0 MB (+26.8 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (-1.4 KB)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 76.2 KB -> 66.8 KB (-9.4 KB)\n\nLinux x64\n• Total: 139.3 MB -> 139.3 MB (+28.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.0 MB -> 14.0 MB (+26.8 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (-1.4 KB)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 67.1 KB -> 69.6 KB (+2.6 KB)\n\nWindows x64\n• Total: 151.2 MB -> 151.2 MB (+25.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+64 B)\n• CLI/TUI JS: 14.0 MB -> 14.0 MB (+26.8 KB)\n• Web UI assets: 17.8 MB -> 17.8 MB (-1.4 KB)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 65.9 KB -> 65.9 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.29...v1.14.30"
+      ],
+      "tweetIds": [
+        "2049634115079594165"
+      ],
+      "status": "posted",
+      "postedAt": "2026-04-29T23:37:08.157Z"
     }
   ]
 }
