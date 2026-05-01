@@ -586,6 +586,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-04-29T23:37:08.157Z"
+    },
+    {
+      "releaseId": 315585581,
+      "tag": "v1.14.31",
+      "name": "v1.14.31",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.31",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-01T06:13:50Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.31 released. TL;DR: HttpApi/workspace hardening • better TUI/Zed context • provider/auth fixes • desktop crash telemetry\n\n𝗖𝗼𝗿𝗲 & 𝗛𝘁𝘁𝗽𝗔𝗽𝗶\n• Continued the Effect migration through workspace sync, session routes, PTY, events, and SyncEvent handling. Main impact: fewer legacy context bridges and better async context propagation across sessions, tools, workspaces, and remote sync.\n• Hardened the experimental HttpApi backend: CORS is now applied to instance routes, custom CORS origins flow through the backend, raw event/PTY routes require configured auth, and the web UI fallback is protected by the same server auth.\n• Improved API parity: more safe GET routes match legacy JSON shape, absent optional fields are omitted instead of serialized inconsistently, and session prompt handlers preserve typed errors.\n\n𝗧𝗨𝗜 & 𝗭𝗲𝗱\n• TUI editor context now supports multiple Zed selections and formats them as grouped context instead of flattening to one range.\n• Zed context is scoped to the containing workspace, reducing wrong-file context when multiple Zed workspaces are active.\n• Added a way to remove/dismiss editor context from the prompt, fixed list jank, and upgraded OpenTUI to 0.2.0.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗠𝗖𝗣\n• Azure onboarding now asks for resource name during API auth and persists it as auth metadata; Azure model loading can resolve resourceName from config, auth metadata, or env, and fails with a clearer error when missing.\n• OpenAI/Codex model filtering moved into the provider models hook, so user config can take precedence over plugin transforms.\n• Fixed providerOptions keys for dotted provider IDs on openai-compatible, OpenAI, and Anthropic SDK paths.\n• Invalid remote MCP URLs now fail that MCP connection cleanly instead of throwing during transport construction.\n\n𝗔𝗴𝗲𝗻𝘁 𝗥𝘂𝗻𝘁𝗶𝗺𝗲\n• Tool results with image/media output and empty text no longer emit an empty text part that can trip provider API validation.\n• Task child sessions now preserve external_directory and deny permission rules from the parent.\n• The shared OpenCode temp dir is created up front, preapproved for agent use, and called out in bash tool instructions.\n• OPENCODE_DISABLE_CLAUDE_CODE_SKILLS no longer disables other external skill roots such as .agents.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽 & 𝗪𝗲𝗯\n• Added Sentry integration for web, Tauri desktop, and Electron renderer builds, including sourcemaps and an error-page report action.\n• Fixed app restore paths for messages without model metadata and corrected readiness flags that affected server/provider status indicators.\n\nBundle size change\n\nmacOS arm64\n• Total: 99.7 MB -> 123.3 MB (+23.7 MB)\n• Bun runtime: 60.4 MB -> 60.6 MB (+188.0 KB)\n• CLI/TUI JS: 14.0 MB -> 14.1 MB (+58.4 KB)\n• Web UI assets: 17.8 MB -> 41.2 MB (+23.4 MB)\n• Native addons: 1.7 MB -> 1.7 MB (-272 B)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 66.8 KB -> 113.6 KB (+46.8 KB)\n\nLinux x64\n• Total: 139.3 MB -> 162.8 MB (+23.5 MB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.0 MB -> 14.1 MB (+58.4 KB)\n• Web UI assets: 17.8 MB -> 41.2 MB (+23.4 MB)\n• Native addons: 5.5 MB -> 5.5 MB (-5.9 KB)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 69.6 KB -> 110.1 KB (+40.4 KB)\n\nWindows x64\n• Total: 151.2 MB -> 174.7 MB (+23.5 MB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+39 B)\n• CLI/TUI JS: 14.0 MB -> 14.1 MB (+58.4 KB)\n• Web UI assets: 17.8 MB -> 41.2 MB (+23.4 MB)\n• Native addons: 2.1 MB -> 2.1 MB (-8.2 KB)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 65.9 KB -> 107.6 KB (+41.7 KB)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.30...v1.14.31"
+      ],
+      "tweetIds": [
+        "2050098916553556378"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-01T06:24:05.461Z"
     }
   ]
 }
