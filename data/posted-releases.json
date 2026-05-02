@@ -603,6 +603,22 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-01T06:24:05.461Z"
+    },
+    {
+      "releaseId": 316709811,
+      "tag": "v1.14.32",
+      "name": "v1.14.32",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.32",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-02T15:34:14Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.32 released. TL;DR: Effect-backed instance lifecycle, workspace adapter/API cleanup, TUI prompt fixes, provider + SDK correctness.\n\n𝗖𝗼𝗿𝗲 & 𝗛𝗧𝗧𝗣 𝗔𝗣𝗜\n• Instance load/reload/dispose now runs through an Effect service with explicit bootstrap and scoped cleanup.\n▸ This tightens async context propagation across HTTP API, workspace routing, plugins, and lifecycle paths.\n• OpenAPI normalization restores parameter parity for path/query IDs and regenerates @opencode-ai/sdk.\n• Workspace creation accepts the TUI’s minimal payload shape; missing extra is normalized to null.\n• Archived session timestamps now reject non-finite values while preserving legacy negative archive timestamps.\n\n𝗪𝗼𝗿𝗸𝘀𝗽𝗮𝗰𝗲𝘀 & 𝗣𝗹𝘂𝗴𝗶𝗻𝘀\n• Experimental workspace “adaptor” naming is standardized to “adapter” across routes, SDK, TUI, and @opencode-ai/plugin types.\n• Workspace adapter callbacks now bridge Promise code back into Effect/ALS context, so adapters that re-enter runtime keep instance/workspace state.\n\n𝗧𝗨𝗜\n• Upgraded @opentui/core and @opentui/solid to 0.2.2.\n• Shell-mode prompt stays editable: textarea actions are no longer suspended, fixing backspace/delete-word/arrow movement.\n• Logo subpixel rendering is gated on truecolor support, and system theme palette prewarm reduces first-paint fallback.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗧𝗼𝗼𝗹𝘀\n• Read tool only sends supported image attachments to providers: JPEG/PNG/GIF/WebP plus PDFs. BMP/TIFF/AVIF-like files fall back to text.\n• Cross-model reasoning history is downgraded to text instead of carrying provider-specific reasoning metadata, fixing Bedrock-style incompatibilities.\n• Zen removes hardcoded OpenAI safety_identifier injection, adds provider.model metrics, and lets payloadModifier template $ip, $workspace, and $header.* values.\n• NPM package loading handles stale cache dirs without installed package contents by reifying before resolving entrypoints.\n\nBundle size change\n\nmacOS arm64\n• Total: 123.3 MB -> 123.4 MB (+32.3 KB)\n• Bun runtime: 60.6 MB -> 60.6 MB (+256 B)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+24.6 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 1.7 MB -> 1.7 MB (-208 B)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 113.6 KB -> 121.2 KB (+7.6 KB)\n\nLinux x64\n• Total: 162.8 MB -> 162.8 MB (+20.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+24.6 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 5.5 MB -> 5.5 MB (-4.3 KB)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 110.1 KB -> 109.8 KB (-306 B)\n\nWindows x64\n• Total: 174.7 MB -> 174.7 MB (+24.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+296 B)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+24.6 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 2.1 MB -> 2.1 MB (-512 B)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 107.6 KB -> 107.7 KB (+84 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.31...v1.14.32"
+      ],
+      "tweetIds": [],
+      "status": "errored",
+      "error": "Request failed with code 403",
+      "postedAt": "2026-05-02T15:41:15.756Z"
     }
   ]
 }
