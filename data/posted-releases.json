@@ -619,6 +619,23 @@
       "status": "errored",
       "error": "Request failed with code 403",
       "postedAt": "2026-05-02T15:41:15.756Z"
+    },
+    {
+      "releaseId": 316745216,
+      "tag": "v1.14.33",
+      "name": "v1.14.33",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.33",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-02T19:53:08Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.33 released. TL;DR: Effect-native models.dev cache/runtime plumbing; restored instance bootstrap for CLI/server paths; MCP/plugin tool spans; read accepts offset=0.\n\n𝗖𝗼𝗿𝗲 & 𝗥𝘂𝗻𝘁𝗶𝗺𝗲\n• models.dev is now an Effect service instead of ad hoc promises.\n▸ Keeps disk cache + bundled snapshot fallback + 5m TTL refresh, but runs through shared runtime services, HttpClient retries/timeouts, cache invalidation, and cross-process locking.\n• Non-Effect entrypoints now pass the standard instance bootstrap when opening projects.\n▸ CLI bootstrap, legacy server middleware, local workspace routing, TUI worker upgrade checks, and project git-init reloads now initialize config/plugins/LSP/file watcher/snapshot/VCS consistently.\n• Instance disposal/reload helpers were consolidated around InstanceStore, reducing split-brain cleanup paths between promise callers and Effect callers.\n\n𝗖𝗟𝗜 & 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• `opencode models` moved onto the new Effect-native command wrapper.\n▸ It now uses the shared provider/model services directly, including `--refresh`, and invalid provider failures go through typed CLI error formatting.\n• Provider listing/auth paths now read models.dev through the service layer, so CLI, legacy HTTP routes, and experimental HttpApi share the same model cache behavior.\n\n𝗧𝗼𝗼𝗹𝘀 & 𝗧𝗲𝗹𝗲𝗺𝗲𝘁𝗿𝘆\n• MCP tools and plugin-defined tools now emit `Tool.execute` spans with tool/session/message/call metadata.\n▸ This fills an observability gap where only built-in tool execution was easy to trace.\n• `read` now accepts `offset: 0` and treats it as the first line/entry.\n▸ Useful for generated tool calls and clients that use zero as a default offset instead of omitting the field.\n\n𝗣𝗮𝗰𝗸𝗮𝗴𝗶𝗻𝗴\n• Nix node_modules build drops a stale `packages/shared` filter and refreshes platform hashes.\n• Zed extension/package versions and generated SDK artifacts were regenerated for 1.14.33.\n\nBundle size change\n\nmacOS arm64\n• Total: 123.4 MB -> 123.4 MB (no change)\n• Bun runtime: 60.6 MB -> 60.6 MB (no change)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+11.4 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 121.2 KB -> 109.8 KB (-11.4 KB)\n\nLinux x64\n• Total: 162.8 MB -> 162.9 MB (+12.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+11.4 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 109.8 KB -> 110.3 KB (+571 B)\n\nWindows x64\n• Total: 174.7 MB -> 174.7 MB (+11.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+65 B)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+11.4 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 107.7 KB -> 107.7 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.32...v1.14.33"
+      ],
+      "tweetIds": [
+        "2050667011643224442"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-02T20:01:29.915Z"
     }
   ]
 }
