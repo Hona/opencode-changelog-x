@@ -636,6 +636,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-02T20:01:29.915Z"
+    },
+    {
+      "releaseId": 317506967,
+      "tag": "v1.14.34",
+      "name": "v1.14.34",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.34",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-04T23:26:05Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.34 released. TL;DR: native HttpApi + WebSocket groundwork, experimental v2 session/event surface, shell-aware Bash tool, terminal/auth/worktree fixes\n\n𝗦𝗲𝗿𝘃𝗲𝗿 & 𝗔𝗣𝗜\n• Effect HttpApi now has a native listener path for real WebSocket upgrades, plus OpenAPI generation from the HttpApi spec. Dev/beta/local default this backend on; stable stays on Hono unless OPENCODE_EXPERIMENTAL_HTTPAPI is set.\n• Auth is centralized around OPENCODE_SERVER_USERNAME/OPENCODE_SERVER_PASSWORD. Browser login gets a Basic challenge, clients/plugins preserve username credentials, and SDK/CLI errors no longer collapse empty server responses into bare {}.\n• Embedded UI serving/proxying was tightened: bundled UI assets resolve through the filesystem abstraction, public manifest/icon assets can load under server auth, and decoded proxied responses strip transfer/content metadata browsers should not see.\n\n𝗣𝗧𝗬, 𝗪𝗲𝗯 & 𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• PTY WebSockets now support short-lived connect tickets with origin/CSRF checks, so desktop/web terminals can connect under Basic Auth without relying on long-lived credentials in WS URLs.\n• Web terminal state is scoped per server, auth_token bootstrap credentials are parsed then removed from the URL, reconnect recovery avoids clone loops, and desktop zoom handlers only consume actual zoom shortcuts.\n\n𝗦𝗲𝘀𝘀𝗶𝗼𝗻 v2\n• Adds the session.next.* event schema/projection layer for prompts, steps, text, reasoning, tools, retries, compaction, and failure states, persisted into a new session_message table behind OPENCODE_EXPERIMENTAL_EVENT_SYSTEM.\n• Adds experimental v2 session/message read APIs with cursor pagination and active-context reads, plus an internal TUI v2 sync/debug renderer. This is groundwork, not a replacement for the main session UI yet.\n\n𝗧𝗼𝗼𝗹𝘀 & 𝗖𝗟𝗜\n• The Bash tool is now shell-aware while keeping the user-facing tool/permission id bash: prompts adapt for bash, pwsh/PowerShell, and cmd, and permission/path scanning understands shell-specific file commands.\n• CLI commands continue moving to Effect-native execution with per-command instance opt-out and deterministic disposal. opencode run --attach also gains --username for Basic Auth.\n\n𝗩𝗖𝗦 & 𝗪𝗼𝗿𝗸𝘁𝗿𝗲𝗲\n• VCS diffs now use native git patch output with byte caps/batched parsing instead of constructing full before/after file contents in memory. Large diffs should be safer while retaining per-file stats.\n• Worktree creation boots through InstanceStore asynchronously, so workspace/worktree endpoints return without waiting for project bootstrap/start scripts and avoid previous hangs.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗭𝗲𝗻\n• Codex OAuth now allows gpt-5.3-codex-spark.\n• Azure provider model selection handles chat/responses/messages/languageModel SDK shapes; Zen usage telemetry adds microcent cost metrics and avoids applying payload substitutions to non-string values.\n\nBundle size change\n\nmacOS arm64\n• Total: 123.4 MB -> 99.9 MB (-23.4 MB)\n• Bun runtime: 60.6 MB -> 60.4 MB (-186.1 KB)\n• CLI/TUI JS: 14.1 MB -> 14.2 MB (+138.4 KB)\n• Web UI assets: 41.2 MB -> 17.9 MB (-23.4 MB)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 109.8 KB -> 70.9 KB (-38.9 KB)\n\nLinux x64\n• Total: 162.9 MB -> 139.6 MB (-23.3 MB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.1 MB -> 14.2 MB (+138.4 KB)\n• Web UI assets: 41.2 MB -> 17.9 MB (-23.4 MB)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 110.3 KB -> 67.4 KB (-42.9 KB)\n\nWindows x64\n• Total: 174.7 MB -> 151.4 MB (-23.3 MB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-211 B)\n• CLI/TUI JS: 14.1 MB -> 14.2 MB (+138.4 KB)\n• Web UI assets: 41.2 MB -> 17.9 MB (-23.4 MB)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 107.7 KB -> 66.5 KB (-41.2 KB)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.33...v1.14.34"
+      ],
+      "tweetIds": [
+        "2051444936512274505"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-04T23:32:41.630Z"
     }
   ]
 }
