@@ -670,6 +670,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-05T01:11:38.907Z"
+    },
+    {
+      "releaseId": 317640665,
+      "tag": "v1.14.37",
+      "name": "v1.14.37",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.37",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-05T07:26:52Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.37 released. TL;DR: workspace session warping • Electron desktop consolidation/fixes • safer subtask cancellation • v2/session API cleanup.\n\n𝗪𝗼𝗿𝗸𝘀𝗽𝗮𝗰𝗲𝘀 & 𝗦𝘆𝗻𝗰\n• Adds experimental session warp: sessions can move into another workspace or detach back to the local project.\n▸ The backend replays session history, steals ownership in the target workspace, and fences old workspace sync events after a move.\n• The TUI exposes Warp from the prompt command menu/slash command and recovery flows, with new, recent/existing, or None/local targets.\n• Workspace status is shown more consistently in session list/sidebar labels, making broken or disconnected workspace sessions easier to recover.\n\n𝗦𝗲𝘀𝘀𝗶𝗼𝗻𝘀 & 𝗧𝗨𝗜\n• Fixes subtask cancellation: aborting/interruption now cancels child agent sessions instead of leaving subagents running after the parent stops.\n• Improves the experimental v2 session message view: cleaner message layout, markdown compaction summaries, expandable shell/tool output, clearer denied/error states, and better duration timing.\n• Normalizes v2 model/event payloads around provider/model/variant refs and unknown-error shapes; generated SDK/OpenAPI now reflect workspace warp and sync steal APIs.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽 & 𝗗𝗶𝘀𝘁𝗿𝗶𝗯𝘂𝘁𝗶𝗼𝗻\n• Desktop packaging is consolidated into the Electron-based desktop package; build/sign/publish paths now target it and the old Tauri desktop tree is removed.\n• Windows desktop zoom/titlebar behavior is stabilized: zoom goes through IPC, titlebar overlay height follows zoom, and native controls keep correct spacing.\n• Dev desktop builds expose a Chrome DevTools debug port for Electron MCP workflows.\n• Download endpoints now use the new desktop asset names and avoid Cloudflare-specific fetch cache options for more portable release downloads.\n\nBundle size change\n\nmacOS arm64\n• Total: 99.9 MB -> 99.9 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (+9.2 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+895 B)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 70.8 KB -> 76.7 KB (+5.9 KB)\n\nLinux x64\n• Total: 139.6 MB -> 139.6 MB (+12.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (+9.2 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+895 B)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 67.3 KB -> 69.2 KB (+1.9 KB)\n\nWindows x64\n• Total: 151.4 MB -> 151.4 MB (+10.0 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-100 B)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (+9.2 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+895 B)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 66.5 KB -> 66.5 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.35...v1.14.37"
+      ],
+      "tweetIds": [
+        "2051566407414944232"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-05T07:35:22.568Z"
     }
   ]
 }
