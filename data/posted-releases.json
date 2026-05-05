@@ -687,6 +687,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-05T07:35:22.568Z"
+    },
+    {
+      "releaseId": 317699766,
+      "tag": "v1.14.38",
+      "name": "v1.14.38",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.38",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-05T09:48:27Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.38 released. TL;DR: Desktop trusts system CAs; UI CSP now allows external connections; Node/Nix packaging refreshed; Zed artifacts updated.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Electron startup now merges Node’s default CA set with the OS system certificate store.\n• This should fix HTTPS failures behind corporate proxies, private PKI, or locally installed root CAs where the desktop app previously did not trust the same certs as the OS.\n\n𝗦𝗲𝗿𝘃𝗲𝗿 & 𝗪𝗲𝗯 𝗨𝗜\n• The served UI CSP changed connect-src from self/data-only to all origins.\n• Practically: embedded/proxied UI flows can now make network connections outside their own origin, unblocking setups that need API/WebSocket access to non-self endpoints.\n\n𝗣𝗮𝗰𝗸𝗮𝗴𝗶𝗻𝗴\n• @types/node moved from 22.x to 24.x, with the Node server adapter adjusted for the newer server/event typings.\n• Nix node_modules hashes were regenerated for Linux and Darwin on x64/arm64.\n• Zed extension metadata now targets the v1.14.38 release artifacts.\n\nBundle size change\n\nmacOS arm64\n• Total: 99.9 MB -> 99.9 MB (no change)\n• Bun runtime: 60.4 MB -> 60.4 MB (no change)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (-22 B)\n• Web UI assets: 17.9 MB -> 17.9 MB (no change)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 76.7 KB -> 76.7 KB (+22 B)\n\nLinux x64\n• Total: 139.6 MB -> 139.6 MB (no change)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (-22 B)\n• Web UI assets: 17.9 MB -> 17.9 MB (no change)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 69.2 KB -> 69.3 KB (+22 B)\n\nWindows x64\n• Total: 151.4 MB -> 151.4 MB (no change)\n• Bun runtime: 111.5 MB -> 111.5 MB (+22 B)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (-22 B)\n• Web UI assets: 17.9 MB -> 17.9 MB (no change)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 66.5 KB -> 66.5 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.37...v1.14.38"
+      ],
+      "tweetIds": [
+        "2051601282436092069"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-05T09:53:57.397Z"
     }
   ]
 }
