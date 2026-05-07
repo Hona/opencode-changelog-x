@@ -721,6 +721,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-05T11:04:02.316Z"
+    },
+    {
+      "releaseId": 318696114,
+      "tag": "v1.14.40",
+      "name": "v1.14.40",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.40",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-07T00:34:11Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.40 released. TL;DR: provider/reasoning correctness • SDK-visible 404s + CORS fix • well-known remote_config • desktop/TUI stability\n\n𝗖𝗼𝗿𝗲 & 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Preserves assistant content around signed Anthropic/Bedrock reasoning blocks during replay, avoiding invalid shifted reasoning positions.\n• Sanitizes lone UTF-16 surrogates in model-visible text/tool output before provider calls.\n• Retries server_is_overloaded provider stream errors.\n• Fixes Cloudflare AI Gateway option routing through the OpenAI-compatible provider key, so reasoningEffort/variants actually reach the upstream request.\n• Tightens reasoning variants for GPT-5.x/OpenAI-compatible gateway models and restores Mistral Medium 3.5 variant coverage.\n\n𝗖𝗼𝗻𝗳𝗶𝗴 & 𝗦𝗗𝗞\n• .well-known/opencode can now delegate to remote_config: a remote JSON config URL plus templated headers, including env-backed auth tokens.\n• Session/PTY/TUI missing-resource paths now return declared NotFoundError JSON with messages, and the generated @opencode-ai/sdk carries those 404 shapes, including session fork.\n• Legacy unauthorized responses now get CORS headers because CORS runs before auth.\n\n𝗧𝗨𝗜 & 𝗪𝗲𝗯 𝗔𝗽𝗽\n• /new and workspace warp flows preserve the current workspace better, filter recent workspaces to connected ones, and inject a synthetic cwd reminder after warping.\n• Editor context state now distinguishes pending vs sent selections, avoids resending stale editor selections, and preserves selection across new-session navigation when needed.\n• Model selection is no longer overwritten just because agent data refreshes; invalid agent-configured models still warn.\n• Web sync queries now use the correct global vs directory SDK clients, improving provider/agent/MCP refresh behavior.\n• KaTeX SVG output survives sanitization, and UI CSP handling restores web-terminal-compatible allowances while hashing the theme preload script.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Adds trusted-renderer clipboard write permission handling for Electron.\n• Disables auto-install-on-quit for updates, avoiding surprise installs during app shutdown.\n• Hardens logging/Sentry noise paths: suppresses console EPIPE crashes and production browser API Sentry errors.\n• Bundles optional @parcel/watcher platform packages for more reliable desktop installs.\n\n𝗭𝗲𝗻 / 𝗚𝗼\n• Zen key-based rate limiting now uses per-model limits instead of a fixed cap.\n• Zen model listings hide :global aliases.\n• Go catalog copy and limits were cleaned up: expired Kimi K2.6 promo removed, older MiMo V2 Pro/Omni entries deprecated.\n\nBundle size change\n\nmacOS arm64\n• Total: 99.9 MB -> 100.0 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 14.2 MB -> 14.3 MB (+14.4 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+179 B)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 76.7 KB -> 78.2 KB (+1.4 KB)\n\nLinux x64\n• Total: 139.6 MB -> 139.6 MB (+12.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.2 MB -> 14.2 MB (+14.4 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+179 B)\n• Native addons: 5.5 MB -> 5.5 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 69.3 KB -> 66.7 KB (-2.6 KB)\n\nWindows x64\n• Total: 151.4 MB -> 151.5 MB (+14.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-55 B)\n• CLI/TUI JS: 14.2 MB -> 14.3 MB (+14.4 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+179 B)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 66.5 KB -> 66.5 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.39...v1.14.40"
+      ],
+      "tweetIds": [
+        "2052187395483632080"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-07T00:42:57.633Z"
     }
   ]
 }
