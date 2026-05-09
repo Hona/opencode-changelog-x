@@ -772,6 +772,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-09T16:58:24.037Z"
+    },
+    {
+      "releaseId": 319978468,
+      "tag": "v1.14.43",
+      "name": "v1.14.43",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.43",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-09T18:06:18Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.43 released. TL;DR: ACP tool image output now survives live updates + replay; provider lists are JSON-safe with plugin runtime options; HTTP API error boundaries were tightened.\n\n𝗔𝗖𝗣\n• Completed tool calls can now include image attachments as ACP image content blocks, not just text output.\n• The same attachment handling is used for live tool updates and replayed session history, so ACP clients can render tool-produced images consistently after reconnect/load.\n• Raw completed-tool output now carries attachment metadata when present, preserving the lower-level tool result for clients that need it.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗣𝗹𝘂𝗴𝗶𝗻𝘀\n• Provider list endpoints now sanitize provider objects before returning them over HTTP.\n▸ Runtime-only values from plugin/auth loaders, such as functions, symbols, undefined fields, and BigInts, no longer break JSON responses or leak into public provider payloads.\n• Auth loaders now receive a JSON-safe provider snapshot, reducing accidental mutation of internal provider/model state.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• The HTTP API error middleware now focuses on defect/unknown-error normalization while leaving typed HttpApi failures on their declared framework path.\n\n𝗘𝗱𝗶𝘁𝗼𝗿𝘀 / 𝗣𝗮𝗰𝗸𝗮𝗴𝗶𝗻𝗴\n• Zed extension metadata and package versions were advanced to v1.14.43.\n\nBundle size change\n\nmacOS arm64\n• Total: 100.0 MB -> 100.0 MB (no change)\n• Bun runtime: 60.4 MB -> 60.4 MB (no change)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+56 B)\n• Web UI assets: 17.9 MB -> 17.9 MB (no change)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 74.1 KB -> 74.0 KB (-56 B)\n\nLinux x64\n• Total: 139.7 MB -> 139.7 MB (no change)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+56 B)\n• Web UI assets: 17.9 MB -> 17.9 MB (no change)\n• Native addons: 5.6 MB -> 5.6 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 70.0 KB -> 69.9 KB (-56 B)\n\nWindows x64\n• Total: 151.5 MB -> 151.5 MB (no change)\n• Bun runtime: 111.5 MB -> 111.5 MB (-56 B)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+56 B)\n• Web UI assets: 17.9 MB -> 17.9 MB (no change)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 67.2 KB -> 67.2 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.42...v1.14.43"
+      ],
+      "tweetIds": [
+        "2053177442492096692"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-09T18:17:03.246Z"
     }
   ]
 }
