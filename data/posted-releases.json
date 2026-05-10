@@ -806,6 +806,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-09T19:37:41.497Z"
+    },
+    {
+      "releaseId": 320026487,
+      "tag": "v1.14.45",
+      "name": "v1.14.45",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.45",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-10T00:07:26Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.45 released. TL;DR: TUI/plugin compatibility fixes • better SDK/TUI error surfaces • workspace-routed HTTP APIs stop rejecting routing params • session/provider schemas handle migrated + active state\n\n𝗧𝗨𝗜 & 𝗣𝗹𝘂𝗴𝗶𝗻𝘀\n• Restores deprecated api.command for v1 TUI plugins as a shim over api.keymap, with deprecation warnings and support for register/trigger/show.\n• TUI bootstrap now aggregates parallel request failures into one labeled error instead of surfacing only the first rejection.\n• Session sync no longer crashes when the messages endpoint fails and returns no data.\n\n𝗦𝗗𝗞 & 𝗛𝗧𝗧𝗣 𝗔𝗣𝗜\n• JS SDK throwOnError now throws real Error objects for parsed or empty non-2xx bodies, preserving status/body under cause. Result-style callers still get the original parsed error body.\n• Workspace-routed endpoints now accept directory/workspace query params in their runtime schemas, fixing 400s on routed session, file, VCS, PTY, and experimental API calls.\n\n𝗦𝗲𝘀𝘀𝗶𝗼𝗻𝘀, 𝗗𝗶𝗳𝗳𝘀 & 𝗨𝗜\n• Session/diff schemas now tolerate migrated legacy diffs without file or patch fields, so older/imported sessions load instead of failing response encoding.\n• Review/side-panel rendering filters non-file diff rows before building file views.\n• Read-tool permission checks now use worktree-relative paths, aligning read rules with edit/write-style permission patterns.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗖𝗼𝗿𝗲\n• Config/public provider schemas and generated SDK types now accept model status active, while catalog model status remains separately constrained.\n• Provider model hooks receive isolated public provider info, preventing plugin-side mutations from corrupting provider state or model costs.\n• Schema/Zod interop utilities moved into @opencode-ai/core for shared use across packages.\n\nBundle size change\n\nmacOS arm64\n• Total: 100.0 MB -> 100.0 MB (no change)\n• Bun runtime: 60.4 MB -> 60.4 MB (no change)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+4.4 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+458 B)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 77.0 KB -> 72.1 KB (-4.9 KB)\n\nLinux x64\n• Total: 139.7 MB -> 139.7 MB (+4.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+4.4 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+458 B)\n• Native addons: 5.6 MB -> 5.6 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 68.9 KB -> 68.0 KB (-916 B)\n\nWindows x64\n• Total: 151.5 MB -> 151.5 MB (+4.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-410 B)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+4.5 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+458 B)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 67.2 KB -> 67.2 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.44...v1.14.45"
+      ],
+      "tweetIds": [
+        "2053268283780923459"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-10T00:18:01.497Z"
     }
   ]
 }
