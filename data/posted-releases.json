@@ -823,6 +823,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-10T00:18:01.497Z"
+    },
+    {
+      "releaseId": 320042990,
+      "tag": "v1.14.46",
+      "name": "v1.14.46",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.46",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-10T02:34:38Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.46 released. TL;DR: Plan Mode subagents inherit deny rules; HTTP/OpenAPI query schemas are less drift-prone; MCP tool discovery tolerates bad output schemas; legacy session data loads more defensively.\n\n𝗔𝗴𝗲𝗻𝘁𝘀 & 𝗦𝗲𝗰𝘂𝗿𝗶𝘁𝘆\n• Fixes a Plan Mode bypass: subagents spawned through the task tool now inherit parent agent deny rules, not just parent session permissions.\n• This keeps read-only Plan Mode restrictions active for general/custom subagents instead of letting them regain edit/write capability.\n\n𝗛𝗧𝗧𝗣 𝗔𝗣𝗜 & 𝗦𝗗𝗞\n• Workspace routing query params are now part of runtime route schemas across session, provider, file, PTY, TUI, experimental, and workspace APIs, rather than being injected only into OpenAPI output.\n• v2 session list/message endpoints now advertise their real pagination/filter query shape in OpenAPI and the JS SDK, including limit/order/cursor and session filters.\n• Cursor use is validated at the handler layer, so invalid cursor plus filter/order combinations return 400 instead of relying on awkward schema unions.\n• Boolean query decoding is shared and strict at runtime: only true/false strings decode, while SDK/OpenAPI still preserve ergonomic boolean call shapes where intended.\n\n𝗠𝗖𝗣\n• MCP tool discovery now falls back when a server exposes an outputSchema with broken refs or schema-resolution failures.\n• OpenCode retries tools/list with tolerant output-schema validation and keeps usable tool definitions instead of failing the whole server connection. Non-schema transport/tool-list errors still fail normally.\n\n𝗦𝗲𝘀𝘀𝗶𝗼𝗻 𝗗𝗮𝘁𝗮 & 𝗥𝗲𝗹𝗶𝗮𝗯𝗶𝗹𝗶𝘁𝘆\n• Stored numeric schemas were loosened from non-negative-only to finite numbers for token counts, snapshots/VCS diffs, retry metadata, and related persisted message parts.\n• New usage accounting clamps provider-reported negative or non-finite token values to zero.\n• This protects message/session loading, including Desktop boot paths, from older rows where provider token math produced negative counts.\n\n𝗦𝗸𝗶𝗹𝗹𝘀\n• Adds a built-in customize-opencode skill behind OPENCODE_EXPERIMENTAL_CUSTOMIZE_SKILL.\n• It gives models concrete schemas and conventions for opencode.json, agents, skills, plugins, MCP servers, and permission rules; default-on for dev/beta/local channels, opt-in for stable.\n\nBundle size change\n\nmacOS arm64\n• Total: 100.0 MB -> 100.0 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+14.7 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+252 B)\n• Native addons: 1.7 MB -> 1.7 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 72.1 KB -> 73.2 KB (+1.1 KB)\n\nLinux x64\n• Total: 139.7 MB -> 139.7 MB (+8.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+6.0 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+252 B)\n• Native addons: 5.6 MB -> 5.6 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 68.0 KB -> 69.7 KB (+1.7 KB)\n\nWindows x64\n• Total: 151.5 MB -> 151.5 MB (+15.0 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+91 B)\n• CLI/TUI JS: 14.3 MB -> 14.3 MB (+14.7 KB)\n• Web UI assets: 17.9 MB -> 17.9 MB (+252 B)\n• Native addons: 2.1 MB -> 2.1 MB (no change)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 67.2 KB -> 67.2 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.45...v1.14.46"
+      ],
+      "tweetIds": [
+        "2053303651763163186"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-10T02:38:33.870Z"
     }
   ]
 }
