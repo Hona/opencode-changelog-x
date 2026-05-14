@@ -891,6 +891,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-13T22:29:33.994Z"
+    },
+    {
+      "releaseId": 322282758,
+      "tag": "v1.14.50",
+      "name": "v1.14.50",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.50",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-14T03:03:25Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.50 released. TL;DR: v2 provider/model APIs are instance-aware; models.dev moved into core with bundled snapshots; SSE/session/tool errors are more typed; TUI markdown rendering is back.\n\n𝗖𝗼𝗿𝗲 & 𝗖𝗮𝘁𝗮𝗹𝗼𝗴\n• models.dev catalog loading now lives in @opencode-ai/core and ships with a generated snapshot fallback, cache refresh, and cross-process cache locking.\n• Experimental v2 catalog/plugin boot is scoped by instance, so provider/model state can be resolved per directory/workspace instead of as one global catalog.\n\n𝗛𝗧𝗧𝗣 𝗔𝗣𝗜 & 𝗦𝗗𝗞\n• v2 /api/model and /api/provider endpoints now accept instance[directory] / instance[workspace] context; the generated JS SDK exposes the same optional instance params.\n• /event SSE now preserves Effect context across bus subscriptions, keeping streams open and delivering instance events after the initial server.connected event.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗠𝗼𝗱𝗲𝗹𝘀\n• Small-task model options now use declared model variants instead of hard-coded provider heuristics, reducing bad reasoning/thinking params for GPT-5/Gemini-style models.\n• Invalid small_model config no longer poisons fallback paths: OpenCode can skip the bad small model and continue with the main model.\n• Model-not-found failures are now typed through provider/language-loading paths, preserving suggestions for CLI/session error output.\n\n𝗥𝘂𝗻𝘁𝗶𝗺𝗲 & 𝗧𝗼𝗼𝗹𝘀\n• ToolFailure can carry the underlying defect into tool-error events while still returning an error tool-result so the model can self-correct.\n• Session busy handling is typed end-to-end; shell/revert/delete HTTP paths map busy state to 400 instead of leaking defects.\n• Read/apply_patch/patch paths continue the AppFileSystem migration; read now streams file lines with explicit caps and handles final unterminated lines.\n• AppProcess now tracks stdout vs stderr truncation separately for cleaner diagnostics.\n\n𝗧𝗨𝗜\n• Assistant text rendering switched back to the markdown renderer with top-level block mode/theme markdown colors, and the old experimental markdown flag was removed.\n\nBundle size change\n\nmacOS arm64\n• Total: 101.6 MB -> 101.6 MB (+16.1 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+128 B)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+12.2 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+152 B)\n• Native addons: 2.4 MB -> 2.4 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 78.3 KB -> 82.0 KB (+3.6 KB)\n\nLinux x64\n• Total: 143.8 MB -> 143.8 MB (+16.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+12.2 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+152 B)\n• Native addons: 8.9 MB -> 8.9 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.7 KB -> 72.4 KB (+3.6 KB)\n\nWindows x64\n• Total: 153.0 MB -> 153.0 MB (+12.8 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+506 B)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+12.2 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+152 B)\n• Native addons: 2.7 MB -> 2.7 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.6 KB -> 68.6 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.49...v1.14.50"
+      ],
+      "tweetIds": [
+        "2054761455811964981"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-14T03:11:21.485Z"
     }
   ]
 }
