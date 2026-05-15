@@ -908,6 +908,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-14T03:11:21.485Z"
+    },
+    {
+      "releaseId": 322914886,
+      "tag": "v1.14.51",
+      "name": "v1.14.51",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.51",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-15T00:39:56Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.51 released. TL;DR: background subagents, restored image resizing, MCP auth/status polish, provider + server/session fixes.\n\n𝗔𝗴𝗲𝗻𝘁𝘀 & 𝗧𝗼𝗼𝗹𝘀\n• Adds experimental background subagents behind OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS: task can launch background=true, return a task_id immediately, and task_status can poll or wait with a timeout.\n• Background results are injected back into the parent session and resume when the parent is idle; cancelling/removing parent or child sessions cancels descendant jobs.\n• Shell output truncation streams are now closed through scoped finalization, including abort paths; the default shell timeout now comes from runtime flags.\n\n𝗦𝗲𝘀𝘀𝗶𝗼𝗻𝘀 & 𝗔𝘁𝘁𝗮𝗰𝗵𝗺𝗲𝗻𝘁𝘀\n• Re-enables image normalization/resizing in Bun-compiled builds by loading photon WASM as an embedded asset. Images are resized before provider requests when over 2000x2000 or 5MiB base64.\n• Oversized user images now fail cleanly, while tool-result images degrade safely when the resizer is unavailable.\n• Fixes double auto-compaction after compacted-history reordering by deriving latest user/assistant/finished turns chronologically instead of by array position.\n• Cancels now finalize interrupted assistant messages, preventing empty unfinished assistant records from poisoning later turns.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽 / 𝗧𝗨𝗜\n• Desktop MCP status now distinguishes needs_auth warnings from failed/needs_client_registration critical states; clicking a needs-auth MCP entry starts OAuth instead of just reconnecting.\n• MCP client-registration failures are surfaced in the selector/status popover instead of being treated as generic disconnected state.\n• TUI question prompts preserve text selection on mouse-up over tabs/options, and task renderers mark background subagent runs.\n• Windows app discovery now awaits where output correctly.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• NVIDIA provider/plugin now adds X-BILLING-INVOKE-ORIGIN: OpenCode for hosted and custom endpoints, while preserving explicit overrides.\n• DigitalOcean OAuth scopes are narrowed from broad read/write to genai:create + genai:read.\n• Azure GPT-5.5 completions no longer get incompatible reasoningEffort remapping.\n• LiteLLM dummy-tool compatibility workaround was removed now that upstream validation is fixed; LiteLLM v1.85.0-rc.2+ is required.\n\n𝗖𝗼𝗿𝗲 & 𝗔𝗣𝗜\n• Server.listen now runs through the HttpApi app/NodeHttpServer path with repeat-safe stop, force-close for active HTTP/WebSocket connections, correct mDNS unpublish, and preserved port 0 behavior: prefer 4096, then fallback.\n• SSE event streaming is now part of the HttpApi route tree with text/event-stream schema metadata and heartbeat/dispose handling.\n• Runtime flag reads moved out of module-level flags for auto-share, channel DB, embedded web UI, experimental models, OXFmt, LSP Ty, icon discovery, Claude Code skills, and bash timeout. This reduces stale env snapshots across in-process listeners/tests.\n• Worktree create accepts missing JSON payload/content-type again.\n• HTTP recorder now refuses unsafe cassettes before writing and tightens WebSocket replay/close behavior.\n\nBundle size change\n\nmacOS arm64\n• Total: 101.6 MB -> 101.6 MB (+32.3 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+256 B)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+32.5 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+1.8 KB)\n• Native addons: 2.4 MB -> 2.4 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 82.0 KB -> 79.7 KB (-2.3 KB)\n\nLinux x64\n• Total: 143.8 MB -> 143.9 MB (+32.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+32.5 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+1.8 KB)\n• Native addons: 8.9 MB -> 8.9 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 72.4 KB -> 70.1 KB (-2.3 KB)\n\nWindows x64\n• Total: 153.0 MB -> 153.0 MB (+34.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+311 B)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+32.5 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+1.8 KB)\n• Native addons: 2.7 MB -> 2.7 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.6 KB -> 68.5 KB (-83 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.50...v1.14.51"
+      ],
+      "tweetIds": [
+        "2055087320177479892"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-15T00:46:13.583Z"
     }
   ]
 }
