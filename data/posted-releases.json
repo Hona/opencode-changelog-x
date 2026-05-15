@@ -925,6 +925,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-15T00:46:13.583Z"
+    },
+    {
+      "releaseId": 322984254,
+      "tag": "v1.15.0",
+      "name": "v1.15.0",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.0",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-15T04:03:57Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.0 released. TL;DR: EventV2 lands in core; v2 session/catalog events are SDK-visible; desktop menus get out of the way; tool/session/projector edge cases fixed.\n\n𝗖𝗼𝗿𝗲 & 𝗘𝘃𝗲𝗻𝘁𝘀\n• Adds an Effect-native core event system with schema-defined payloads, typed + wildcard subscriptions, inline sync handlers, event IDs, versions, aggregates, and optional directory/workspace location metadata.\n• Moves v2 session event/message schemas into @opencode-ai/core so session streams, SDK types, and server projectors share the same source of truth.\n• Adds a compatibility bridge so new core events can still feed the existing bus, sync pipeline, HTTP event stream, and session message projectors during migration.\n• Catalog model updates now emit catalog.model.updated, making model mutations observable instead of only local state changes.\n\n𝗔𝗣𝗜 & 𝗦𝗗𝗞\n• Regenerated OpenAPI/JS SDK types now expose the missing event surface: message/session lifecycle events, session.next.* events for prompt/model/tool/reasoning/retry/compaction flow, and catalog.model.updated.\n• Experimental v2 model/provider APIs now use location query semantics instead of instance, with directory/workspace scoping carried through core Location services.\n• Fixes projector dispatch for versioned event types, preventing v2/core events from missing projectors because lookup used the wrong key shape.\n\n𝗦𝗲𝘀𝘀𝗶𝗼𝗻 & 𝗧𝗼𝗼𝗹𝗶𝗻𝗴\n• Custom .opencode tool modules now ignore non-tool exports instead of trying to register helpers/constants as tools.\n• Instruction discovery now tolerates lookup failures, so AGENTS.md/CLAUDE.md search errors do not abort session prompt construction.\n• Session archive handling avoids rerunning archive-side UI logic when a session.updated event repeats the same archived timestamp.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Desktop main/loading windows enable auto-hide menu bars, primarily cleaning up Linux/Windows window chrome while preserving the app surface.\n\nBundle size change\n\nmacOS arm64\n• Total: 101.6 MB -> 101.6 MB (no change)\n• Bun runtime: 60.4 MB -> 60.4 MB (no change)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+4.1 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+60 B)\n• Native addons: 2.4 MB -> 2.4 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 79.7 KB -> 75.5 KB (-4.2 KB)\n\nLinux x64\n• Total: 143.9 MB -> 143.9 MB (+4.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+4.1 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+60 B)\n• Native addons: 8.9 MB -> 8.9 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 70.1 KB -> 69.9 KB (-208 B)\n\nWindows x64\n• Total: 153.0 MB -> 153.0 MB (+4.0 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-207 B)\n• CLI/TUI JS: 14.6 MB -> 14.6 MB (+4.1 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+60 B)\n• Native addons: 2.7 MB -> 2.7 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.5 KB -> 68.5 KB (-1 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.51...v1.15.0"
+      ],
+      "tweetIds": [
+        "2055140031191564469"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-15T04:15:40.859Z"
     }
   ]
 }
