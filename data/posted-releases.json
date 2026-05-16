@@ -942,6 +942,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-15T04:15:40.859Z"
+    },
+    {
+      "releaseId": 323578174,
+      "tag": "v1.15.1",
+      "name": "v1.15.1",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.1",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-16T05:44:46Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.1 released. TL;DR: quieter TUI reasoning • fixed npm native binary install • stricter instance/workspace runtime context • custom tool + watcher fixes\n\n𝗧𝗨𝗜\n• Reasoning output is collapsed by default: streaming shows a compact Thinking line, completed reasoning becomes a Thought summary with duration, and click expands the full block.\n• Pinned session switching is now explicit: pin sessions in /sessions and use quick-switch slots for pinned sessions only.\n• Prompt history no longer stores duplicate consecutive prompts.\n• Multiline @mentions now account for newline offsets, and markdown tables render with grid styling.\n• Startup config failures now surface structured config details and dedupe identical startup request errors.\n\n𝗖𝗟𝗜 & 𝗜𝗻𝘀𝘁𝗮𝗹𝗹\n• npm install is more resilient for native binaries: platform/arch selection now handles musl and x64 baseline/AVX2 fallbacks, verifies the installed binary, and gives actionable errors when postinstall scripts did not run.\n• The fallback binary message is clearer for package managers that skip scripts.\n\n𝗖𝗼𝗿𝗲, 𝗧𝗼𝗼𝗹𝘀 & 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Custom tool Zod metadata/descriptions are preserved in generated JSON Schema, so LLM-facing tool arguments keep useful descriptions from plugin tools.\n• Runtime flags moved further into the Effect config path: OPENCODE_DISABLE_LSP_DOWNLOAD, external skills disabling, skip migrations, Claude prompt disabling, and output-token caps are read as runtime-scoped configuration.\n• Output-token caps now feed both LLM request sizing and compaction/overflow math instead of being a module-load constant.\n\n𝗥𝘂𝗻𝘁𝗶𝗺𝗲 & 𝗪𝗼𝗿𝗸𝘀𝗽𝗮𝗰𝗲𝘀\n• Instance/workspace context propagation is stricter across Effect re-entry points, ACP, workspace adapters, LSP diagnostics, DB side effects, and file watcher callbacks.\n• Workspace adapters now receive explicit instance/workspace context, reducing cross-project leakage risk in multi-instance/workspace flows.\n• File watching resolves symlinked .git directories before subscribing, so HEAD updates still publish correctly.\n\nBundle size change\n\nmacOS arm64\n• Total: 101.6 MB -> 101.7 MB (+96.8 KB)\n• Bun runtime: 60.4 MB -> 60.4 MB (+768 B)\n• CLI/TUI JS: 14.6 MB -> 14.7 MB (+88.8 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (-1 B)\n• Native addons: 2.4 MB -> 2.4 MB (+96 B)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 75.5 KB -> 82.6 KB (+7.1 KB)\n\nLinux x64\n• Total: 143.9 MB -> 144.0 MB (+96.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.6 MB -> 14.7 MB (+88.8 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (-1 B)\n• Native addons: 8.9 MB -> 8.9 MB (+6.1 KB)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 69.9 KB -> 70.9 KB (+1.0 KB)\n\nWindows x64\n• Total: 153.0 MB -> 153.1 MB (+89.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (-26 B)\n• CLI/TUI JS: 14.6 MB -> 14.7 MB (+88.9 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (-1 B)\n• Native addons: 2.7 MB -> 2.7 MB (+1.0 KB)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.5 KB -> 68.2 KB (-336 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.0...v1.15.1"
+      ],
+      "tweetIds": [
+        "2055526525513146540"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-16T05:51:28.277Z"
     }
   ]
 }
