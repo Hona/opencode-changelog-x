@@ -1010,6 +1010,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-17T17:48:06.841Z"
+    },
+    {
+      "releaseId": 324539335,
+      "tag": "v1.15.5",
+      "name": "v1.15.5",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.5",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-18T20:57:16Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.5 released. TL;DR: native LLM runtime preview • virtualized session timelines • reliable event/SSE delivery • CLI/TUI resume + polish\n\n𝗖𝗼𝗿𝗲 & 𝗟𝗟𝗠\n• Added a preview native LLM runtime behind OPENCODE_EXPERIMENTAL_NATIVE_LLM.\n▸ OpenAI/opencode API-key models can route through @opencode-ai/llm; unsupported cases fall back to the AI SDK path.\n▸ The stream pipeline now normalizes AI SDK/native events into one internal LLM event shape, including richer usage + provider metadata handling.\n• Session processing now handles the unified event stream for text, reasoning, tool input, provider-executed tools, step usage, and errors.\n\n𝗘𝘃𝗲𝗻𝘁𝘀, 𝗦𝘆𝗻𝗰 & 𝗪𝗼𝗿𝗸𝘀𝗽𝗮𝗰𝗲𝘀\n• Fixed a bus subscription race by acquiring PubSub subscriptions eagerly.\n▸ This closes a concrete /event SSE loss window where publishes could happen before lazy stream consumption began.\n• Sync publishing now runs through EffectBridge so forked bus/global events keep the right instance/workspace context.\n• v2 session listing now sorts/cursors by updated time, which makes desktop/session lists reflect recently active sessions correctly.\n\n𝗪𝗲𝗯 / 𝗗𝗲𝘀𝗸𝘁𝗼𝗽 𝗨𝗜\n• Session timeline rendering was reworked around virtualized rows and reusable timeline data.\n▸ Large histories should mount faster, preserve scroll state better, and keep bottom anchoring stable while active tool/text rows resize.\n• Added OpenCode Go/free-limit usage dialogs in the app, with persisted “don’t show again” behavior.\n• Desktop now grants renderer notification permission and fixes update install flow to check/install the latest available update instead of relying on stale downloaded-version state.\n• UI fixes: clipboard copy fallback via execCommand, reasoning parts tolerate undefined text, question dock overflow is scrollable, and PWA theme-color tracks light/dark mode.\n\n𝗖𝗟𝗜 / 𝗧𝗨𝗜\n• opencode run --interactive can replay visible session history on resume via --replay and --replay-limit.\n▸ The stream transport buffers live events during bootstrap so replayed history and new events don’t race each other.\n• TUI added syntax highlighting support for Elixir, F#, R, Make, Vim, XML, and Agda.\n• TUI polish/fixes: pasted prompt content is copied correctly, paste layout refreshes after large paste, long tool output collapses by terminal-aware line/char limits, paste summary badge contrast improves, and dialog prompt submit now uses the keybind system.\n\n𝗥𝗲𝗳𝗲𝗿𝗲𝗻𝗰𝗲𝘀, 𝗣𝗹𝘂𝗴𝗶𝗻𝘀 & 𝗧𝗼𝗼𝗹𝘀\n• Reference config normalization moved into a typed path with alias validation and clearer invalid-reference states.\n• Repository cloning/cache is now a service with typed cache/clone/fetch/checkout errors; repo_clone uses the shared cache path.\n• Session prompt internals were split into prompt reminders, reference prompt helpers, and tool resolution without changing the high-level loop behavior.\n• Plugin tool context ask now exposes a Promise-returning API, matching JS plugin expectations instead of leaking Effect into plugin tools.\n• models.dev loading moved away from a huge generated snapshot module toward cache/fetch plus optional build-global snapshot injection.\n\nBundle size change\n\nmacOS arm64\n• Total: 101.7 MB -> 102.2 MB (+560.7 KB)\n• Bun runtime: 60.4 MB -> 60.8 MB (+384.7 KB)\n• CLI/TUI JS: 14.7 MB -> 14.8 MB (+152.7 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+23.8 KB)\n• Native addons: 2.4 MB -> 2.4 MB (+48 B)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 81.9 KB -> 81.4 KB (-588 B)\n\nLinux x64\n• Total: 143.9 MB -> 137.2 MB (-6.8 MB)\n• Bun runtime: 96.2 MB -> 89.3 MB (-6.9 MB)\n• CLI/TUI JS: 14.7 MB -> 14.8 MB (+152.7 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+23.8 KB)\n• Native addons: 8.9 MB -> 8.9 MB (+2.0 KB)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 70.3 KB -> 68.2 KB (-2.1 KB)\n\nWindows x64\n• Total: 153.1 MB -> 135.0 MB (-18.1 MB)\n• Bun runtime: 111.5 MB -> 93.2 MB (-18.3 MB)\n• CLI/TUI JS: 14.7 MB -> 14.8 MB (+152.7 KB)\n• Web UI assets: 16.6 MB -> 16.6 MB (+23.8 KB)\n• Native addons: 2.7 MB -> 2.7 MB (+1.0 KB)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.2 KB -> 68.2 KB (no change)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.4...v1.15.5"
+      ],
+      "tweetIds": [
+        "2056481212617589193"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-18T21:05:03.465Z"
     }
   ]
 }
