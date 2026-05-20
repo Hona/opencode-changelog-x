@@ -1027,6 +1027,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-18T21:05:03.465Z"
+    },
+    {
+      "releaseId": 326271347,
+      "tag": "v1.15.6",
+      "name": "v1.15.6",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.6",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-20T21:44:11Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.6 released. TL;DR: TUI gets /diff + shell mode; v2 API errors are now typed; desktop/app shell gets cross-platform menu work; plugins/native LLM paths get stricter.\n\n𝗧𝗨𝗜 & 𝗖𝗟𝗜\n• Added a full-screen TUI diff viewer: working tree vs last assistant turn, file tree navigation, collapsed directory chains, split/unified views, single-patch mode, and configurable diff keybinds.\n• `opencode run --interactive` now has shell mode: start from an empty prompt with `!`, send direct shell commands through the session shell path, and render shell transcript output without treating it as a normal user prompt.\n• Replaced subagent tabs with an on-demand searchable picker, keeping subagent inspection available without consuming footer space.\n• Zed editor context is now gated on the Zed terminal environment, avoiding accidental Zed DB selection pickup from unrelated terminals.\n\n𝗛𝗧𝗧𝗣 𝗔𝗣𝗜 & 𝗦𝗗𝗞\n• v2 API failures now expose public typed error schemas: invalid cursors/requests, auth failures, missing providers/models/sessions/messages, busy sessions, upstream/service-unavailable/timeout cases.\n• v2 auth now returns structured JSON errors instead of no-content 401s, and catalog/model/provider failures surface as explicit API errors.\n• OpenAPI + JS SDK were regenerated so clients can see these error unions instead of guessing from status codes.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀, 𝗣𝗹𝘂𝗴𝗶𝗻𝘀, 𝗧𝗼𝗼𝗹𝘀\n• Native LLM runtime now supports Anthropic API-key models in addition to OpenAI/opencode routes, with cleaner API-key resolution from provider config.\n• TUI plugin keymaps gained mode-aware layers via `api.mode`, so plugin shortcuts can be scoped to base UI, modals, autocomplete, or plugin-owned routes.\n• Plugin loading now only retries pre-import file-plugin setup failures; permanent import/load errors stay permanent for the process.\n• Plugin tools with missing `args` are tolerated again, matching older plugin behavior.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽 & 𝗔𝗽𝗽\n• Desktop menus were unified through a shared menu model: native macOS menu plus in-app Windows/Linux menu, covering settings, projects, window actions, edit commands, reload/devtools, zoom, fullscreen, and help links.\n• App sync was split into reusable per-directory contexts, enabling cleaner multi-directory/session state sharing and immediate provider-list invalidation after config updates.\n• Added Ukrainian locale coverage across app/console/desktop/ui/web surfaces.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲 / 𝗚𝗼\n• OpenCode Go referral support landed: invite links, referral cookie capture on signup, reward creation after Lite subscription, and reward application against rolling/weekly/monthly usage.\n\n𝗙𝗶𝘅𝗲𝘀\n• `opencode console login` now defaults to `https://console.opencode.ai` when no URL is passed.\n• Imported shared sessions now get the current project, directory, and relative path persisted correctly.\n• Invalid `OPENCODE_PERMISSION` JSON no longer crashes config loading.\n• Agent/command config names are derived from anchored relative paths, avoiding bad names when parent directories happen to contain matching path segments.\n\nBundle size change\n\nmacOS arm64\n• Total: 102.2 MB -> 102.4 MB (+145.1 KB)\n• Bun runtime: 60.8 MB -> 60.8 MB (+1.1 KB)\n• CLI/TUI JS: 14.8 MB -> 14.9 MB (+29.1 KB)\n• Web UI assets: 16.6 MB -> 16.8 MB (+116.1 KB)\n• Native addons: 2.4 MB -> 2.4 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 81.4 KB -> 80.1 KB (-1.2 KB)\n\nLinux x64\n• Total: 137.2 MB -> 137.3 MB (+144.0 KB)\n• Bun runtime: 89.3 MB -> 89.3 MB (-1.2 KB)\n• CLI/TUI JS: 14.8 MB -> 14.9 MB (+29.1 KB)\n• Web UI assets: 16.6 MB -> 16.8 MB (+116.1 KB)\n• Native addons: 8.9 MB -> 8.9 MB (-192 B)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.2 KB -> 68.4 KB (+180 B)\n\nWindows x64\n• Total: 135.0 MB -> 135.1 MB (+145.5 KB)\n• Bun runtime: 93.2 MB -> 93.2 MB (+106 B)\n• CLI/TUI JS: 14.8 MB -> 14.9 MB (+29.1 KB)\n• Web UI assets: 16.6 MB -> 16.8 MB (+116.1 KB)\n• Native addons: 2.7 MB -> 2.7 MB (no change)\n• WASM: 7.5 MB -> 7.5 MB (no change)\n• Bundle metadata: 68.2 KB -> 68.3 KB (+180 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.5...v1.15.6"
+      ],
+      "tweetIds": [
+        "2057216675670524162"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-20T21:47:31.487Z"
     }
   ]
 }
