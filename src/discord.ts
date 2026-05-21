@@ -42,6 +42,8 @@ const RELEASE_POLL_INTERVAL_MS = 10 * 60 * 1000
 const WORKFLOW_POLL_INTERVAL_MS = 5 * 60 * 1000
 const BETA_CHECK_INTERVAL_MS = 10 * 60 * 1000
 const BETA_NPM_PACKAGE = "opencode-ai"
+const WORKFLOW_OWNER = "Hona"
+const WORKFLOW_REPO = "opencode-changelog-x"
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
@@ -291,7 +293,7 @@ async function loadLatestReleasePollState(config: DiscordConfig) {
 
 async function hasActiveReleasePollRun(config: DiscordConfig) {
   try {
-    const runs = await fetchPublishWorkflowRuns(config.githubOwner, config.githubRepo)
+    const runs = await fetchPublishWorkflowRuns(WORKFLOW_OWNER, WORKFLOW_REPO)
     return runs.some((run) => run.status !== "completed")
   } catch (error) {
     console.warn(`Could not check active release poll runs: ${getErrorMessage(error)}`)
@@ -361,7 +363,7 @@ async function checkPublishWorkflows(
   const workflowStateFile = join(dirname(config.stateFile), "publish-workflow-state.json")
 
   const [runs, state] = await Promise.all([
-    fetchPublishWorkflowRuns(config.githubOwner, config.githubRepo),
+    fetchPublishWorkflowRuns(WORKFLOW_OWNER, WORKFLOW_REPO),
     loadWorkflowState(workflowStateFile),
   ])
 
