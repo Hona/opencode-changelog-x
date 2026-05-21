@@ -3,7 +3,14 @@ import { createOpencodeClient } from "@opencode-ai/sdk/v2"
 
 type RunningOpencode = {
   client: ReturnType<typeof createOpencodeClient>
+  getOutput: () => string
   close: () => Promise<void>
+}
+
+const OPENCODE_OUTPUT_TAIL_LIMIT = 50_000
+
+function shouldEchoOutput() {
+  return ["1", "true", "yes", "on"].includes(process.env.OPENCODE_ECHO_OUTPUT?.trim().toLowerCase() ?? "")
 }
 
 export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
@@ -17,6 +24,20 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
   })
 
   let output = ""
+  const echoOutput = shouldEchoOutput()
+
+  function appendOutput(chunk: Buffer, stream: NodeJS.WriteStream) {
+    const text = chunk.toString()
+    output += text
+    if (output.length > OPENCODE_OUTPUT_TAIL_LIMIT) {
+      output = output.slice(-OPENCODE_OUTPUT_TAIL_LIMIT)
+    }
+    if (echoOutput) {
+      stream.write(text)
+    }
+    return text
+  }
+
   const exitPromise = new Promise<void>((resolve) => {
     proc.once("close", () => resolve())
   })
@@ -53,7 +74,7 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
     }, 10_000)
 
     const onStdout = (chunk: Buffer) => {
-      output += chunk.toString()
+      appendOutput(chunk, process.stdout)
       const lines = output.split("\n")
       for (const line of lines) {
         if (!line.startsWith("opencode server listening")) continue
@@ -71,7 +92,7 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
     }
 
     const onStderr = (chunk: Buffer) => {
-      output += chunk.toString()
+      appendOutput(chunk, process.stderr)
     }
 
     proc.stdout?.on("data", onStdout)
@@ -95,6 +116,9 @@ export async function startOpencode(repoDir: string): Promise<RunningOpencode> {
 
   return {
     client,
+    getOutput() {
+      return output.trim()
+    },
     async close() {
       proc.stdout?.destroy()
       proc.stderr?.destroy()

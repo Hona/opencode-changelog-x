@@ -10,7 +10,11 @@ const TRAILER = Buffer.from("\n---- Bun! ----\n")
 const OFFSETS_SIZE = 32
 // Bun's CompiledModuleGraphFile is six StringPointers followed by four u8 fields.
 const MODULE_RECORD_SIZE = 52
+const LEGACY_OFFSETS_SIZE = 24
+const LEGACY_MODULE_RECORD_SIZE = 36
 const BYTE_DECIMALS = 1
+const SIGNIFICANT_BUNDLE_DELTA_BYTES = 1024 * 1024
+const BUNDLE_SUMMARY_MAX_LENGTH = 240
 const NATIVE_EXTENSIONS = new Set([".dll", ".dylib", ".node", ".so"])
 
 const LOADER_NAMES = [
@@ -37,7 +41,7 @@ const LOADER_NAMES = [
   "md",
 ] as const
 
-const BUNDLE_TARGETS = [
+export const BUNDLE_TARGETS = [
   { packageName: "opencode-darwin-arm64", label: "macOS arm64" },
   { packageName: "opencode-linux-x64", label: "Linux x64" },
   { packageName: "opencode-windows-x64", label: "Windows x64" },
@@ -57,8 +61,8 @@ const packumentSchema = z.object({
 
 type VersionMetadata = z.infer<typeof versionMetadataSchema>
 type Packument = z.infer<typeof packumentSchema>
-type BundleTarget = (typeof BUNDLE_TARGETS)[number]
-type BundleCategory =
+export type BundleTarget = (typeof BUNDLE_TARGETS)[number]
+export type BundleCategory =
   | "total"
   | "bunRuntime"
   | "cliTuiJs"
@@ -71,7 +75,21 @@ type BundleCategory =
   | "otherEmbedded"
   | "bundleMetadata"
 
-type BundleAnalysis = Record<BundleCategory, number>
+export type BundleAnalysis = Record<BundleCategory, number>
+
+export const BUNDLE_CATEGORIES = [
+  "total",
+  "bunRuntime",
+  "cliTuiJs",
+  "webUiAssets",
+  "nativeAddons",
+  "wasm",
+  "sourceMaps",
+  "bytecode",
+  "moduleInfo",
+  "otherEmbedded",
+  "bundleMetadata",
+] as const satisfies readonly BundleCategory[]
 
 type StringPointer = {
   offset: number
@@ -93,16 +111,77 @@ type ParsedModule = {
   side: "server" | "client"
 }
 
+type ModuleGraphLayout = {
+  offsetsSize: number
+  moduleRecordSize: number
+  bytecodePointerOffset: number
+  moduleInfoPointerOffset: number | null
+  loaderOffset: number
+  sideOffset: number | null
+}
+
+const MODULE_GRAPH_LAYOUTS: ModuleGraphLayout[] = [
+  {
+    offsetsSize: OFFSETS_SIZE,
+    moduleRecordSize: MODULE_RECORD_SIZE,
+    bytecodePointerOffset: 24,
+    moduleInfoPointerOffset: 32,
+    loaderOffset: 49,
+    sideOffset: 51,
+  },
+  {
+    offsetsSize: OFFSETS_SIZE,
+    moduleRecordSize: LEGACY_MODULE_RECORD_SIZE,
+    bytecodePointerOffset: 24,
+    moduleInfoPointerOffset: null,
+    loaderOffset: 33,
+    sideOffset: null,
+  },
+  {
+    offsetsSize: LEGACY_OFFSETS_SIZE,
+    moduleRecordSize: LEGACY_MODULE_RECORD_SIZE,
+    bytecodePointerOffset: 24,
+    moduleInfoPointerOffset: null,
+    loaderOffset: 33,
+    sideOffset: null,
+  },
+]
+
 type SnapshotInfo = {
   version: string
   publishedAt: string | null
+}
+
+export type BundleInspection = {
+  packageName: string
+  packageVersion: string
+  analysis: BundleAnalysis
+  bunVersions: string[]
+}
+
+export type ReleaseBundleInspection = {
+  rootPackageVersion: string
+  targets: Array<{ label: string } & BundleInspection>
+}
+
+export type BundleChangeSummaryInput = {
+  deltaText: string
+  rawReport: string
+}
+
+export type BundleChangeSummarizer = (input: BundleChangeSummaryInput) => Promise<string>
+
+type TargetBundleChange = {
+  label: string
+  previous: BundleAnalysis | null
+  current: BundleAnalysis | null
 }
 
 function encodePackageName(packageName: string) {
   return packageName.startsWith("@") ? packageName.replace("/", "%2f") : packageName
 }
 
-function extractVersionFromTag(tag: string) {
+export function extractVersionFromTag(tag: string) {
   return tag.match(TAG_VERSION_PATTERN)?.[1] ?? null
 }
 
@@ -135,6 +214,54 @@ function formatDelta(delta: number) {
   return `${delta > 0 ? "+" : "-"}${formatBytes(Math.abs(delta))}`
 }
 
+function truncateBundleLine(line: string) {
+  if (line.length <= BUNDLE_SUMMARY_MAX_LENGTH) return line
+  return `${line.slice(0, BUNDLE_SUMMARY_MAX_LENGTH - 3).trimEnd()}...`
+}
+
+function normalizeBundleSummary(line: string, deltaText: string) {
+  const prefix = `Bundle ${deltaText} because `
+  const singleLine = line.replace(/\s+/g, " ").trim()
+
+  if (singleLine.toLowerCase().startsWith(prefix.toLowerCase())) {
+    return truncateBundleLine(`${prefix}${singleLine.slice(prefix.length).trim()}`)
+  }
+
+  const reason = singleLine
+    .replace(/^bundle\s+[-+]?\d[\d,.]*\s+[a-z]+\s+because\s+/i, "")
+    .replace(/^because\s+/i, "")
+    .trim()
+
+  return truncateBundleLine(`${prefix}${reason || "compiled output changed across release targets"}`)
+}
+
+function getTotalDelta(previous: BundleAnalysis | null, current: BundleAnalysis | null) {
+  if (previous && current) return current.total - previous.total
+  if (current) return current.total
+  if (previous) return -previous.total
+  return null
+}
+
+function isSignificantTargetChange(change: TargetBundleChange) {
+  const delta = getTotalDelta(change.previous, change.current)
+  return delta !== null && Math.abs(delta) > SIGNIFICANT_BUNDLE_DELTA_BYTES
+}
+
+function chooseBundleDelta(changes: TargetBundleChange[]) {
+  const deltas = changes
+    .map((change) => getTotalDelta(change.previous, change.current))
+    .filter((delta): delta is number => delta !== null)
+
+  if (deltas.length === 0) return 0
+
+  const sameDirection = deltas.every((delta) => delta >= 0) || deltas.every((delta) => delta <= 0)
+  if (sameDirection) {
+    return Math.round(deltas.reduce((sum, delta) => sum + delta, 0) / deltas.length)
+  }
+
+  return deltas.reduce((largest, delta) => (Math.abs(delta) > Math.abs(largest) ? delta : largest), deltas[0]!)
+}
+
 function formatMetric(label: string, previous: number | null, current: number | null) {
   if (previous !== null && current !== null) {
     return `• ${label}: ${formatBytes(previous)} -> ${formatBytes(current)} (${formatDelta(current - previous)})`
@@ -151,6 +278,53 @@ function formatMetric(label: string, previous: number | null, current: number | 
   return null
 }
 
+const BUNDLE_METRICS: Array<{ label: string; key: BundleCategory; always?: boolean }> = [
+  { label: "Total", key: "total", always: true },
+  { label: "Bun runtime", key: "bunRuntime", always: true },
+  { label: "CLI/TUI JS", key: "cliTuiJs" },
+  { label: "Web UI assets", key: "webUiAssets" },
+  { label: "Native addons", key: "nativeAddons" },
+  { label: "WASM", key: "wasm" },
+  { label: "Source maps", key: "sourceMaps" },
+  { label: "Bytecode", key: "bytecode" },
+  { label: "Module info", key: "moduleInfo" },
+  { label: "Other embedded", key: "otherEmbedded" },
+  { label: "Bundle metadata", key: "bundleMetadata" },
+]
+
+function getCategoryDeltas(change: TargetBundleChange) {
+  if (!change.previous || !change.current) return []
+
+  return BUNDLE_METRICS
+    .filter((metric) => metric.key !== "total")
+    .map((metric) => ({
+      label: metric.label,
+      delta: change.current![metric.key] - change.previous![metric.key],
+    }))
+    .filter((item) => item.delta !== 0)
+}
+
+function buildFallbackBundleReason(changes: TargetBundleChange[]) {
+  const categoryDeltas = new Map<string, number>()
+
+  for (const change of changes) {
+    for (const category of getCategoryDeltas(change)) {
+      categoryDeltas.set(category.label, (categoryDeltas.get(category.label) ?? 0) + category.delta)
+    }
+  }
+
+  const largestCategories = [...categoryDeltas.entries()]
+    .map(([label, delta]) => ({ label, delta }))
+    .sort((left, right) => Math.abs(right.delta) - Math.abs(left.delta))
+    .slice(0, 2)
+
+  if (largestCategories.length === 0) {
+    return "compiled output changed across release targets"
+  }
+
+  return `mostly ${largestCategories.map((item) => `${item.label} ${formatDelta(item.delta)}`).join(" and ")}`
+}
+
 function parseTimestamp(timestamp: string | null | undefined) {
   if (!timestamp) return null
   const value = Date.parse(timestamp)
@@ -163,14 +337,6 @@ function buildSectionWithLines(lines: Array<string | null | undefined>) {
 
 function buildPreviewSnapshotLine(snapshot: SnapshotInfo) {
   return `Preview snapshot: npm dev ${OPENCODE_NPM_PACKAGE}@${snapshot.version}`
-}
-
-function buildPreviewErrorSection(snapshot: SnapshotInfo | null, message: string) {
-  return buildSectionWithLines([
-    "Bundle size change",
-    snapshot ? buildPreviewSnapshotLine(snapshot) : null,
-    `Error: ${message}`,
-  ])
 }
 
 function readU32(buffer: Buffer, offset: number) {
@@ -422,25 +588,31 @@ function extractGraphFromTrailer(binary: Buffer): ExtractedModuleGraph | null {
   const trailerOffset = binary.lastIndexOf(TRAILER)
   if (trailerOffset === -1) return null
 
-  const offsetsStart = trailerOffset - OFFSETS_SIZE
-  if (offsetsStart < 8) {
-    throw new Error("The Bun bundle trailer is too close to the start of the binary")
+  let graphStart: number | null = null
+
+  for (const offsetsSize of [OFFSETS_SIZE, LEGACY_OFFSETS_SIZE]) {
+    const offsetsStart = trailerOffset - offsetsSize
+    if (offsetsStart < 8) continue
+
+    const byteCount = readU64(binary, offsetsStart)
+    if (byteCount > offsetsStart) continue
+
+    graphStart = offsetsStart - byteCount
+    break
   }
 
-  const byteCount = readU64(binary, offsetsStart)
-  if (byteCount > offsetsStart) {
+  if (graphStart === null) {
     throw new Error("The Bun bundle trailer points outside the binary")
   }
 
-  const graphStart = offsetsStart - byteCount
   const graphEnd = trailerOffset + TRAILER.length
   let containerSize = graphEnd - graphStart
 
   // Older Bun builds append the graph blob and finish with a final u64 equal to
   // the full file size. Treat that trailing footer as part of the bundle area.
   if (binary.length >= 8) {
-    const trailingValue = readU64(binary, binary.length - 8)
-    if (trailingValue === binary.length) {
+    const trailingValue = binary.readBigUInt64LE(binary.length - 8)
+    if (trailingValue <= BigInt(Number.MAX_SAFE_INTEGER) && Number(trailingValue) === binary.length) {
       containerSize += 8
     }
   }
@@ -468,17 +640,13 @@ function extractStandaloneModuleGraph(binary: Buffer) {
   })()
 }
 
-function parseModuleGraph(graphBytes: Buffer) {
-  if (graphBytes.length < OFFSETS_SIZE + TRAILER.length) {
-    throw new Error("The Bun module graph is too small to be valid")
-  }
-
+function parseModuleGraphWithLayout(graphBytes: Buffer, layout: ModuleGraphLayout) {
   const trailerOffset = graphBytes.length - TRAILER.length
-  if (!graphBytes.subarray(trailerOffset).equals(TRAILER)) {
-    throw new Error("The Bun module graph is missing its expected trailer")
+  const offsetsStart = trailerOffset - layout.offsetsSize
+  if (offsetsStart < 8) {
+    throw new Error("The Bun module graph offsets are out of bounds")
   }
 
-  const offsetsStart = trailerOffset - OFFSETS_SIZE
   const byteCount = readU64(graphBytes, offsetsStart)
   if (byteCount > offsetsStart) {
     throw new Error("The Bun module graph offsets point outside the payload")
@@ -488,31 +656,55 @@ function parseModuleGraph(graphBytes: Buffer) {
   const modulesPointer = readPointer(graphBytes, offsetsStart + 8)
   const modulesBytes = slicePointer(payload, modulesPointer)
 
-  if (modulesBytes.length % MODULE_RECORD_SIZE !== 0) {
+  if (modulesBytes.length % layout.moduleRecordSize !== 0) {
     throw new Error("The Bun module table has an unexpected size")
   }
 
   const modules: ParsedModule[] = []
-  for (let offset = 0; offset < modulesBytes.length; offset += MODULE_RECORD_SIZE) {
-    const record = modulesBytes.subarray(offset, offset + MODULE_RECORD_SIZE)
+  for (let offset = 0; offset < modulesBytes.length; offset += layout.moduleRecordSize) {
+    const record = modulesBytes.subarray(offset, offset + layout.moduleRecordSize)
     const namePointer = readPointer(record, 0)
     const contentsPointer = readPointer(record, 8)
     const sourceMapPointer = readPointer(record, 16)
-    const bytecodePointer = readPointer(record, 24)
-    const moduleInfoPointer = readPointer(record, 32)
+    const bytecodePointer = readPointer(record, layout.bytecodePointerOffset)
+    const moduleInfoPointer =
+      layout.moduleInfoPointerOffset !== null ? readPointer(record, layout.moduleInfoPointerOffset) : null
 
     modules.push({
       name: slicePointer(payload, namePointer).toString("utf8").replace(/\0$/, ""),
       contentsSize: contentsPointer.length,
       sourceMapSize: sourceMapPointer.length,
       bytecodeSize: bytecodePointer.length,
-      moduleInfoSize: moduleInfoPointer.length,
-      loader: LOADER_NAMES[record.readUInt8(49)] ?? `loader#${record.readUInt8(49)}`,
-      side: record.readUInt8(51) === 1 ? "client" : "server",
+      moduleInfoSize: moduleInfoPointer?.length ?? 0,
+      loader: LOADER_NAMES[record.readUInt8(layout.loaderOffset)] ?? `loader#${record.readUInt8(layout.loaderOffset)}`,
+      side: layout.sideOffset !== null && record.readUInt8(layout.sideOffset) === 1 ? "client" : "server",
     })
   }
 
   return modules
+}
+
+function parseModuleGraph(graphBytes: Buffer) {
+  if (graphBytes.length < LEGACY_OFFSETS_SIZE + TRAILER.length) {
+    throw new Error("The Bun module graph is too small to be valid")
+  }
+
+  const trailerOffset = graphBytes.length - TRAILER.length
+  if (!graphBytes.subarray(trailerOffset).equals(TRAILER)) {
+    throw new Error("The Bun module graph is missing its expected trailer")
+  }
+
+  let lastError: Error | null = null
+
+  for (const layout of MODULE_GRAPH_LAYOUTS) {
+    try {
+      return parseModuleGraphWithLayout(graphBytes, layout)
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+    }
+  }
+
+  throw lastError ?? new Error("Could not parse the Bun module graph")
 }
 
 function classifyModule(module: ParsedModule) {
@@ -535,6 +727,26 @@ function classifyModule(module: ParsedModule) {
   }
 
   return "otherEmbedded" as const
+}
+
+function extractBunVersions(binary: Buffer) {
+  const versions = new Set<string>()
+  const needle = Buffer.from("Bun v")
+
+  for (let offset = 0; ; ) {
+    const hit = binary.indexOf(needle, offset)
+    if (hit === -1) break
+
+    const window = binary.subarray(hit, Math.min(hit + 64, binary.length)).toString("latin1")
+    const match = /^Bun v([0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?)/.exec(window)
+    if (match?.[1]) {
+      versions.add(match[1])
+    }
+
+    offset = hit + needle.length
+  }
+
+  return [...versions].sort()
 }
 
 function analyzeStandaloneBinary(binary: Buffer): BundleAnalysis {
@@ -639,7 +851,7 @@ async function downloadTarball(url: string) {
   return Buffer.from(await response.arrayBuffer())
 }
 
-async function analyzeBundle(packageName: string, version: string) {
+async function downloadBundleBinary(packageName: string, version: string) {
   const metadata = await fetchVersionMetadata(packageName, version)
   const tarballUrl = metadata.dist?.tarball
 
@@ -648,28 +860,54 @@ async function analyzeBundle(packageName: string, version: string) {
   }
 
   const tarball = await downloadTarball(tarballUrl)
-  const binary = extractBinaryFromTarball(tarball)
-  return analyzeStandaloneBinary(binary)
+  return extractBinaryFromTarball(tarball)
+}
+
+export async function inspectBundle(packageName: string, version: string): Promise<BundleInspection> {
+  const binary = await downloadBundleBinary(packageName, version)
+  return {
+    packageName,
+    packageVersion: version,
+    analysis: analyzeStandaloneBinary(binary),
+    bunVersions: extractBunVersions(binary),
+  }
+}
+
+export async function scanBundleBunVersions(packageName: string, version: string) {
+  const binary = await downloadBundleBinary(packageName, version)
+  return extractBunVersions(binary)
+}
+
+export async function inspectReleaseBundles(
+  version: string,
+  targets: readonly BundleTarget[] = BUNDLE_TARGETS,
+): Promise<ReleaseBundleInspection> {
+  const rootMetadata = await fetchVersionMetadata(OPENCODE_NPM_PACKAGE, version)
+  const inspectedTargets = await Promise.all(
+    targets.map(async (target) => {
+      const packageVersion = rootMetadata.optionalDependencies?.[target.packageName]
+      if (!packageVersion) {
+        throw new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${version}`)
+      }
+
+      const inspection = await inspectBundle(target.packageName, packageVersion)
+      return {
+        ...target,
+        ...inspection,
+      }
+    }),
+  )
+
+  return {
+    rootPackageVersion: version,
+    targets: inspectedTargets,
+  }
 }
 
 function formatTargetSection(label: string, previous: BundleAnalysis | null, current: BundleAnalysis | null) {
   if (!previous && !current) return null
 
-  const metrics: Array<{ label: string; key: BundleCategory; always?: boolean }> = [
-    { label: "Total", key: "total", always: true },
-    { label: "Bun runtime", key: "bunRuntime", always: true },
-    { label: "CLI/TUI JS", key: "cliTuiJs" },
-    { label: "Web UI assets", key: "webUiAssets" },
-    { label: "Native addons", key: "nativeAddons" },
-    { label: "WASM", key: "wasm" },
-    { label: "Source maps", key: "sourceMaps" },
-    { label: "Bytecode", key: "bytecode" },
-    { label: "Module info", key: "moduleInfo" },
-    { label: "Other embedded", key: "otherEmbedded" },
-    { label: "Bundle metadata", key: "bundleMetadata" },
-  ]
-
-  const lines = metrics
+  const lines = BUNDLE_METRICS
     .map(({ label: metricLabel, key, always }) => {
       const previousValue = previous?.[key] ?? null
       const currentValue = current?.[key] ?? null
@@ -685,7 +923,10 @@ function formatTargetSection(label: string, previous: BundleAnalysis | null, cur
   return [label, ...lines].join("\n")
 }
 
-export async function buildBundleSizeSection(range: ReleaseRange): Promise<string | null> {
+export async function buildBundleSizeSection(
+  range: ReleaseRange,
+  summarizeChange?: BundleChangeSummarizer,
+): Promise<string | null> {
   if (!range.fromTag) {
     return null
   }
@@ -702,23 +943,17 @@ export async function buildBundleSizeSection(range: ReleaseRange): Promise<strin
   if (range.kind === "preview") {
     previewSnapshot = await fetchSnapshotInfo(OPENCODE_NPM_PACKAGE, "dev")
     if (!previewSnapshot) {
-      return buildPreviewErrorSection(null, "npm dev snapshot not found")
+      return null
     }
 
     const snapshotPublishedAt = parseTimestamp(previewSnapshot.publishedAt)
     const baselinePublishedAt = parseTimestamp(range.fromReleaseTimestamp ?? null)
     if (snapshotPublishedAt === null || baselinePublishedAt === null) {
-      return buildPreviewErrorSection(
-        previewSnapshot,
-        `could not compare snapshot publish time against preview baseline ${range.fromTag}`,
-      )
+      return null
     }
 
     if (snapshotPublishedAt < baselinePublishedAt) {
-      return buildPreviewErrorSection(
-        previewSnapshot,
-        `snapshot published ${previewSnapshot.publishedAt ?? "unknown"} before preview baseline ${range.fromTag} (${range.fromReleaseTimestamp})`,
-      )
+      return null
     }
 
     currentVersion = previewSnapshot.version
@@ -735,29 +970,46 @@ export async function buildBundleSizeSection(range: ReleaseRange): Promise<strin
     fetchVersionMetadata(OPENCODE_NPM_PACKAGE, currentVersion),
   ])
 
-  const sections = (
-    await Promise.all(
-      BUNDLE_TARGETS.map(async (target) => {
-        const previousTargetVersion = previousRoot.optionalDependencies?.[target.packageName] ?? null
-        const currentTargetVersion = currentRoot.optionalDependencies?.[target.packageName] ?? null
+  const targetChanges = await Promise.all(
+    BUNDLE_TARGETS.map(async (target): Promise<TargetBundleChange> => {
+      const previousTargetVersion = previousRoot.optionalDependencies?.[target.packageName] ?? null
+      const currentTargetVersion = currentRoot.optionalDependencies?.[target.packageName] ?? null
 
-        const [previousAnalysis, currentAnalysis] = await Promise.all([
-          previousTargetVersion ? analyzeBundle(target.packageName, previousTargetVersion) : Promise.resolve(null),
-          currentTargetVersion ? analyzeBundle(target.packageName, currentTargetVersion) : Promise.resolve(null),
-        ])
+      const [previousAnalysis, currentAnalysis] = await Promise.all([
+        previousTargetVersion ? inspectBundle(target.packageName, previousTargetVersion).then((item) => item.analysis) : Promise.resolve(null),
+        currentTargetVersion ? inspectBundle(target.packageName, currentTargetVersion).then((item) => item.analysis) : Promise.resolve(null),
+      ])
 
-        return formatTargetSection(target.label, previousAnalysis, currentAnalysis)
-      }),
-    )
-  ).filter((section): section is string => Boolean(section))
+      return {
+        label: target.label,
+        previous: previousAnalysis,
+        current: currentAnalysis,
+      }
+    }),
+  )
 
-  if (sections.length === 0) {
-    return null
+  const significantChanges = targetChanges.filter(isSignificantTargetChange)
+
+  if (significantChanges.length === 0) {
+    return "No noticeable bundle change"
   }
 
-  return buildSectionWithLines([
-    "Bundle size change",
+  const deltaText = formatDelta(chooseBundleDelta(significantChanges))
+  const rawReport = buildSectionWithLines([
+    `Required output prefix: Bundle ${deltaText} because`,
     previewSnapshot ? buildPreviewSnapshotLine(previewSnapshot) : null,
-    ...sections,
+    ...significantChanges
+      .map((change) => formatTargetSection(change.label, change.previous, change.current))
+      .filter((section): section is string => Boolean(section)),
   ])
+
+  if (summarizeChange) {
+    try {
+      return normalizeBundleSummary(await summarizeChange({ deltaText, rawReport }), deltaText)
+    } catch (error) {
+      console.warn(`Falling back to deterministic bundle summary: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  return normalizeBundleSummary(`Bundle ${deltaText} because ${buildFallbackBundleReason(significantChanges)}`, deltaText)
 }
