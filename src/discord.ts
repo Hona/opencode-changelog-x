@@ -15,7 +15,7 @@ import { readDiscordConfig, type DiscordConfig } from "./config.js"
 import { PREVIEW_MODEL } from "./constants.js"
 import { createPostGenerator } from "./generate.js"
 import { getLatestRelease } from "./github.js"
-import { getLatestPostedRelease, loadState } from "./state.js"
+import { getLatestPostedRelease, hasPostedRelease, loadState, parseStateText } from "./state.js"
 import type { GithubRelease, ReleasePostReport } from "./types.js"
 import { prepareUpstreamCheckout } from "./upstream.js"
 import {
@@ -275,18 +275,63 @@ type AlertChannel = {
   editMessage(messageId: string, content: string): Promise<void>
 }
 
-async function dispatchReleasePoll() {
+async function loadLatestReleasePollState(config: DiscordConfig) {
   try {
+    await execAsync("git fetch --quiet origin master", { timeout: 60_000 })
+    const { stdout } = await execAsync("git show origin/master:data/posted-releases.json", {
+      timeout: 30_000,
+      maxBuffer: 10 * 1024 * 1024,
+    })
+    return parseStateText(stdout)
+  } catch (error) {
+    console.warn(`Falling back to local release state before dispatch check: ${getErrorMessage(error)}`)
+    return loadState(config.stateFile)
+  }
+}
+
+async function hasActiveReleasePollRun(config: DiscordConfig) {
+  try {
+    const runs = await fetchPublishWorkflowRuns(config.githubOwner, config.githubRepo)
+    return runs.some((run) => run.status !== "completed")
+  } catch (error) {
+    console.warn(`Could not check active release poll runs: ${getErrorMessage(error)}`)
+    return false
+  }
+}
+
+async function getUnpostedLatestRelease(config: DiscordConfig) {
+  const [latestRelease, state] = await Promise.all([
+    getLatestRelease(config),
+    loadLatestReleasePollState(config),
+  ])
+
+  if (!latestRelease) return null
+  return hasPostedRelease(state, latestRelease) ? null : latestRelease
+}
+
+async function dispatchReleasePoll(config: DiscordConfig) {
+  try {
+    if (await hasActiveReleasePollRun(config)) {
+      console.log("Release poll already running; skipping dispatch.")
+      return
+    }
+
+    const pendingRelease = await getUnpostedLatestRelease(config)
+    if (!pendingRelease) {
+      console.log("No unposted release found; skipping release poll dispatch.")
+      return
+    }
+
     await execAsync("gh workflow run poll.yml -f dry_run=false", { timeout: 30_000 })
-    console.log("Release poll dispatched.")
+    console.log(`Release poll dispatched for ${pendingRelease.tag}.`)
   } catch (error) {
     console.error(`Release poll dispatch failed: ${getErrorMessage(error)}`)
   }
 }
 
-function startReleasePollLoop() {
+function startReleasePollLoop(config: DiscordConfig) {
   async function tick() {
-    await dispatchReleasePoll()
+    await dispatchReleasePoll(config)
     setTimeout(tick, RELEASE_POLL_INTERVAL_MS)
   }
 
@@ -465,7 +510,7 @@ async function main() {
   client.once(Events.ClientReady, async (readyClient) => {
     console.log(`Discord preview bot ready as ${readyClient.user.tag}`)
 
-    startReleasePollLoop()
+    startReleasePollLoop(config)
 
     try {
       const channel = await readyClient.channels.fetch(config.discordChannelId)

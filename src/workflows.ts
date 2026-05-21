@@ -41,7 +41,7 @@ type WorkflowRunApiResponse = {
 
 export async function fetchPublishWorkflowRuns(owner: string, repo: string): Promise<WorkflowRunJson[]> {
   const { stdout } = await execFileAsync("gh", [
-    "api", `repos/${owner}/${repo}/actions/workflows/publish.yml/runs?event=workflow_dispatch&per_page=20`,
+    "api", `repos/${owner}/${repo}/actions/workflows/poll.yml/runs?event=workflow_dispatch&per_page=20`,
   ], { timeout: 30_000 })
 
   const response = JSON.parse(stdout) as WorkflowRunApiResponse

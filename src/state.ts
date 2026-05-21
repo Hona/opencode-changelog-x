@@ -32,10 +32,14 @@ function createEmptyState(): StateFile {
   }
 }
 
+export function parseStateText(text: string): StateFile {
+  return stateFileSchema.parse(JSON.parse(text))
+}
+
 export async function loadState(filePath: string): Promise<StateFile> {
   try {
     const text = await readFile(filePath, "utf8")
-    return stateFileSchema.parse(JSON.parse(text))
+    return parseStateText(text)
   } catch (error) {
     if (typeof error === "object" && error && "code" in error && error.code === "ENOENT") {
       return createEmptyState()

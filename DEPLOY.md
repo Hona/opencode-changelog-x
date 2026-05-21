@@ -5,8 +5,8 @@
 The Discord bot (`npm run discord`) is the single long-running process on the VPS. It handles:
 
 - `!previewchangelog` command in the hardcoded channel
-- Release polling — dispatches the `poll.yml` GitHub Actions workflow every 10 minutes via `gh` CLI
-- Workflow monitoring — checks `anomalyco/opencode` `publish.yml` workflow_dispatch runs every 5 minutes and posts triggered/completed/failed alerts to Discord
+- Release polling — checks for unposted releases every 10 minutes and dispatches `poll.yml` via `gh` CLI only when needed
+- Workflow monitoring — checks this repo's `poll.yml` workflow_dispatch runs every 5 minutes and posts triggered/completed/failed alerts to Discord
 
 Twitter release posting runs in GitHub Actions (the `poll.yml` workflow), not on the VPS.
 
