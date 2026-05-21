@@ -1044,6 +1044,23 @@
       ],
       "status": "posted",
       "postedAt": "2026-05-20T21:47:31.487Z"
+    },
+    {
+      "releaseId": 327037426,
+      "tag": "v1.15.7",
+      "name": "v1.15.7",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.7",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-21T15:51:28Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.7 released. TL;DR:\nxAI Grok OAuth, Desktop diagnostics/zoom, sharper v2 API errors, and route-first LLM/provider plumbing.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added xAI Grok OAuth with SuperGrok browser login, headless device-code login, API-key fallback, and proactive token refresh.\n• Fixed Codex/OpenAI OAuth refresh races by deduping concurrent refreshes before rotating tokens.\n\n𝗟𝗟𝗠\nAdded\n• Added OpenAI Responses image input lowering and Bedrock Converse image tool-result support in the native LLM layer.\n• Added xAI/Grok PDF attachment support through the xAI Responses adapter patch.\n\nChanged\n• Changed native/provider routing so endpoint, auth, headers, and defaults are configured before model selection.\n\nFixed\n• Fixed OpenAI reasoning stream handling across Chat and Responses so reasoning deltas surface again.\n• Fixed native OpenAI OAuth requests by carrying provider fetch overrides into the Effect HTTP transport.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Fixed v2 session prompt, compact, wait, context, and message routes to expose typed 404/503/500 errors in OpenAPI and the SDK.\n• Added server error refs for unknown defects and corrupt v2 session message decode failures so clients get a stable error while logs carry the detail.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\nAdded\n• Added Export Logs from Desktop menus; exports app, server, crashpad, network logs, and a manifest into a zip in Downloads.\n• Added a Display setting for native pinch/Ctrl-scroll zoom, with disabled zoom resetting the webview to 100%.\n\nChanged\n• Improved renderer crash/hang recovery with failure dialogs, relaunch/log-export actions, crash reporting, net logging, and unresponsive call-stack sampling.\n\n𝗔𝗽𝗽\n• Added non-prod desktop v2 home and new-session surfaces with project selection, recent-session search, grouped history, branch display, and v2 wordmark styling.\n• Changed v2 titlebar tabs to show project avatars, support current-tab close, expose a new-session tab, and surface an update pill.\n\n𝗧𝗨𝗜\n• Fixed TUI home new sessions defaulting to the local project instead of implicitly inheriting the current workspace.\n• Fixed collapsed thinking and question UI labels so Thought and checkmark states are easier to scan.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed tool/question schema failures so invalid model-supplied args become actionable tool errors instead of uncaught decode failures.\n• Changed permission evaluation into shared core rules, keeping denied-tool filtering and approval checks consistent across runtime paths.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Changed provider/model catalog customization to a catalog.transform hook with provider/model update and remove helpers.\n• Updated built-in provider plugins for Azure, Vertex, OpenRouter, and Zenmux to use the catalog transform pipeline.\n\n𝗖𝗼𝗿𝗲\n• Added an EventV2 account domain with account added, removed, and switched events plus migration from legacy auth data.\n• Added models.dev refresh events so catalog consumers can observe model metadata refreshes.\n\n𝗦𝗗𝗞\n• Updated generated v2 OpenAPI/JS types for account events, account-backed provider enablement, UnknownError refs, and v2 session error unions.\n\n𝗭𝗲𝗻\n• Changed provider stickiness and x-session-affinity to use a stable sticky ID across session, workspace, or caller IP.\n• Updated the default Zen API-key rate limit from 500 to 1000 requests per minute when no model-specific limit is set.\n\n𝗨𝗜\n• Fixed markdown sanitization so target=_blank links are preserved while still adding noopener and noreferrer.\n• Added v2 wordmark, icon sprite entries, and color tokens used by the new desktop/app surfaces.\n\n𝗦𝘁𝗼𝗿𝗮𝗴𝗲\n• Added private @opencode-ai/effect-drizzle-sqlite with Effect-native Drizzle SQLite queries, transactions, migrations, and replica helpers.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.6...v1.15.7"
+      ],
+      "tweetIds": [
+        "2057595141624393863"
+      ],
+      "status": "posted",
+      "postedAt": "2026-05-21T22:51:24.814Z"
     }
   ]
 }
