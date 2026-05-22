@@ -968,6 +968,22 @@
         "2057595141624393863"
       ],
       "postedAt": "2026-05-21T22:51:24.814Z"
+    },
+    {
+      "releaseId": 328142820,
+      "tag": "v1.15.9",
+      "name": "v1.15.9",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.9",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-22T21:18:52Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.9 released. TL;DR:\nTUI diff review is now default, LLM media/continuation handling is safer, v2 API errors are typed, and App session state got tighter.\n\n𝗧𝗨𝗜\nAdded\n• Added the diff viewer as a default TUI feature instead of hiding it behind a runtime flag.\n• Added diff review controls for expand-all, help, reviewed-file marking, persisted view preferences, and mouse file selection.\n• Added a palette action to copy the current worktree path.\n\nChanged\n• Redesigned the diff viewer with bordered panes, file status markers, selected/reviewed state, cleaner empty states, and bounded working-tree context.\n\nFixed\n• Fixed diff viewer close behavior so it returns to the previous route instead of always navigating home.\n• Fixed question prompts to own their keymap mode so global/session shortcuts stop stealing answer keys.\n• Removed italics from thinking labels while preserving collapsed Thought/Thinking styling.\n\n𝗟𝗟𝗠\nAdded\n• Added structured image propagation for tool-result media in Anthropic Messages and OpenAI Responses, avoiding base64 JSON stuffed into prompt text.\n• Added Anthropic Messages user-image support for native continuation paths.\n\nChanged\n• Preserved OpenAI Responses reasoning items, encrypted continuation state, and assistant text ordering when replaying native sessions.\n\nFixed\n• Fixed OpenAI/Anthropic stream errors to surface provider code/type/nested failure details for rate limits, overloads, context errors, and failed responses.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\nAdded\n• Added a context query parameter to /vcs/diff so clients can request bounded patch context.\n• Added typed v2 error bodies and OpenAPI schemas for MCP, PTY, project, question, permission, and session-busy failures.\n\nFixed\n• Fixed PTY endpoints to return structured 403/404 bodies and missing-session websocket behavior.\n• Fixed workspace warp to return not found when the target workspace does not exist.\n\n𝗠𝗖𝗣\nAdded\n• Added oauth.callbackPort as a shorthand for local OAuth callback ports when redirectUri is not set.\n\nFixed\n• Fixed remote MCP OAuth client metadata to advertise configured scopes.\n• Fixed MCP auth/connect/disconnect paths to return typed missing-server errors.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Google Vertex Anthropic on us/eu multi-regions by routing Claude requests to Regional Endpoint Platform domains.\n• Fixed default-model resolution to return typed no-provider/no-model failures instead of generic thrown errors.\n\n𝗔𝗽𝗽\nChanged\n• Moved new-design session tab navigation into the titlebar, including mod+1-9 and mod+option+Arrow tab switching.\n• Reused per-directory SDK/sync contexts so session views and status popovers share clients and event wiring.\n\nFixed\n• Fixed provider lists to use normalized maps, avoiding stale or ambiguous provider lookups after sync updates.\n• Fixed device-code login display when instructions include URLs with extra colons.\n• Debounced VCS refresh on session pages to reduce repeated diff/status reloads during rapid file events.\n\n𝗖𝗟𝗜\n• Fixed opencode upgrade failures to report clearer method-specific errors, including choco elevation and unknown methods.\n• Fixed opencode debug agent to distinguish missing providers, missing models, and missing model IDs.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed missing-skill errors to report typed not-found state and list available skills consistently.\n• Fixed repository reference validation to distinguish invalid refs, unsupported local repositories, and invalid branch names.\n\n𝗦𝗗𝗞\n• Updated generated v2 types for typed API errors, MCP callbackPort, and VCS diff context.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.7...v1.15.9"
+      ],
+      "tweetIds": [
+        "2057936845602767297"
+      ],
+      "postedAt": "2026-05-22T21:29:13.413Z"
     }
   ]
 }
