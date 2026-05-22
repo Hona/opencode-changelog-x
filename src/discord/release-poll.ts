@@ -1,8 +1,9 @@
 import { Context, Effect, Layer } from "effect"
+import { PostedReleaseHistory } from "../domain/release-history.js"
 import { GithubReleases } from "../github.js"
 import { GitCli } from "../integrations/git-cli.js"
 import { GithubCli } from "../integrations/github-cli.js"
-import { hasPostedRelease, parseStateText } from "../state.js"
+import { parseStateText } from "../state.js"
 import type { WorkflowTarget } from "../workflows.js"
 import { getErrorMessage } from "./errors.js"
 
@@ -52,7 +53,7 @@ export class ReleasePoll extends Context.Service<ReleasePoll, {
         ])
 
         if (!latestRelease) return null
-        return hasPostedRelease(state, latestRelease) ? null : latestRelease
+        return new PostedReleaseHistory(state).hasPosted(latestRelease) ? null : latestRelease
       })
 
       const dispatchOnceUnsafe = Effect.fn("ReleasePoll.dispatchOnce")(function* () {

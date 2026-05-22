@@ -153,7 +153,6 @@ Useful log lines:
 - `Posted triggered alert: ...`
 - `Posted completion alert: ...`
 - `Seeding workflow state for ...`
-- `Falling back to cached latest release ...`
 
 ## Update Flow
 
@@ -180,7 +179,6 @@ Useful files on the VPS:
 - Service unit: `/etc/systemd/system/opencode-changelog-discord.service`
 - Env file: `/etc/opencode-changelog-discord.env`
 - Posted release state: `/repos/opencode-changelog-x/data/posted-releases.json`
-- Cached latest GitHub release: `/repos/opencode-changelog-x/data/latest-github-release.json`
 - Workflow monitor state: `/repos/opencode-changelog-x/data/publish-workflow-state.json`
 
 ## Monitoring
