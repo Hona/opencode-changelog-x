@@ -3,28 +3,28 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Context, Effect, Layer } from "effect"
 import type { AppConfig } from "./config.js"
+import {
+  createCompareUrl,
+  createPreviewRange,
+  createReleaseRange,
+  type GithubRelease,
+  type ReleaseRange,
+} from "./domain/releases.js"
+import { gitRefFromString } from "./domain/value-objects.js"
+import type { IsoDateString, ReleaseTag } from "./domain/value-objects.js"
 import { GitCli, type GitCliService } from "./integrations/git-cli.js"
 import { RuntimeConfig } from "./runtime-config.js"
-import type { GithubRelease, ReleaseRange } from "./types.js"
 
 export type EffectUpstreamCheckout = {
   directory: string
   resolveRange: (
     release: GithubRelease,
-    fromTag: string | null,
+    fromTag: ReleaseTag | null,
   ) => Effect.Effect<ReleaseRange, unknown>
   resolvePreviewRange: (
-    fromTag: string | null,
-    fromReleaseTimestamp?: string | null,
+    fromTag: ReleaseTag | null,
+    fromReleaseTimestamp?: IsoDateString | null,
   ) => Effect.Effect<ReleaseRange, unknown>
-}
-
-function createCompareUrl(config: AppConfig, fromTag: string | null, toTag: string) {
-  if (fromTag) {
-    return `https://github.com/${config.githubOwner}/${config.githubRepo}/compare/${fromTag}...${toTag}`
-  }
-
-  return `https://github.com/${config.githubOwner}/${config.githubRepo}/tree/${toTag}`
 }
 
 function createEffectCheckout(directory: string, config: AppConfig, git: GitCliService): EffectUpstreamCheckout {
@@ -50,39 +50,45 @@ function createEffectCheckout(directory: string, config: AppConfig, git: GitCliS
 
   return {
     directory,
-    resolveRange: Effect.fn("UpstreamCheckout.resolveRange")(function* (release: GithubRelease, fromTag: string | null) {
+    resolveRange: Effect.fn("UpstreamCheckout.resolveRange")(function* (release: GithubRelease, fromTag: ReleaseTag | null) {
       const commitCount = yield* countCommits(fromTag, release.tag)
 
-      return {
-        kind: "release",
+      return createReleaseRange({
         release,
         fromTag,
-        toTag: release.tag,
-        toLabel: release.tag,
-        compareUrl: createCompareUrl(config, fromTag, release.tag),
+        compareUrl: createCompareUrl({
+          owner: config.githubOwner,
+          repo: config.githubRepo,
+          fromTag,
+          toTag: gitRefFromString(release.tag),
+        }),
         repoDir: directory,
         commitCount,
-      }
+      })
     }),
     resolvePreviewRange: Effect.fn("UpstreamCheckout.resolvePreviewRange")(function* (
-      fromTag: string | null,
-      fromReleaseTimestamp?: string | null,
+      fromTag: ReleaseTag | null,
+      fromReleaseTimestamp?: IsoDateString | null,
     ) {
       const toTag = yield* resolveHeadSha()
-      const shortSha = yield* resolveShortSha(toTag)
-      const commitCount = yield* countCommits(fromTag, toTag)
+      const toRef = gitRefFromString(toTag)
+      const shortSha = yield* resolveShortSha(toRef)
+      const commitCount = yield* countCommits(fromTag, toRef)
 
-      return {
-        kind: "preview",
-        release: null,
+      return createPreviewRange({
         fromTag,
         fromReleaseTimestamp,
-        toTag,
-        toLabel: `HEAD (${shortSha})`,
-        compareUrl: createCompareUrl(config, fromTag, toTag),
+        toTag: toRef,
+        shortSha,
+        compareUrl: createCompareUrl({
+          owner: config.githubOwner,
+          repo: config.githubRepo,
+          fromTag,
+          toTag: toRef,
+        }),
         repoDir: directory,
         commitCount,
-      }
+      })
     }),
   }
 }

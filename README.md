@@ -37,7 +37,7 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 - Waits for the exact command `!previewchangelog`.
 - Uses the latest GitHub release tag as the baseline.
 - Generates a preview post for commits after that release up to the current upstream `HEAD`.
-- Creates a Discord thread on the command message and posts the generated post as one or more embeds if needed for Discord limits.
+- Creates a Discord thread on the command message and posts the generated preview as one or more embeds if needed for Discord limits.
 
 This is intended to be deployed separately from the Twitter release cron. A typical setup is:
 
@@ -69,26 +69,18 @@ For local dry runs, you usually do not need `OPENCODE_API_KEY` if your local `op
   Optional. GitHub reads and workflow dispatches use the `gh` CLI only; use this when you prefer token-based `gh` auth over a persisted `gh auth login` session.
 - `GITHUB_PROCESS_DRAFTS=true`
   Allows processing draft releases when your token can see them.
-- `UPSTREAM_REPO_DIR`
-  Optional local path to an existing `opencode` checkout. Useful for local development.
-- `UPSTREAM_CLONE_URL`
-  Override the repository clone URL. Defaults to `https://github.com/anomalyco/opencode.git`.
 - `DRY_RUN=true`
-  Generate and validate threads without posting them or updating state.
+  Generate and validate the post without publishing it or updating state.
 - `--dry-run`
   CLI flag equivalent to `DRY_RUN=true`.
 - `--tag v1.1.13`
   Generate for a specific release tag instead of polling unseen releases.
-- `GITHUB_OWNER`
-  Defaults to `anomalyco`.
-- `GITHUB_REPO`
-  Defaults to `opencode`.
 
 ## Local Usage
 
 ```bash
 bun install
-UPSTREAM_REPO_DIR=../../sst/opencode bun run dry-run -- --tag v1.1.13
+bun run dry-run -- --tag v1.1.13
 ```
 
 ```bash
@@ -99,7 +91,7 @@ Because the project depends on `opencode-ai`, `bun run bot` puts the local `open
 
 The Discord bot requires the bot account to have access to the configured channel, permission to create threads, permission to send embeds, and the Message Content intent enabled in the Discord developer portal.
 
-If `UPSTREAM_REPO_DIR` is not set, the bot clones a temporary checkout of the upstream repo for analysis.
+The bot clones a temporary checkout of the upstream repo for analysis.
 
 For local runs, the spawned `opencode` server uses the same credential sources as your normal CLI:
 

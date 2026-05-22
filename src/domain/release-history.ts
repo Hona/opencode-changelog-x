@@ -1,19 +1,13 @@
-import type { GithubRelease, PostedRelease, StateFile } from "../types.js"
-
-function releaseTimestamp(release: { publishedAt: string | null; createdAt: string }) {
-  return release.publishedAt ?? release.createdAt
-}
+import type { PostedRelease, StateFile } from "../state.js"
+import { releaseTimestamp, type GithubRelease } from "./releases.js"
+import type { IsoDateString, PostText, ReleaseTag, TweetId } from "./value-objects.js"
 
 function postedReleaseTimestamp(release: PostedRelease) {
   return release.publishedAt ?? release.postedAt
 }
 
-function isCompletePostedRelease(release: Pick<PostedRelease, "tweets" | "tweetIds">) {
-  return release.tweets.length > 0 && release.tweetIds.length === release.tweets.length
-}
-
 export class ReleaseCatalog {
-  private readonly previousReleaseTagByTag = new Map<string, string | null>()
+  private readonly previousReleaseTagByTag = new Map<GithubRelease["tag"], GithubRelease["tag"] | null>()
 
   constructor(readonly releases: readonly GithubRelease[]) {
     for (const [index, release] of releases.entries()) {
@@ -41,8 +35,15 @@ export class ReleaseCatalog {
 export class PostedReleaseHistory {
   constructor(private readonly state: StateFile) {}
 
+  private assertReleaseIdentity(release: GithubRelease) {
+    const saved = this.state.releases.find((entry) => entry.tag === release.tag)
+    if (saved && saved.releaseId !== release.id) {
+      throw new Error(`Release tag ${release.tag} changed GitHub release id from ${saved.releaseId} to ${release.id}`)
+    }
+  }
+
   latest() {
-    return this.state.releases.filter(isCompletePostedRelease).reduce<PostedRelease | undefined>((latest, release) => {
+    return this.state.releases.reduce<PostedRelease | undefined>((latest, release) => {
       if (!latest) return release
 
       const latestTimestamp = postedReleaseTimestamp(latest)
@@ -56,11 +57,11 @@ export class PostedReleaseHistory {
   }
 
   hasPosted(release: GithubRelease) {
-    const saved = this.state.releases.find((entry) => entry.releaseId === release.id || entry.tag === release.tag)
-    return saved ? isCompletePostedRelease(saved) : false
+    this.assertReleaseIdentity(release)
+    return this.state.releases.some((entry) => entry.releaseId === release.id)
   }
 
-  pendingFrom(catalog: ReleaseCatalog, input: { targetTag?: string; allowPostedTarget: boolean }) {
+  pendingFrom(catalog: ReleaseCatalog, input: { targetTag?: ReleaseTag; allowPostedTarget: boolean }) {
     if (input.targetTag) {
       const release = catalog.requireTag(input.targetTag)
       if (!input.allowPostedTarget && this.hasPosted(release)) {
@@ -84,7 +85,9 @@ export class PostedReleaseHistory {
     })
   }
 
-  recordPosted(release: GithubRelease, post: string, tweetIds: string[]) {
+  recordPosted(release: GithubRelease, post: PostText, tweetIds: TweetId[], postedAt: IsoDateString) {
+    this.assertReleaseIdentity(release)
+
     const nextRelease: PostedRelease = {
       releaseId: release.id,
       tag: release.tag,
@@ -95,13 +98,13 @@ export class PostedReleaseHistory {
       publishedAt: release.publishedAt,
       tweets: [post],
       tweetIds,
-      postedAt: new Date().toISOString(),
+      postedAt,
     }
 
     return new PostedReleaseHistory({
       version: 1,
       releases: this.state.releases
-        .filter((entry) => entry.releaseId !== release.id && entry.tag !== release.tag)
+        .filter((entry) => entry.releaseId !== release.id)
         .concat(nextRelease)
         .sort((left, right) => left.postedAt.localeCompare(right.postedAt)),
     })

@@ -2,26 +2,40 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname } from "node:path"
 import { Context, Effect, Layer } from "effect"
 import { z } from "zod"
+import {
+  githubReleaseIdFromNumber,
+  isoDateStringFromString,
+  nullableIsoDateStringFromString,
+  postTextFromString,
+  releaseTagFromString,
+  tweetIdFromString,
+  urlStringFromString,
+} from "./domain/value-objects.js"
 import { RuntimeConfig } from "./runtime-config.js"
-import type { StateFile } from "./types.js"
 
-const postedReleaseSchema = z.object({
-  releaseId: z.number(),
-  tag: z.string(),
-  name: z.string(),
-  url: z.string(),
+export const postedReleaseSchema = z.object({
+  releaseId: z.number().transform(githubReleaseIdFromNumber),
+  tag: z.string().transform(releaseTagFromString),
+  name: z.string().min(1),
+  url: z.string().transform(urlStringFromString),
   draft: z.boolean(),
   prerelease: z.boolean(),
-  publishedAt: z.string().nullable(),
-  tweets: z.array(z.string()),
-  tweetIds: z.array(z.string()),
-  postedAt: z.string(),
-})
+  publishedAt: z.string().nullable().transform(nullableIsoDateStringFromString),
+  tweets: z.array(z.string().transform(postTextFromString)),
+  tweetIds: z.array(z.string().transform(tweetIdFromString)),
+  postedAt: z.string().transform(isoDateStringFromString),
+}).strict().refine((release) => release.tweets.length > 0, "Posted release must contain at least one post")
+  .refine((release) => release.tweetIds.length === release.tweets.length, "Posted release post/id counts must match")
 
-const stateFileSchema = z.object({
+export const stateFileSchema = z.object({
   version: z.literal(1),
   releases: z.array(postedReleaseSchema),
-})
+}).strict()
+  .refine((state) => new Set(state.releases.map((release) => release.releaseId)).size === state.releases.length, "Posted release ids must be unique")
+  .refine((state) => new Set(state.releases.map((release) => release.tag)).size === state.releases.length, "Posted release tags must be unique")
+
+export type PostedRelease = z.infer<typeof postedReleaseSchema>
+export type StateFile = z.infer<typeof stateFileSchema>
 
 export function parseStateText(text: string): StateFile {
   return stateFileSchema.parse(JSON.parse(text))

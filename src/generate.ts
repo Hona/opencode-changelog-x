@@ -2,22 +2,41 @@ import { z } from "zod";
 import { Context, Effect, Layer } from "effect";
 import type { AppConfig } from "./config.js";
 import { MODEL, POST_MAX_LENGTH } from "./constants.js";
-import { BundleSize, type BundleSizeService } from "./npm.js";
+import { BundleSize, type BundleSizeService } from "./bundle-size.js";
+import type { ChangelogKind, ReleaseRange } from "./domain/releases.js";
+import {
+    postTextFromString,
+    type GitRef,
+    type PostText,
+    type ReleaseTag,
+    type UrlString,
+} from "./domain/value-objects.js";
 import { OpencodeServer, type EffectRunningOpencode } from "./opencode.js";
 import { RuntimeConfig } from "./runtime-config.js";
-import type {
-    GeneratedPost,
-    ReleaseRange,
-    ReleasePostReport,
-} from "./types.js";
 import { validatePost } from "./validate.js";
 
 const generatedPostSchema = z.object({
     post: z.string().min(1),
 });
 
-const MAX_GENERATION_ATTEMPTS = 3;
 const STYLED_OPENCODE = "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚";
+
+type GeneratedPost = {
+    post: string;
+};
+
+export type ReleasePostReport = {
+    kind: ChangelogKind;
+    tag: string;
+    releaseUrl: UrlString | null;
+    compareUrl: UrlString;
+    fromTag: ReleaseTag | null;
+    toTag: GitRef;
+    toLabel: string;
+    draft: boolean;
+    model: ModelConfig;
+    post: PostText;
+};
 
 function normalizePost(post: GeneratedPost) {
     return post.post.replace(/\r/g, "").trim();
@@ -85,36 +104,15 @@ function describePromptResult(result: unknown) {
 }
 
 function parseGeneratedPost(text: string) {
-    const candidates = [
-        text,
-        text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1],
-        (() => {
-            const start = text.indexOf("{");
-            const end = text.lastIndexOf("}");
-            if (start === -1 || end === -1 || end <= start) return undefined;
-            return text.slice(start, end + 1);
-        })(),
-    ].filter((candidate): candidate is string => Boolean(candidate));
-
-    for (const candidate of candidates) {
-        try {
-            return generatedPostSchema.parse(JSON.parse(candidate));
-        } catch {
-            continue;
-        }
-    }
-
-    throw new Error(
-        `Failed to parse generated post JSON from output:\n${text}`,
-    );
+    return generatedPostSchema.parse(JSON.parse(text));
 }
 
-function insertSectionBeforeCompareLine(post: string, section: string | null) {
-    if (!section) return post;
-
+function insertSectionBeforeCompareLine(post: string, section: string) {
     const lines = post.replace(/\r/g, "").trim().split("\n");
     const compareLine = lines.pop();
-    if (!compareLine) return post;
+    if (!compareLine) {
+        throw new Error("Generated post is missing its final Compare line");
+    }
 
     while (lines.at(-1) === "") {
         lines.pop();
@@ -150,7 +148,7 @@ function formatValidationErrors(post: string) {
     return errors.join("; ");
 }
 
-function parseAndValidatePost(range: ReleaseRange, output: string) {
+function parseAndValidatePost(range: ReleaseRange, output: string): PostText {
     const post = normalizeBodyBullets(
         normalizePost(parseGeneratedPost(output)),
     );
@@ -161,7 +159,7 @@ function parseAndValidatePost(range: ReleaseRange, output: string) {
     }
 
     validatePostShape(range, post);
-    return post;
+    return postTextFromString(post);
 }
 
 function validatePostShape(range: ReleaseRange, post: string) {
@@ -517,38 +515,8 @@ function createGenerator(
     });
 
     const generatePost = Effect.fn("PostGenerator.generatePost")(function* (sessionID: string, range: ReleaseRange) {
-        let nextPrompt = buildGenerationPrompt(range);
-        let lastError: Error | undefined;
-
-        for (
-            let attempt = 1;
-            attempt <= MAX_GENERATION_ATTEMPTS;
-            attempt += 1
-        ) {
-            const output = yield* prompt(sessionID, nextPrompt);
-
-            try {
-                return parseAndValidatePost(range, output);
-            } catch (error) {
-                lastError =
-                    error instanceof Error ? error : new Error(String(error));
-
-                if (attempt >= MAX_GENERATION_ATTEMPTS) {
-                    break;
-                }
-
-                nextPrompt = [
-                    `Your previous output was invalid: ${lastError.message}`,
-                    "Return corrected strict JSON only.",
-                    `The post must start exactly with: \"${getExpectedFirstPrefix(range)}\"`,
-                    `The final line must be exactly: \"Compare: ${range.compareUrl}\"`,
-                ].join("\n");
-            }
-        }
-
-        return yield* Effect.fail(new Error(
-            `Generated invalid post for ${range.toLabel} after ${MAX_GENERATION_ATTEMPTS} attempts: ${lastError?.message ?? "unknown error"}`,
-        ));
+        const output = yield* prompt(sessionID, buildGenerationPrompt(range));
+        return parseAndValidatePost(range, output);
     });
 
     const generateReport = Effect.fn("PostGenerator.generateReport")(function* (range: ReleaseRange) {
@@ -564,10 +532,9 @@ function createGenerator(
 
         const generatedPost = yield* generatePost(sessionID, range);
         const bundleSizeSection = yield* bundleSize.buildSection(range);
-        const post = insertSectionBeforeCompareLine(
-            generatedPost,
-            bundleSizeSection,
-        );
+        const post = bundleSizeSection
+            ? postTextFromString(insertSectionBeforeCompareLine(generatedPost, bundleSizeSection))
+            : generatedPost;
         const validationError = formatValidationErrors(post);
         if (validationError) {
             return yield* Effect.fail(new Error(validationError));

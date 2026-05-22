@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process"
 import { createOpencodeClient } from "@opencode-ai/sdk/v2"
 import { Context, Effect, Layer } from "effect"
+import { RuntimeConfig } from "./runtime-config.js"
 
 export type EffectRunningOpencode = {
   client: ReturnType<typeof createOpencodeClient>
@@ -10,12 +11,7 @@ export type EffectRunningOpencode = {
 
 const OPENCODE_OUTPUT_TAIL_LIMIT = 50_000
 
-function shouldEchoOutput() {
-  return ["1", "true", "yes", "on"].includes(process.env.OPENCODE_ECHO_OUTPUT?.trim().toLowerCase() ?? "")
-}
-
-function killProcessTree(proc: ReturnType<typeof spawn>) {
-  return Effect.tryPromise(async () => {
+async function killProcessTree(proc: ReturnType<typeof spawn>) {
     if (!proc.pid) return
 
     if (process.platform === "win32") {
@@ -36,10 +32,9 @@ function killProcessTree(proc: ReturnType<typeof spawn>) {
         proc.kill("SIGKILL")
       }
     }
-  })
 }
 
-function startOpencodeEffect(repoDir: string) {
+function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
   return Effect.tryPromise(async (signal) => {
     const proc = spawn("opencode", ["serve", "--hostname=127.0.0.1", "--port=0"], {
       env: {
@@ -51,7 +46,6 @@ function startOpencodeEffect(repoDir: string) {
     })
 
     let output = ""
-    const echoOutput = shouldEchoOutput()
 
     function appendOutput(chunk: Buffer, stream: NodeJS.WriteStream) {
       const text = chunk.toString()
@@ -74,12 +68,12 @@ function startOpencodeEffect(repoDir: string) {
       proc.stderr?.destroy()
 
       if (proc.exitCode === null && !proc.killed) {
-        await Effect.runPromise(killProcessTree(proc))
+        await killProcessTree(proc)
       }
 
       const forceKillTimer = setTimeout(() => {
         if (proc.exitCode === null && !proc.killed) {
-          void Effect.runPromise(killProcessTree(proc))
+          void killProcessTree(proc)
         }
       }, 5_000)
 
@@ -154,9 +148,11 @@ export class OpencodeServer extends Context.Service<OpencodeServer, {
   static readonly layer = Layer.effect(
     this,
     Effect.gen(function* () {
+      const config = yield* RuntimeConfig
+
       const withServer = <A, E, R>(repoDir: string, use: (server: EffectRunningOpencode) => Effect.Effect<A, E, R>) =>
         Effect.acquireRelease(
-          startOpencodeEffect(repoDir),
+          startOpencodeEffect(repoDir, config.opencodeEchoOutput),
           (server) => server.close.pipe(Effect.catch(Effect.die)),
         ).pipe(
           Effect.flatMap(use),

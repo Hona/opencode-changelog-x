@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 WorkingDirectory=/repos/opencode-changelog-x
 Environment=HOME=/root
-EnvironmentFile=-/etc/opencode-changelog-discord.env
+EnvironmentFile=/etc/opencode-changelog-discord.env
 ExecStart=/usr/bin/bash -lc 'export PATH=/root/.bun/bin:$PATH; exec bun run discord'
 Restart=on-failure
 RestartSec=5

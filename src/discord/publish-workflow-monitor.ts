@@ -4,9 +4,6 @@ import { Context, Effect, Layer } from "effect"
 import { GithubCli } from "../integrations/github-cli.js"
 import { RuntimeConfig } from "../runtime-config.js"
 import {
-  createEmptyWorkflowState,
-  getAllRunIds,
-  getCompletedRunIds,
   getNewAlerts,
   getNewlySeenRuns,
   isWorkflowStateForTarget,
@@ -16,7 +13,6 @@ import {
   type WorkflowState,
   type WorkflowTarget,
 } from "../workflows.js"
-import { getErrorMessage } from "./errors.js"
 import type { AlertChannel } from "./types.js"
 
 function buildPublishWorkflowTarget(config: { githubOwner: string; githubRepo: string }) {
@@ -60,12 +56,7 @@ class WorkflowMonitorStateStore extends Context.Service<WorkflowMonitorStateStor
         return yield* Effect.tryPromise({
           try: async () => parseWorkflowStateText(await readFile(filePath, "utf8")),
           catch: (error) => error,
-        }).pipe(
-          Effect.catchIf(
-            (error) => typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT",
-            () => Effect.succeed(createEmptyWorkflowState()),
-          ),
-        )
+        })
       })
 
       const save = Effect.fn("WorkflowMonitorStateStore.save")(function* (state: WorkflowState) {
@@ -84,8 +75,8 @@ class WorkflowMonitorStateStore extends Context.Service<WorkflowMonitorStateStor
 }
 
 export class PublishWorkflowMonitor extends Context.Service<PublishWorkflowMonitor, {
-  readonly checkOnce: (channel: AlertChannel) => Effect.Effect<void>
-  readonly run: (channel: AlertChannel) => Effect.Effect<void>
+  readonly checkOnce: (channel: AlertChannel) => Effect.Effect<void, unknown>
+  readonly run: (channel: AlertChannel) => Effect.Effect<void, unknown>
 }>()("app/PublishWorkflowMonitor") {
   static readonly layer = Layer.effect(
     this,
@@ -102,17 +93,13 @@ export class PublishWorkflowMonitor extends Context.Service<PublishWorkflowMonit
         ])
 
         if (!isWorkflowStateForTarget(state, publishWorkflow)) {
-          const allIds = getAllRunIds(runs)
-          const completedIds = getCompletedRunIds(runs)
-          yield* Effect.sync(() => console.log(
-            `Seeding workflow state for ${formatWorkflowTarget(publishWorkflow)} with ${allIds.length} existing run(s).`,
+          return yield* Effect.fail(new Error(
+            `Workflow state target mismatch: expected ${formatWorkflowTarget(publishWorkflow)}, found ${formatWorkflowTarget({
+              owner: state.owner,
+              repo: state.repo,
+              workflow: state.workflow,
+            })}`,
           ))
-          yield* stateStore.save({
-            ...publishWorkflow,
-            seenRunIds: allIds,
-            reportedRunIds: completedIds,
-          })
-          return
         }
 
         let dirty = false
@@ -153,9 +140,7 @@ export class PublishWorkflowMonitor extends Context.Service<PublishWorkflowMonit
         }
       })
 
-      const checkOnce = (channel: AlertChannel) => checkOnceUnsafe(channel).pipe(
-        Effect.catch((error) => Effect.sync(() => console.error(`Workflow monitor error: ${getErrorMessage(error)}`))),
-      )
+      const checkOnce = checkOnceUnsafe
 
       const run = (channel: AlertChannel) => Effect.gen(function* () {
         yield* Effect.sleep("5 seconds")

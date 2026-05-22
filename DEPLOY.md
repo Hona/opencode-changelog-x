@@ -15,7 +15,7 @@ Current Discord deployment target:
 - Host: `root@cloud.hona.dev`
 - App dir: `/repos/opencode-changelog-x`
 - Service: `opencode-changelog-discord.service`
-- Env file: `/etc/opencode-changelog-discord.env`
+- Env file: `/etc/opencode-changelog-discord.env` (required by systemd)
 
 The bot posts only to the hardcoded channel:
 
@@ -45,6 +45,14 @@ Required:
 ```bash
 DISCORD_TOKEN=...
 ```
+
+The Discord service also requires a valid workflow monitor state file at:
+
+```text
+/repos/opencode-changelog-x/data/publish-workflow-state.json
+```
+
+The file must target `anomalyco/opencode` `publish.yml`; missing, corrupt, or mismatched state fails startup instead of silently reseeding.
 
 Optional:
 
@@ -80,7 +88,7 @@ Install the systemd unit:
 ssh root@cloud.hona.dev "install -m 0644 /repos/opencode-changelog-x/deploy/opencode-changelog-discord.service /etc/systemd/system/opencode-changelog-discord.service && systemctl daemon-reload"
 ```
 
-Create the env file if it does not exist:
+Create the required env file if it does not exist:
 
 ```bash
 ssh root@cloud.hona.dev "if [ ! -f /etc/opencode-changelog-discord.env ]; then install -m 0600 /repos/opencode-changelog-x/deploy/opencode-changelog-discord.env.example /etc/opencode-changelog-discord.env; fi"
@@ -152,7 +160,6 @@ Useful log lines:
 - `Preview posted for ...`
 - `Posted triggered alert: ...`
 - `Posted completion alert: ...`
-- `Seeding workflow state for ...`
 
 ## Update Flow
 

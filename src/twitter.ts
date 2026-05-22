@@ -1,6 +1,7 @@
 import { TwitterApi } from "twitter-api-v2"
 import { Context, Effect, Layer } from "effect"
 import type { AppConfig } from "./config.js"
+import { tweetIdFromString, type PostText, type TweetId } from "./domain/value-objects.js"
 import { RuntimeConfig } from "./runtime-config.js"
 
 function createTwitterClient(config: AppConfig) {
@@ -13,15 +14,16 @@ function createTwitterClient(config: AppConfig) {
 }
 
 export class TwitterPublisher extends Context.Service<TwitterPublisher, {
-  readonly postMessage: (post: string) => Effect.Effect<string[], unknown>
+  readonly postMessage: (post: PostText) => Effect.Effect<TweetId[], unknown>
 }>()("app/TwitterPublisher") {
   static readonly layer = Layer.effect(
     this,
     Effect.gen(function* () {
       const config = yield* RuntimeConfig
+      const client = config.dryRun || !config.twitter ? null : createTwitterClient(config)
 
-      const postMessage = Effect.fn("TwitterPublisher.postMessage")(function* (post: string) {
-        if (config.dryRun || !config.twitter) {
+      const postMessage = Effect.fn("TwitterPublisher.postMessage")(function* (post: PostText) {
+        if (!client) {
           yield* Effect.sync(() => {
             console.log("DRY RUN: post preview")
             console.log(`\n${post}`)
@@ -29,9 +31,8 @@ export class TwitterPublisher extends Context.Service<TwitterPublisher, {
           return []
         }
 
-        const client = createTwitterClient(config)
         const response = yield* Effect.tryPromise(() => client.v2.tweet({ text: post }))
-        return [response.data.id]
+        return [tweetIdFromString(response.data.id)]
       })
 
       return TwitterPublisher.of({ postMessage })

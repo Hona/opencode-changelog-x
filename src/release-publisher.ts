@@ -1,6 +1,7 @@
 import { Context, Effect, Layer } from "effect"
 import { POST_MAX_LENGTH } from "./constants.js"
 import { PostedReleaseHistory, ReleaseCatalog } from "./domain/release-history.js"
+import { isoDateStringFromDate } from "./domain/value-objects.js"
 import { PostGenerator } from "./generate.js"
 import { GithubReleases } from "./github.js"
 import { RuntimeConfig } from "./runtime-config.js"
@@ -70,7 +71,8 @@ export class ReleasePublisher extends Context.Service<ReleasePublisher, {
               const tweetIds = yield* twitter.postMessage(report.post)
 
               if (!config.dryRun) {
-                history = history.recordPosted(release, report.post, tweetIds)
+                const postedAt = yield* Effect.sync(() => isoDateStringFromDate(new Date()))
+                history = history.recordPosted(release, report.post, tweetIds, postedAt)
                 yield* stateStore.save(history.toState())
               }
             }

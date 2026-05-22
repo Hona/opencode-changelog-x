@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { releaseTagFromString, type ReleaseTag } from "./domain/value-objects.js"
 
 const twitterCredentialsSchema = z.object({
   appKey: z.string().min(1, "TWITTER_APP_KEY is required"),
@@ -16,9 +17,10 @@ export type AppConfig = {
   githubProcessDrafts: boolean
   upstreamCloneUrl: string
   opencodeTimeoutMs: number
+  opencodeEchoOutput: boolean
   stateFile: string
   dryRun: boolean
-  targetTag?: string
+  targetTag?: ReleaseTag
   twitter?: TwitterCredentials
 }
 
@@ -29,12 +31,16 @@ export type DiscordConfig = AppConfig & {
   discordChannelId: string
 }
 
+const GITHUB_OWNER = "anomalyco"
+const GITHUB_REPO = "opencode"
+const GITHUB_RELEASE_LIMIT = 20
+const OPENCODE_TIMEOUT_MS = 600_000
+const STATE_FILE = "data/posted-releases.json"
 const DISCORD_PREVIEW_CHANNEL_ID = "1472697640880701523"
 
-function readString(env: NodeJS.ProcessEnv, name: string, fallback?: string) {
+function readString(env: NodeJS.ProcessEnv, name: string) {
   const value = env[name]?.trim()
   if (value) return value
-  if (fallback !== undefined) return fallback
   throw new Error(`${name} is required`)
 }
 
@@ -46,19 +52,9 @@ function readBoolean(env: NodeJS.ProcessEnv, name: string, fallback = false) {
   throw new Error(`${name} must be a boolean value`)
 }
 
-function readPositiveInteger(env: NodeJS.ProcessEnv, name: string, fallback: number) {
-  const raw = env[name]?.trim()
-  if (!raw) return fallback
-  const parsed = Number.parseInt(raw, 10)
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${name} must be a positive integer`)
-  }
-  return parsed
-}
-
 function readCliArgs(argv: string[]) {
   let dryRun: boolean | undefined
-  let targetTag: string | undefined
+  let targetTag: ReleaseTag | undefined
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
@@ -70,7 +66,7 @@ function readCliArgs(argv: string[]) {
     if (arg === "--tag") {
       const value = argv[index + 1]?.trim()
       if (!value) throw new Error("--tag requires a value")
-      targetTag = value.startsWith("v") ? value : `v${value}`
+      targetTag = releaseTagFromString(value.startsWith("v") ? value : `v${value}`)
       index += 1
       continue
     }
@@ -80,17 +76,15 @@ function readCliArgs(argv: string[]) {
 }
 
 function readSharedConfig(env: NodeJS.ProcessEnv): SharedConfig {
-  const githubOwner = readString(env, "GITHUB_OWNER", "anomalyco")
-  const githubRepo = readString(env, "GITHUB_REPO", "opencode")
-
   return {
-    githubOwner,
-    githubRepo,
-    githubReleaseLimit: readPositiveInteger(env, "GITHUB_RELEASE_LIMIT", 20),
+    githubOwner: GITHUB_OWNER,
+    githubRepo: GITHUB_REPO,
+    githubReleaseLimit: GITHUB_RELEASE_LIMIT,
     githubProcessDrafts: readBoolean(env, "GITHUB_PROCESS_DRAFTS", false),
-    upstreamCloneUrl: readString(env, "UPSTREAM_CLONE_URL", `https://github.com/${githubOwner}/${githubRepo}.git`),
-    opencodeTimeoutMs: readPositiveInteger(env, "OPENCODE_TIMEOUT_MS", 600_000),
-    stateFile: readString(env, "STATE_FILE", "data/posted-releases.json"),
+    upstreamCloneUrl: `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}.git`,
+    opencodeTimeoutMs: OPENCODE_TIMEOUT_MS,
+    opencodeEchoOutput: readBoolean(env, "OPENCODE_ECHO_OUTPUT", false),
+    stateFile: STATE_FILE,
   }
 }
 

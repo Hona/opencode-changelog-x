@@ -1,6 +1,8 @@
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 import { Context, Effect, Layer, Schema } from "effect"
+import { z } from "zod"
+import { releaseTagFromString, workflowRunIdFromNumber, type ReleaseTag } from "../domain/value-objects.js"
 import type { WorkflowRun, WorkflowTarget } from "../workflows.js"
 
 const execFileAsync = promisify(execFile)
@@ -10,15 +12,15 @@ export class GithubCliError extends Schema.TaggedErrorClass<GithubCliError>()("G
   cause: Schema.Defect,
 }) {}
 
-type WorkflowRunApiResponse = {
-  workflow_runs: Array<{
-    id: number
-    conclusion: string | null
-    status: string
-    triggering_actor: { login: string }
-    html_url: string
-  }>
-}
+const workflowRunApiResponseSchema = z.object({
+  workflow_runs: z.array(z.object({
+    id: z.number(),
+    conclusion: z.string().nullable(),
+    status: z.string(),
+    triggering_actor: z.object({ login: z.string() }),
+    html_url: z.string().url(),
+  })),
+})
 
 function workflowPath(target: WorkflowTarget) {
   return `repos/${target.owner}/${target.repo}/actions/workflows/${encodeURIComponent(target.workflow)}`
@@ -29,7 +31,7 @@ export type GithubCliService = {
   readonly listWorkflowDispatchRuns: (target: WorkflowTarget) => Effect.Effect<WorkflowRun[], GithubCliError>
   readonly hasActiveWorkflowDispatchRun: (target: WorkflowTarget) => Effect.Effect<boolean, GithubCliError>
   readonly runWorkflow: (target: WorkflowTarget, inputs: Record<string, string>) => Effect.Effect<void, GithubCliError>
-  readonly latestReleaseTag: (owner: string, repo: string) => Effect.Effect<string | null, GithubCliError>
+  readonly latestReleaseTag: (owner: string, repo: string) => Effect.Effect<ReleaseTag | null, GithubCliError>
 }
 
 export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("app/GithubCli") {
@@ -48,10 +50,10 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
       const listWorkflowDispatchRuns = Effect.fn("GithubCli.listWorkflowDispatchRuns")(function* (target: WorkflowTarget) {
         const params = new URLSearchParams({ event: "workflow_dispatch", per_page: "20" })
         const stdout = yield* api(`${workflowPath(target)}/runs?${params}`)
-        const response = JSON.parse(stdout) as WorkflowRunApiResponse
+        const response = workflowRunApiResponseSchema.parse(JSON.parse(stdout))
 
         return response.workflow_runs.map((run) => ({
-          databaseId: run.id,
+          databaseId: workflowRunIdFromNumber(run.id),
           conclusion: run.conclusion ?? "",
           status: run.status,
           actor: { login: run.triggering_actor.login },
@@ -81,7 +83,7 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
       const latestReleaseTag = Effect.fn("GithubCli.latestReleaseTag")(function* (owner: string, repo: string) {
         const tag = yield* api(`repos/${owner}/${repo}/releases?per_page=1`, ["--jq", ".[0].tag_name"])
         const trimmed = tag.trim()
-        return trimmed && trimmed !== "null" ? trimmed : null
+        return trimmed && trimmed !== "null" ? releaseTagFromString(trimmed) : null
       })
 
       return GithubCli.of({

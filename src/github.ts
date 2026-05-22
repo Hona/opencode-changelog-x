@@ -1,9 +1,9 @@
 import { Context, Effect, Layer, Schema } from "effect"
 import { z } from "zod"
 import type { AppConfig } from "./config.js"
+import { compareReleaseOrder, createGithubRelease, type GithubRelease } from "./domain/releases.js"
 import { GithubCli, type GithubCliService } from "./integrations/github-cli.js"
 import { RuntimeConfig } from "./runtime-config.js"
-import type { GithubRelease } from "./types.js"
 
 export class GithubReleasesError extends Schema.TaggedErrorClass<GithubReleasesError>()("GithubReleasesError", {
   message: Schema.String,
@@ -24,7 +24,7 @@ const releaseSchema = z.object({
 const releasesSchema = z.array(releaseSchema)
 
 function mapRelease(release: z.infer<typeof releaseSchema>): GithubRelease {
-  return {
+  return createGithubRelease({
     id: release.id,
     tag: release.tag_name,
     name: release.name?.trim() || release.tag_name,
@@ -33,17 +33,7 @@ function mapRelease(release: z.infer<typeof releaseSchema>): GithubRelease {
     prerelease: release.prerelease,
     createdAt: release.created_at,
     publishedAt: release.published_at,
-  }
-}
-
-function releaseTimestamp(release: GithubRelease) {
-  return release.publishedAt ?? release.createdAt
-}
-
-function compareReleaseOrder(left: GithubRelease, right: GithubRelease) {
-  const timestampComparison = releaseTimestamp(left).localeCompare(releaseTimestamp(right))
-  if (timestampComparison !== 0) return timestampComparison
-  return left.id - right.id
+  })
 }
 
 function isEligibleRelease(config: AppConfig, release: GithubRelease) {

@@ -1,32 +1,28 @@
 import { Context, Effect, Layer } from "effect"
+import { z } from "zod"
+import { isoDateStringFromString, type IsoDateString } from "../domain/value-objects.js"
 import { GithubCli } from "../integrations/github-cli.js"
+import { NpmRegistry, OPENCODE_NPM_PACKAGE } from "../integrations/npm-registry.js"
 import { RuntimeConfig } from "../runtime-config.js"
-import { getErrorMessage } from "./errors.js"
 import type { AlertChannel } from "./types.js"
 
-const BETA_NPM_PACKAGE = "opencode-ai"
 const BETA_STALE_THRESHOLD_MS = 3 * 60 * 60 * 1000
-
-type NpmPackument = {
-  "dist-tags"?: Record<string, string>
-  time?: Record<string, string>
-}
 
 type BetaNpmStatus = {
   version: string
-  publishedAt: string
+  publishedAt: IsoDateString
   ageMs: number
   stale: boolean
 }
 
-type WorkflowRunsResponse = {
-  workflow_runs: Array<{
-    conclusion: string | null
-    status: string
-    html_url: string
-    created_at: string
-  }>
-}
+const workflowRunsResponseSchema = z.object({
+  workflow_runs: z.array(z.object({
+    conclusion: z.string().nullable(),
+    status: z.string(),
+    html_url: z.string().url(),
+    created_at: z.string().transform(isoDateStringFromString),
+  })),
+})
 
 function formatBetaAge(ageMs: number): string {
   const hours = Math.floor(ageMs / (60 * 60 * 1000))
@@ -35,7 +31,7 @@ function formatBetaAge(ageMs: number): string {
 }
 
 function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null): string {
-  let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
+  let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${OPENCODE_NPM_PACKAGE}@${status.version}\`)`
   if (failureUrl) {
     msg += `\n[Last failure](<${failureUrl}>)`
   }
@@ -43,41 +39,36 @@ function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null):
 }
 
 function formatBetaResolvedAlert(status: BetaNpmStatus): string {
-  return `~~Beta release was stale~~ — resolved (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
+  return `~~Beta release was stale~~ — resolved (\`${OPENCODE_NPM_PACKAGE}@${status.version}\`)`
 }
 
 export class BetaMonitor extends Context.Service<BetaMonitor, {
-  readonly checkOnce: (channel: AlertChannel) => Effect.Effect<void>
-  readonly run: (channel: AlertChannel) => Effect.Effect<void>
+  readonly checkOnce: (channel: AlertChannel) => Effect.Effect<void, unknown>
+  readonly run: (channel: AlertChannel) => Effect.Effect<void, unknown>
 }>()("app/BetaMonitor") {
   static readonly layer = Layer.effect(
     this,
     Effect.gen(function* () {
       const config = yield* RuntimeConfig
       const github = yield* GithubCli
+      const npm = yield* NpmRegistry
       let wasStale = false
 
       const checkBetaNpmStaleness = Effect.fn("BetaMonitor.checkBetaNpmStaleness")(function* () {
-        const response = yield* Effect.tryPromise(() => fetch(`https://registry.npmjs.org/${BETA_NPM_PACKAGE}`, {
-          headers: { Accept: "application/json" },
-          signal: AbortSignal.timeout(15_000),
-        }))
-        if (!response.ok) {
-          return yield* Effect.fail(new Error(`NPM packument request failed for ${BETA_NPM_PACKAGE} (${response.status} ${response.statusText})`))
-        }
-
-        const data = (yield* Effect.tryPromise(() => response.json())) as NpmPackument
+        const data = yield* npm.packument(OPENCODE_NPM_PACKAGE)
         const betaVersion = data["dist-tags"]?.beta
         if (!betaVersion) {
-          return yield* Effect.fail(new Error(`${BETA_NPM_PACKAGE} has no beta dist-tag`))
+          return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE} has no beta dist-tag`))
         }
 
-        const publishedAt = data.time?.[betaVersion]
-        if (!publishedAt) {
-          return yield* Effect.fail(new Error(`${BETA_NPM_PACKAGE}@${betaVersion} is missing publish time`))
+        const rawPublishedAt = data.time?.[betaVersion]
+        if (!rawPublishedAt) {
+          return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE}@${betaVersion} is missing publish time`))
         }
 
-        const ageMs = Date.now() - new Date(publishedAt).getTime()
+        const publishedAt = isoDateStringFromString(rawPublishedAt)
+        const now = yield* Effect.sync(() => Date.now())
+        const ageMs = now - new Date(publishedAt).getTime()
 
         return {
           version: betaVersion,
@@ -94,7 +85,7 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
         const stdout = yield* github.api(
           `repos/${config.githubOwner}/${config.githubRepo}/actions/workflows/${workflow}/runs?${params}`,
         )
-        return (JSON.parse(stdout) as WorkflowRunsResponse).workflow_runs
+        return workflowRunsResponseSchema.parse(JSON.parse(stdout)).workflow_runs
       })
 
       const fetchLatestBetaFailureUrl = Effect.fn("BetaMonitor.fetchLatestBetaFailureUrl")(function* () {
@@ -113,7 +104,7 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
       const checkOnceUnsafe = Effect.fn("BetaMonitor.checkOnce")(function* (channel: AlertChannel) {
         const status = yield* checkBetaNpmStaleness()
 
-        if (status?.stale) {
+        if (status.stale) {
           const failureUrl = yield* fetchLatestBetaFailureUrl()
           const content = formatBetaStaleAlert(status, failureUrl)
 
@@ -125,16 +116,14 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
           return
         }
 
-        if (status && wasStale) {
+        if (wasStale) {
           yield* Effect.tryPromise(() => channel.send(formatBetaResolvedAlert(status)))
           wasStale = false
           yield* Effect.sync(() => console.log(`Beta stale alert resolved: ${status.version}`))
         }
       })
 
-      const checkOnce = (channel: AlertChannel) => checkOnceUnsafe(channel).pipe(
-        Effect.catch((error) => Effect.sync(() => console.error(`Beta monitor error: ${getErrorMessage(error)}`))),
-      )
+      const checkOnce = checkOnceUnsafe
 
       const run = (channel: AlertChannel) => Effect.gen(function* () {
         yield* Effect.sleep("15 seconds")
@@ -148,5 +137,8 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
     }),
   )
 
-  static readonly defaultLayer = this.layer.pipe(Layer.provide(GithubCli.layer))
+  static readonly defaultLayer = this.layer.pipe(
+    Layer.provide(GithubCli.layer),
+    Layer.provide(NpmRegistry.layer),
+  )
 }

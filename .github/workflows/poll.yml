@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Generate threads without posting or updating state"
+        description: "Generate the post without publishing or updating state"
         required: false
         type: boolean
         default: true
@@ -29,7 +29,7 @@ jobs:
   poll:
     runs-on: ubuntu-latest
     env:
-      GITHUB_PROCESS_DRAFTS: ${{ github.event.inputs.process_drafts || 'false' }}
+      GITHUB_PROCESS_DRAFTS: ${{ inputs.process_drafts }}
       GH_TOKEN: ${{ github.token }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
       TWITTER_APP_KEY: ${{ secrets.TWITTER_APP_KEY }}
@@ -50,8 +50,8 @@ jobs:
 
       - name: Run bot
         env:
-          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
-          INPUT_TAG: ${{ github.event.inputs.tag || '' }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_TAG: ${{ inputs.tag || '' }}
         run: |
           ARGS=()
           if [ "$INPUT_DRY_RUN" = "true" ]; then
@@ -63,7 +63,7 @@ jobs:
           bun run bot -- "${ARGS[@]}"
 
       - name: Persist state
-        if: always() && github.event.inputs.dry_run != 'true'
+        if: always() && inputs.dry_run != true
         run: |
           if git diff --quiet -- data/posted-releases.json; then
             exit 0

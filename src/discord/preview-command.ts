@@ -1,9 +1,10 @@
 import { EmbedBuilder, ThreadAutoArchiveDuration, type Message } from "discord.js"
 import { Context, Effect, Layer, Option, Semaphore } from "effect"
 import { PREVIEW_MODEL } from "../constants.js"
-import { PostGenerator } from "../generate.js"
+import { releaseTimestamp } from "../domain/releases.js"
+import type { IsoDateString, ReleaseTag } from "../domain/value-objects.js"
+import { PostGenerator, type ReleasePostReport } from "../generate.js"
 import { GithubReleases } from "../github.js"
-import type { ReleasePostReport } from "../types.js"
 import { UpstreamRepository } from "../upstream.js"
 import { DiscordSettings } from "../runtime-config.js"
 import { getErrorMessage } from "./errors.js"
@@ -17,8 +18,8 @@ type ThreadSender = {
 }
 
 type LatestReleaseBaseline = {
-  tag: string
-  releaseTimestamp: string | null
+  tag: ReleaseTag
+  releaseTimestamp: IsoDateString
 }
 
 function buildThreadName(fromTag: string | null) {
@@ -75,10 +76,6 @@ function buildPostEmbeds(report: ReleasePostReport) {
   )
 }
 
-function getReleaseTimestamp(release: { publishedAt: string | null; createdAt: string }) {
-  return release.publishedAt ?? release.createdAt
-}
-
 function sendThreadEmbed(channel: ThreadSender, embed: EmbedBuilder) {
   return Effect.tryPromise(() => channel.send({ embeds: [embed] })).pipe(Effect.asVoid)
 }
@@ -107,13 +104,13 @@ export class PreviewCommand extends Context.Service<PreviewCommand, {
 
         return {
           tag: latestRelease.tag,
-          releaseTimestamp: getReleaseTimestamp(latestRelease),
+          releaseTimestamp: releaseTimestamp(latestRelease),
         } satisfies LatestReleaseBaseline
       })
 
       const generatePreview = Effect.fn("PreviewCommand.generatePreview")(function* (message: Message<true>) {
         const latestRelease = yield* resolveLatestReleaseBaseline()
-        const latestReleaseTag = latestRelease?.tag ?? null
+        const latestReleaseTag = latestRelease.tag
         const thread = yield* Effect.tryPromise(() => message.startThread({
           name: buildThreadName(latestReleaseTag),
           autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
@@ -121,10 +118,9 @@ export class PreviewCommand extends Context.Service<PreviewCommand, {
         }))
 
         yield* upstream.withCheckout((checkout) => Effect.gen(function* () {
-          try {
             const range = yield* checkout.resolvePreviewRange(
               latestReleaseTag,
-              latestRelease?.releaseTimestamp ?? null,
+              latestRelease.releaseTimestamp,
             )
 
             if (range.commitCount === 0) {
@@ -145,11 +141,12 @@ export class PreviewCommand extends Context.Service<PreviewCommand, {
 
               yield* Effect.sync(() => console.log(`Preview posted for ${message.author.tag}: ${report.fromTag ?? "<none>"} -> ${report.toLabel}`))
             }))
-          } catch (error) {
+        })).pipe(
+          Effect.catch((error) => Effect.gen(function* () {
             yield* sendThreadEmbed(thread, buildInfoEmbed("Preview failed", getErrorMessage(error)))
             return yield* Effect.fail(error)
-          }
-        }))
+          })),
+        )
       })
 
       const runPreview = Effect.fn("PreviewCommand.runPreview")(function* (message: Message<true>) {
@@ -169,6 +166,7 @@ export class PreviewCommand extends Context.Service<PreviewCommand, {
             Effect.catch((error) => Effect.gen(function* () {
               yield* Effect.sync(() => console.error(error))
               yield* react(message, "❌")
+              return yield* Effect.fail(error)
             })),
           ),
         )

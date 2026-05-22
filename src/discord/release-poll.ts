@@ -5,7 +5,6 @@ import { GitCli } from "../integrations/git-cli.js"
 import { GithubCli } from "../integrations/github-cli.js"
 import { parseStateText } from "../state.js"
 import type { WorkflowTarget } from "../workflows.js"
-import { getErrorMessage } from "./errors.js"
 
 const POSTED_RELEASES_REF = "origin/master:data/posted-releases.json"
 const RELEASE_POLL_WORKFLOW = {
@@ -36,8 +35,8 @@ export class OriginPostedReleaseState extends Context.Service<OriginPostedReleas
 }
 
 export class ReleasePoll extends Context.Service<ReleasePoll, {
-  readonly dispatchOnce: () => Effect.Effect<void>
-  readonly run: Effect.Effect<void>
+  readonly dispatchOnce: () => Effect.Effect<void, unknown>
+  readonly run: Effect.Effect<void, unknown>
 }>()("app/ReleasePoll") {
   static readonly layer = Layer.effect(
     this,
@@ -52,7 +51,9 @@ export class ReleasePoll extends Context.Service<ReleasePoll, {
           originState.load(),
         ])
 
-        if (!latestRelease) return null
+        if (!latestRelease) {
+          return yield* Effect.fail(new Error("No eligible GitHub release found for release polling"))
+        }
         return new PostedReleaseHistory(state).hasPosted(latestRelease) ? null : latestRelease
       })
 
@@ -73,9 +74,7 @@ export class ReleasePoll extends Context.Service<ReleasePoll, {
         yield* Effect.sync(() => console.log(`Release poll dispatched for ${pendingRelease.tag}.`))
       })
 
-      const dispatchOnce = () => dispatchOnceUnsafe().pipe(
-        Effect.catch((error) => Effect.sync(() => console.error(`Release poll dispatch failed: ${getErrorMessage(error)}`))),
-      )
+      const dispatchOnce = dispatchOnceUnsafe
 
       const run = Effect.gen(function* () {
         yield* Effect.sleep("30 seconds")
