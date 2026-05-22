@@ -35,8 +35,8 @@ export function workflowRunIdFromNumber(value: unknown): WorkflowRunId {
 
 export function releaseTagFromString(value: unknown): ReleaseTag {
   const tag = nonEmptyString(value, "Release tag")
-  if (!/^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(tag)) {
-    throw new Error(`Release tag must be a v-prefixed semver tag: ${tag}`)
+  if (!/^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(tag)) {
+    throw new Error(`Release tag must be a semver tag: ${tag}`)
   }
   return tag as ReleaseTag
 }

@@ -39,7 +39,11 @@ export class ReleasePublisher extends Context.Service<ReleasePublisher, {
         }
 
         yield* Effect.sync(() => {
-          console.log(`Found ${resolvedPending.length} unposted release(s).`)
+          if (config.targetTag) {
+            console.log(`Selected ${config.targetTag} for ${config.dryRun ? "dry-run preview" : "publishing"}.`)
+          } else {
+            console.log(`Found ${resolvedPending.length} unposted release(s).`)
+          }
           const latestPostedRelease = history.latest()
           if (!config.targetTag && latestPostedRelease) {
             console.log(`Cron baseline: ${latestPostedRelease.tag}`)

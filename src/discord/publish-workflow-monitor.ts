@@ -107,25 +107,12 @@ export class PublishWorkflowMonitor extends Context.Service<PublishWorkflowMonit
         let nextReported = state.reportedRunIds
 
         const triggered = getNewlySeenRuns(runs, state)
-        for (const alert of triggered) {
-          yield* Effect.tryPromise(() => channel.send(formatTriggeredAlert(alert)))
-          yield* Effect.sync(() => console.log(`Posted triggered alert: run ${alert.runId} by ${alert.actor}`))
-        }
         if (triggered.length > 0) {
           nextSeen = [...nextSeen, ...triggered.map((alert) => alert.runId)].slice(-100)
           dirty = true
         }
 
         const completed = getNewAlerts(runs, state)
-        for (const alert of completed) {
-          const tag = alert.success ? yield* github.latestReleaseTag(config.githubOwner, config.githubRepo) : null
-          const content = formatCompletedAlert(alert, tag)
-          yield* Effect.tryPromise(() => channel.send(content))
-
-          yield* Effect.sync(() => console.log(
-            `Posted completion alert: ${alert.conclusion} run ${alert.runId} by ${alert.actor}${tag ? ` (${tag})` : ""}`,
-          ))
-        }
         if (completed.length > 0) {
           nextReported = [...nextReported, ...completed.map((alert) => alert.runId)].slice(-100)
           dirty = true
@@ -137,6 +124,21 @@ export class PublishWorkflowMonitor extends Context.Service<PublishWorkflowMonit
             seenRunIds: nextSeen,
             reportedRunIds: nextReported,
           })
+        }
+
+        for (const alert of triggered) {
+          yield* Effect.tryPromise(() => channel.send(formatTriggeredAlert(alert)))
+          yield* Effect.sync(() => console.log(`Posted triggered alert: run ${alert.runId} by ${alert.actor}`))
+        }
+
+        for (const alert of completed) {
+          const tag = alert.success ? yield* github.latestReleaseTag(config.githubOwner, config.githubRepo) : null
+          const content = formatCompletedAlert(alert, tag)
+          yield* Effect.tryPromise(() => channel.send(content))
+
+          yield* Effect.sync(() => console.log(
+            `Posted completion alert: ${alert.conclusion} run ${alert.runId} by ${alert.actor}${tag ? ` (${tag})` : ""}`,
+          ))
         }
       })
 

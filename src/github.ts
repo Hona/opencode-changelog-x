@@ -22,6 +22,7 @@ const releaseSchema = z.object({
 })
 
 const releasesSchema = z.array(releaseSchema)
+const releaseFieldsJq = "[.[] | {id, tag_name, name, html_url, draft, prerelease, created_at, published_at}]"
 
 function mapRelease(release: z.infer<typeof releaseSchema>): GithubRelease {
   return createGithubRelease({
@@ -46,7 +47,7 @@ function fetchReleasesPageEffect(config: AppConfig, github: GithubCliService, pa
       per_page: String(config.githubReleaseLimit),
       page: String(page),
     })
-    const stdout = yield* github.api(`repos/${config.githubOwner}/${config.githubRepo}/releases?${params}`).pipe(
+    const stdout = yield* github.api(`repos/${config.githubOwner}/${config.githubRepo}/releases?${params}`, ["--jq", releaseFieldsJq]).pipe(
       Effect.mapError((cause) => new GithubReleasesError({ message: "GitHub releases request failed", cause })),
     )
 
