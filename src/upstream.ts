@@ -1,51 +1,22 @@
-import { spawn } from "node:child_process"
 import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { Context, Effect, Layer } from "effect"
 import type { AppConfig } from "./config.js"
+import { GitCli, type GitCliService } from "./integrations/git-cli.js"
+import { RuntimeConfig } from "./runtime-config.js"
 import type { GithubRelease, ReleaseRange } from "./types.js"
 
-type UpstreamCheckout = {
+export type EffectUpstreamCheckout = {
   directory: string
   resolveRange: (
     release: GithubRelease,
     fromTag: string | null,
-  ) => Promise<ReleaseRange>
+  ) => Effect.Effect<ReleaseRange, unknown>
   resolvePreviewRange: (
     fromTag: string | null,
     fromReleaseTimestamp?: string | null,
-  ) => Promise<ReleaseRange>
-  close: () => Promise<void>
-}
-
-function run(command: string, args: string[], cwd?: string) {
-  return new Promise<string>((resolvePromise, rejectPromise) => {
-    const proc = spawn(command, args, {
-      cwd,
-      stdio: ["ignore", "pipe", "pipe"],
-    })
-
-    let stdout = ""
-    let stderr = ""
-
-    proc.stdout.on("data", (chunk) => {
-      stdout += chunk.toString()
-    })
-
-    proc.stderr.on("data", (chunk) => {
-      stderr += chunk.toString()
-    })
-
-    proc.on("error", rejectPromise)
-    proc.on("close", (code) => {
-      if (code === 0) {
-        resolvePromise(stdout.trim())
-        return
-      }
-
-      rejectPromise(new Error(`${command} ${args.join(" ")} failed with exit code ${code}\n${stderr || stdout}`))
-    })
-  })
+  ) => Effect.Effect<ReleaseRange, unknown>
 }
 
 function createCompareUrl(config: AppConfig, fromTag: string | null, toTag: string) {
@@ -56,31 +27,31 @@ function createCompareUrl(config: AppConfig, fromTag: string | null, toTag: stri
   return `https://github.com/${config.githubOwner}/${config.githubRepo}/tree/${toTag}`
 }
 
-async function resolveHeadSha(directory: string) {
-  return run("git", ["rev-parse", "HEAD"], directory)
-}
+function createEffectCheckout(directory: string, config: AppConfig, git: GitCliService): EffectUpstreamCheckout {
+  const resolveHeadSha = Effect.fn("UpstreamCheckout.resolveHeadSha")(function* () {
+    return yield* git.run(["rev-parse", "HEAD"], { cwd: directory })
+  })
 
-async function resolveShortSha(directory: string, ref: string) {
-  return run("git", ["rev-parse", "--short=12", ref], directory)
-}
+  const resolveShortSha = Effect.fn("UpstreamCheckout.resolveShortSha")(function* (ref: string) {
+    return yield* git.run(["rev-parse", "--short=12", ref], { cwd: directory })
+  })
 
-async function countCommits(directory: string, fromRef: string | null, toRef: string) {
-  const range = fromRef ? `${fromRef}..${toRef}` : toRef
-  const output = await run("git", ["rev-list", "--count", range], directory)
-  const count = Number.parseInt(output, 10)
+  const countCommits = Effect.fn("UpstreamCheckout.countCommits")(function* (fromRef: string | null, toRef: string) {
+    const range = fromRef ? `${fromRef}..${toRef}` : toRef
+    const output = yield* git.run(["rev-list", "--count", range], { cwd: directory })
+    const count = Number.parseInt(output, 10)
 
-  if (!Number.isInteger(count) || count < 0) {
-    throw new Error(`Invalid commit count for range ${range}: ${output}`)
-  }
+    if (!Number.isInteger(count) || count < 0) {
+      return yield* Effect.fail(new Error(`Invalid commit count for range ${range}: ${output}`))
+    }
 
-  return count
-}
+    return count
+  })
 
-function createCheckout(directory: string, config: AppConfig, close: () => Promise<void>): UpstreamCheckout {
   return {
     directory,
-    async resolveRange(release, fromTag) {
-      const commitCount = await countCommits(directory, fromTag, release.tag)
+    resolveRange: Effect.fn("UpstreamCheckout.resolveRange")(function* (release: GithubRelease, fromTag: string | null) {
+      const commitCount = yield* countCommits(fromTag, release.tag)
 
       return {
         kind: "release",
@@ -92,11 +63,14 @@ function createCheckout(directory: string, config: AppConfig, close: () => Promi
         repoDir: directory,
         commitCount,
       }
-    },
-    async resolvePreviewRange(fromTag, fromReleaseTimestamp) {
-      const toTag = await resolveHeadSha(directory)
-      const shortSha = await resolveShortSha(directory, toTag)
-      const commitCount = await countCommits(directory, fromTag, toTag)
+    }),
+    resolvePreviewRange: Effect.fn("UpstreamCheckout.resolvePreviewRange")(function* (
+      fromTag: string | null,
+      fromReleaseTimestamp?: string | null,
+    ) {
+      const toTag = yield* resolveHeadSha()
+      const shortSha = yield* resolveShortSha(toTag)
+      const commitCount = yield* countCommits(fromTag, toTag)
 
       return {
         kind: "preview",
@@ -109,17 +83,36 @@ function createCheckout(directory: string, config: AppConfig, close: () => Promi
         repoDir: directory,
         commitCount,
       }
-    },
-    close,
+    }),
   }
 }
 
-export async function prepareUpstreamCheckout(config: AppConfig): Promise<UpstreamCheckout> {
-  const root = await mkdtemp(join(tmpdir(), "opencode-changelog-x-"))
-  const directory = join(root, "upstream")
-  await run("git", ["clone", "--quiet", "--tags", config.upstreamCloneUrl, directory])
+export class UpstreamRepository extends Context.Service<UpstreamRepository, {
+  readonly withCheckout: <A, E, R>(use: (checkout: EffectUpstreamCheckout) => Effect.Effect<A, E, R>) => Effect.Effect<A, E | unknown, R>
+}>()("app/UpstreamRepository") {
+  static readonly layer = Layer.effect(
+    this,
+    Effect.gen(function* () {
+      const config = yield* RuntimeConfig
+      const git = yield* GitCli
 
-  return createCheckout(directory, config, async () => {
-    await rm(root, { recursive: true, force: true })
-  })
+      const withCheckout = <A, E, R>(use: (checkout: EffectUpstreamCheckout) => Effect.Effect<A, E, R>) =>
+        Effect.acquireRelease(
+          Effect.gen(function* () {
+            const root = yield* Effect.tryPromise(() => mkdtemp(join(tmpdir(), "opencode-changelog-x-")))
+            const directory = join(root, "upstream")
+            yield* git.run(["clone", "--quiet", "--tags", config.upstreamCloneUrl, directory], { timeout: 5 * 60_000 })
+            return { root, checkout: createEffectCheckout(directory, config, git) }
+          }),
+          ({ root }) => Effect.tryPromise(() => rm(root, { recursive: true, force: true })).pipe(Effect.catch(Effect.die)),
+        ).pipe(
+          Effect.flatMap(({ checkout }) => use(checkout)),
+          Effect.scoped,
+        )
+
+      return UpstreamRepository.of({ withCheckout })
+    }),
+  )
+
+  static readonly defaultLayer = this.layer.pipe(Layer.provide(GitCli.layer))
 }

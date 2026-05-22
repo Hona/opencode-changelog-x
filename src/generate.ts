@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { Context, Effect, Layer } from "effect";
 import type { AppConfig } from "./config.js";
 import { MODEL, POST_MAX_LENGTH } from "./constants.js";
-import { buildBundleSizeSection, type BundleChangeSummaryInput } from "./npm.js";
-import { startOpencode } from "./opencode.js";
+import { BundleSize, type BundleSizeService } from "./npm.js";
+import { OpencodeServer, type EffectRunningOpencode } from "./opencode.js";
+import { RuntimeConfig } from "./runtime-config.js";
 import type {
     GeneratedPost,
     ReleaseRange,
@@ -12,10 +14,6 @@ import { validatePost } from "./validate.js";
 
 const generatedPostSchema = z.object({
     post: z.string().min(1),
-});
-
-const generatedBundleSummarySchema = z.object({
-    line: z.string().min(1),
 });
 
 const MAX_GENERATION_ATTEMPTS = 3;
@@ -109,29 +107,6 @@ function parseGeneratedPost(text: string) {
     throw new Error(
         `Failed to parse generated post JSON from output:\n${text}`,
     );
-}
-
-function parseGeneratedBundleSummary(text: string) {
-    const candidates = [
-        text,
-        text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1],
-        (() => {
-            const start = text.indexOf("{");
-            const end = text.lastIndexOf("}");
-            if (start === -1 || end === -1 || end <= start) return undefined;
-            return text.slice(start, end + 1);
-        })(),
-    ].filter((candidate): candidate is string => Boolean(candidate));
-
-    for (const candidate of candidates) {
-        try {
-            return generatedBundleSummarySchema.parse(JSON.parse(candidate));
-        } catch {
-            continue;
-        }
-    }
-
-    return { line: text };
 }
 
 function insertSectionBeforeCompareLine(post: string, section: string | null) {
@@ -499,16 +474,14 @@ type ModelConfig = {
     variant: string;
 };
 
-export async function createPostGenerator(
+function createGenerator(
     config: AppConfig,
-    repoDir: string,
-    modelOverride?: ModelConfig,
+    opencode: EffectRunningOpencode,
+    bundleSize: BundleSizeService,
+    activeModel: ModelConfig,
 ) {
-    const activeModel = modelOverride ?? MODEL;
-    const opencode = await startOpencode(repoDir);
-
-    async function prompt(sessionID: string, text: string) {
-        const result = await opencode.client.session.prompt(
+    const prompt = Effect.fn("PostGenerator.prompt")(function* (sessionID: string, text: string) {
+        const result = yield* Effect.tryPromise(() => opencode.client.session.prompt(
             {
                 sessionID,
                 model: {
@@ -527,23 +500,23 @@ export async function createPostGenerator(
             {
                 signal: AbortSignal.timeout(config.opencodeTimeoutMs),
             },
-        );
+        ));
 
         const output = extractText(result);
         if (!output) {
             const serverOutput = opencode.getOutput();
-            throw new Error(
+            return yield* Effect.fail(new Error(
                 [
                     "OpenCode returned no text output",
                     describePromptResult(result),
                     serverOutput ? `Recent opencode output:\n${serverOutput}` : "Recent opencode output: <empty>",
                 ].join("\n"),
-            );
+            ));
         }
         return output;
-    }
+    });
 
-    async function generatePost(sessionID: string, range: ReleaseRange) {
+    const generatePost = Effect.fn("PostGenerator.generatePost")(function* (sessionID: string, range: ReleaseRange) {
         let nextPrompt = buildGenerationPrompt(range);
         let lastError: Error | undefined;
 
@@ -552,7 +525,7 @@ export async function createPostGenerator(
             attempt <= MAX_GENERATION_ATTEMPTS;
             attempt += 1
         ) {
-            const output = await prompt(sessionID, nextPrompt);
+            const output = yield* prompt(sessionID, nextPrompt);
 
             try {
                 return parseAndValidatePost(range, output);
@@ -573,82 +546,78 @@ export async function createPostGenerator(
             }
         }
 
-        throw new Error(
+        return yield* Effect.fail(new Error(
             `Generated invalid post for ${range.toLabel} after ${MAX_GENERATION_ATTEMPTS} attempts: ${lastError?.message ?? "unknown error"}`,
+        ));
+    });
+
+    const generateReport = Effect.fn("PostGenerator.generateReport")(function* (range: ReleaseRange) {
+        const session = yield* Effect.tryPromise(() => opencode.client.session.create({
+            permission: READ_ONLY_PERMISSIONS,
+        }));
+        const sessionID = session.data?.id;
+        if (!sessionID) {
+            return yield* Effect.fail(new Error(
+                "OpenCode session creation returned no session ID",
+            ));
+        }
+
+        const generatedPost = yield* generatePost(sessionID, range);
+        const bundleSizeSection = yield* bundleSize.buildSection(range);
+        const post = insertSectionBeforeCompareLine(
+            generatedPost,
+            bundleSizeSection,
         );
-    }
+        const validationError = formatValidationErrors(post);
+        if (validationError) {
+            return yield* Effect.fail(new Error(validationError));
+        }
 
-    async function summarizeBundleChange(
-        sessionID: string,
-        input: BundleChangeSummaryInput,
-    ) {
-        const output = await prompt(
-            sessionID,
-            `Summarize this bundle size report into exactly one plain-text line.
+        validatePostShape(range, post);
 
-Return strict JSON only. Do not wrap it in markdown fences.
+        return {
+            kind: range.kind,
+            tag: range.release?.tag ?? "preview",
+            releaseUrl: range.release?.url ?? null,
+            compareUrl: range.compareUrl,
+            fromTag: range.fromTag,
+            toTag: range.toTag,
+            toLabel: range.toLabel,
+            draft: range.release?.draft ?? false,
+            model: activeModel,
+            post,
+        };
+    });
 
-JSON schema:
-{
-  "line": "Bundle ${input.deltaText} because concise reason"
+    return { generateReport };
 }
 
-Rules:
-- The line must start exactly with "Bundle ${input.deltaText} because ".
-- Keep it under 240 characters.
-- Explain the largest concrete causes from the raw metrics.
-- Prefer component names like Bun runtime, CLI/TUI JS, Web UI assets, native addons, WASM, source maps, bytecode, module info, or bundle metadata.
-- Do not mention every target unless target-specific behavior is the reason.
-- Do not invent causes beyond the raw metrics.
+export class PostGenerator extends Context.Service<PostGenerator, {
+    readonly withGenerator: <A, E, R>(
+        repoDir: string,
+        modelOverride: ModelConfig | undefined,
+        use: (generator: { generateReport: (range: ReleaseRange) => Effect.Effect<ReleasePostReport, unknown> }) => Effect.Effect<A, E, R>,
+    ) => Effect.Effect<A, E | unknown, R>
+}>()("app/PostGenerator") {
+    static readonly layer = Layer.effect(
+        this,
+        Effect.gen(function* () {
+            const config = yield* RuntimeConfig;
+            const opencodeServer = yield* OpencodeServer;
+            const bundleSize = yield* BundleSize;
 
-Raw bundle report:
-${input.rawReport}`,
-        );
-
-        return parseGeneratedBundleSummary(output).line;
-    }
-
-    return {
-        async generateReport(range: ReleaseRange): Promise<ReleasePostReport> {
-            const session = await opencode.client.session.create({
-                permission: READ_ONLY_PERMISSIONS,
-            });
-            const sessionID = session.data?.id;
-            if (!sessionID)
-                throw new Error(
-                    "OpenCode session creation returned no session ID",
-                );
-
-            const generatedPost = await generatePost(sessionID, range);
-            const bundleSizeSection = await buildBundleSizeSection(range, (input) =>
-                summarizeBundleChange(sessionID, input),
+            const withGenerator = <A, E, R>(
+                repoDir: string,
+                modelOverride: ModelConfig | undefined,
+                use: (generator: { generateReport: (range: ReleaseRange) => Effect.Effect<ReleasePostReport, unknown> }) => Effect.Effect<A, E, R>,
+            ) => opencodeServer.withServer(repoDir, (opencode) =>
+                use(createGenerator(config, opencode, bundleSize, modelOverride ?? MODEL)),
             );
-            const post = insertSectionBeforeCompareLine(
-                generatedPost,
-                bundleSizeSection,
-            );
-            const validationError = formatValidationErrors(post);
-            if (validationError) {
-                throw new Error(validationError);
-            }
 
-            validatePostShape(range, post);
-
-            return {
-                kind: range.kind,
-                tag: range.release?.tag ?? "preview",
-                releaseUrl: range.release?.url ?? null,
-                compareUrl: range.compareUrl,
-                fromTag: range.fromTag,
-                toTag: range.toTag,
-                toLabel: range.toLabel,
-                draft: range.release?.draft ?? false,
-                model: activeModel,
-                post,
-            };
-        },
-        async close() {
-            await opencode.close();
-        },
-    };
+            return PostGenerator.of({ withGenerator });
+        }),
+    ).pipe(
+        Layer.provide(OpencodeServer.layer),
+        Layer.provide(BundleSize.layer),
+    );
 }

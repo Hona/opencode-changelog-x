@@ -1,11 +1,10 @@
-import { execFile } from "node:child_process"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { dirname } from "node:path"
-import { promisify } from "node:util"
+export type WorkflowTarget = {
+  owner: string
+  repo: string
+  workflow: string
+}
 
-const execFileAsync = promisify(execFile)
-
-type WorkflowRunJson = {
+export type WorkflowRun = {
   databaseId: number
   conclusion: string
   status: string
@@ -14,7 +13,10 @@ type WorkflowRunJson = {
   displayTitle: string
 }
 
-type WorkflowState = {
+export type WorkflowState = {
+  owner?: string
+  repo?: string
+  workflow?: string
   seenRunIds: number[]
   reportedRunIds: number[]
 }
@@ -28,64 +30,45 @@ export type WorkflowAlert = {
   conclusion: string
 }
 
-type WorkflowRunApiResponse = {
-  workflow_runs: Array<{
-    id: number
-    conclusion: string | null
-    status: string
-    triggering_actor: { login: string }
-    html_url: string
-    display_title: string
-  }>
+function readRunIds(value: unknown) {
+  return Array.isArray(value) ? value.filter((id): id is number => Number.isInteger(id)) : []
 }
 
-export async function fetchPublishWorkflowRuns(owner: string, repo: string): Promise<WorkflowRunJson[]> {
-  const { stdout } = await execFileAsync("gh", [
-    "api", `repos/${owner}/${repo}/actions/workflows/poll.yml/runs?event=workflow_dispatch&per_page=20`,
-  ], { timeout: 30_000 })
-
-  const response = JSON.parse(stdout) as WorkflowRunApiResponse
-
-  return response.workflow_runs.map((run) => ({
-    databaseId: run.id,
-    conclusion: run.conclusion ?? "",
-    status: run.status,
-    actor: { login: run.triggering_actor.login },
-    url: run.html_url,
-    displayTitle: run.display_title,
-  }))
-}
-
-export async function loadWorkflowState(filePath: string): Promise<WorkflowState> {
-  try {
-    const text = await readFile(filePath, "utf8")
-    const state = JSON.parse(text) as Partial<WorkflowState>
-    return {
-      seenRunIds: Array.isArray(state.seenRunIds) ? state.seenRunIds : [],
-      reportedRunIds: Array.isArray(state.reportedRunIds) ? state.reportedRunIds : [],
-    }
-  } catch (error) {
-    if (typeof error === "object" && error && "code" in error && error.code === "ENOENT") {
-      return { seenRunIds: [], reportedRunIds: [] }
-    }
-    throw error
+export function createEmptyWorkflowState(): WorkflowState {
+  return {
+    seenRunIds: [],
+    reportedRunIds: [],
   }
 }
 
-export async function saveWorkflowState(filePath: string, state: WorkflowState): Promise<void> {
-  await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(filePath, `${JSON.stringify(state, null, 2)}\n`, "utf8")
+export function parseWorkflowStateText(text: string): WorkflowState {
+  const state = JSON.parse(text) as Partial<WorkflowState>
+  return {
+    owner: typeof state.owner === "string" ? state.owner : undefined,
+    repo: typeof state.repo === "string" ? state.repo : undefined,
+    workflow: typeof state.workflow === "string" ? state.workflow : undefined,
+    seenRunIds: readRunIds(state.seenRunIds),
+    reportedRunIds: readRunIds(state.reportedRunIds),
+  }
 }
 
-export function getAllRunIds(runs: WorkflowRunJson[]): number[] {
+export function isWorkflowStateForTarget(state: WorkflowState, target: WorkflowTarget) {
+  return state.owner === target.owner && state.repo === target.repo && state.workflow === target.workflow
+}
+
+export function stringifyWorkflowState(state: WorkflowState) {
+  return `${JSON.stringify(state, null, 2)}\n`
+}
+
+export function getAllRunIds(runs: WorkflowRun[]): number[] {
   return runs.map((run) => run.databaseId)
 }
 
-export function getCompletedRunIds(runs: WorkflowRunJson[]): number[] {
+export function getCompletedRunIds(runs: WorkflowRun[]): number[] {
   return runs.filter((run) => run.status === "completed").map((run) => run.databaseId)
 }
 
-export function getNewlySeenRuns(runs: WorkflowRunJson[], state: WorkflowState): WorkflowAlert[] {
+export function getNewlySeenRuns(runs: WorkflowRun[], state: WorkflowState): WorkflowAlert[] {
   return runs
     .filter((run) => !state.seenRunIds.includes(run.databaseId))
     .map((run) => ({
@@ -98,21 +81,7 @@ export function getNewlySeenRuns(runs: WorkflowRunJson[], state: WorkflowState):
     }))
 }
 
-export async function fetchLatestReleaseTag(owner: string, repo: string): Promise<string | null> {
-  try {
-    const { stdout } = await execFileAsync("gh", [
-      "api", `repos/${owner}/${repo}/releases?per_page=1`,
-      "--jq", ".[0].tag_name",
-    ], { timeout: 30_000 })
-
-    const tag = stdout.trim()
-    return tag && tag !== "null" ? tag : null
-  } catch {
-    return null
-  }
-}
-
-export function getNewAlerts(runs: WorkflowRunJson[], state: WorkflowState): WorkflowAlert[] {
+export function getNewAlerts(runs: WorkflowRun[], state: WorkflowState): WorkflowAlert[] {
   return runs
     .filter((run) => run.status === "completed" && !state.reportedRunIds.includes(run.databaseId))
     .map((run) => ({
@@ -123,83 +92,4 @@ export function getNewAlerts(runs: WorkflowRunJson[], state: WorkflowState): Wor
       url: run.url,
       conclusion: run.conclusion,
     }))
-}
-
-const BETA_STALE_THRESHOLD_MS = 3 * 60 * 60 * 1000
-
-type NpmPackument = {
-  "dist-tags"?: Record<string, string>
-  time?: Record<string, string>
-}
-
-export type BetaNpmStatus = {
-  version: string
-  publishedAt: string
-  ageMs: number
-  stale: boolean
-}
-
-export async function fetchLatestBetaFailureUrl(owner: string, repo: string): Promise<string | null> {
-  type RunsResponse = {
-    workflow_runs: Array<{
-      conclusion: string | null
-      status: string
-      html_url: string
-      created_at: string
-    }>
-  }
-
-  async function fetchRuns(workflow: string, branch?: string) {
-    const params = new URLSearchParams({ per_page: "5" })
-    if (branch) params.set("branch", branch)
-
-    const { stdout } = await execFileAsync("gh", [
-      "api", `repos/${owner}/${repo}/actions/workflows/${workflow}/runs?${params}`,
-    ], { timeout: 30_000 })
-
-    return (JSON.parse(stdout) as RunsResponse).workflow_runs
-  }
-
-  try {
-    const [betaRuns, publishRuns] = await Promise.all([
-      fetchRuns("beta.yml"),
-      fetchRuns("publish.yml", "beta"),
-    ])
-
-    const latestFailure = [...betaRuns, ...publishRuns]
-      .filter((run) => run.status === "completed" && run.conclusion !== null && run.conclusion !== "success")
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
-
-    return latestFailure?.html_url ?? null
-  } catch {
-    return null
-  }
-}
-
-export async function checkBetaNpmStaleness(packageName: string): Promise<BetaNpmStatus | null> {
-  try {
-    const response = await fetch(`https://registry.npmjs.org/${packageName}`, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(15_000),
-    })
-    if (!response.ok) return null
-
-    const data = (await response.json()) as NpmPackument
-    const betaVersion = data["dist-tags"]?.beta
-    if (!betaVersion) return null
-
-    const publishedAt = data.time?.[betaVersion]
-    if (!publishedAt) return null
-
-    const ageMs = Date.now() - new Date(publishedAt).getTime()
-
-    return {
-      version: betaVersion,
-      publishedAt,
-      ageMs,
-      stale: ageMs > BETA_STALE_THRESHOLD_MS,
-    }
-  } catch {
-    return null
-  }
 }

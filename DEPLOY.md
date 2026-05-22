@@ -2,11 +2,11 @@
 
 ## Overview
 
-The Discord bot (`npm run discord`) is the single long-running process on the VPS. It handles:
+The Discord bot (`bun run discord`) is the single long-running process on the VPS. It handles:
 
 - `!previewchangelog` command in the hardcoded channel
-- Release polling — checks for unposted releases every 10 minutes and dispatches `poll.yml` via `gh` CLI only when needed
-- Workflow monitoring — checks this repo's `poll.yml` workflow_dispatch runs every 5 minutes and posts triggered/completed/failed alerts to Discord
+- Release polling — checks `origin/master:data/posted-releases.json` every 10 minutes and dispatches this repo's `poll.yml` via `gh` CLI only when an upstream release is unposted
+- Upstream publish monitoring — checks `anomalyco/opencode` `publish.yml` workflow_dispatch runs every 5 minutes and posts triggered/completed/failed release alerts to Discord
 
 Twitter release posting runs in GitHub Actions (the `poll.yml` workflow), not on the VPS.
 
@@ -26,7 +26,7 @@ The bot posts only to the hardcoded channel:
 Remote host assumptions:
 
 - Debian with `systemd`
-- Node 24 available via root `nvm`
+- Bun 1.3.14 available at `/root/.bun/bin/bun`
 - `gh` CLI installed and authenticated (`gh auth status` should show logged in with `repo` and `workflow` scopes)
 - App checked out or copied to `/repos/opencode-changelog-x`
 - Discord bot already invited to the server
@@ -50,14 +50,14 @@ Optional:
 
 ```bash
 OPENCODE_API_KEY=...
-GITHUB_API_TOKEN=...
+GH_TOKEN=...
 ```
 
 Notes:
 
 - Do not commit secrets into this repo.
-- `GITHUB_API_TOKEN` is recommended to avoid GitHub release API rate limits.
-- If omitted, the bot can fall back to cached/latest-known release state, but authenticated GitHub access is better.
+- GitHub reads and workflow dispatches go through the `gh` CLI only.
+- Prefer a logged-in `gh auth` session on the VPS. `GH_TOKEN` is optional if you want token-based `gh` auth from the service environment.
 - Twitter credentials are NOT needed on the VPS. They stay in GitHub Actions secrets.
 
 ## First-Time Setup
@@ -65,13 +65,13 @@ Notes:
 Copy the repo to the server:
 
 ```bash
-scp -r src data deploy package.json package-lock.json tsconfig.json README.md root@cloud.hona.dev:/repos/opencode-changelog-x/
+scp -r src data deploy package.json bun.lock tsconfig.json README.md root@cloud.hona.dev:/repos/opencode-changelog-x/
 ```
 
 Install dependencies:
 
 ```bash
-ssh root@cloud.hona.dev "cd /repos/opencode-changelog-x && npm ci"
+ssh root@cloud.hona.dev "cd /repos/opencode-changelog-x && /root/.bun/bin/bun install --frozen-lockfile"
 ```
 
 Install the systemd unit:
@@ -125,7 +125,7 @@ Expected healthy startup log:
 ```text
 Discord preview bot ready as OpenAssist#0141
 Workflow monitor started.
-Release poll dispatched.
+No unposted release found; skipping release poll dispatch.
 ```
 
 ## Logs
@@ -146,12 +146,13 @@ Useful log lines:
 
 - `Discord preview bot ready as ...`
 - `Workflow monitor started.`
-- `Release poll dispatched.`
+- `No unposted release found; skipping release poll dispatch.`
+- `Release poll dispatched for vX.Y.Z.`
 - `Starting preview for ...`
 - `Preview posted for ...`
 - `Posted triggered alert: ...`
 - `Posted completion alert: ...`
-- `Seeding workflow state with ...`
+- `Seeding workflow state for ...`
 - `Falling back to cached latest release ...`
 
 ## Update Flow
@@ -167,8 +168,8 @@ Typical deploy after local changes:
 Example:
 
 ```bash
-scp -r src data deploy package.json package-lock.json tsconfig.json README.md root@cloud.hona.dev:/repos/opencode-changelog-x/
-ssh root@cloud.hona.dev "cd /repos/opencode-changelog-x && npm run typecheck && systemctl restart opencode-changelog-discord.service && sleep 5 && systemctl status opencode-changelog-discord.service --no-pager --full"
+scp -r src data deploy package.json bun.lock tsconfig.json README.md root@cloud.hona.dev:/repos/opencode-changelog-x/
+ssh root@cloud.hona.dev "cd /repos/opencode-changelog-x && /root/.bun/bin/bun run typecheck && systemctl restart opencode-changelog-discord.service && sleep 5 && systemctl status opencode-changelog-discord.service --no-pager --full"
 ```
 
 ## Runtime Files
@@ -207,7 +208,7 @@ If previews fail immediately:
 
 If GitHub lookups fail:
 
-- add `GITHUB_API_TOKEN` to `/etc/opencode-changelog-discord.env`
+- confirm `gh auth status` works for root, or add `GH_TOKEN` to `/etc/opencode-changelog-discord.env`
 - restart the service
 
 If release poll dispatch fails:
@@ -229,7 +230,7 @@ If the bot starts but previews hang for a while:
 If you suspect stale worker processes:
 
 ```bash
-ssh root@cloud.hona.dev "ps -eo pid,ppid,etimes,%cpu,%mem,cmd --sort=pid | grep -E 'opencode-changelog|tsx src/discord|opencode serve'"
+ssh root@cloud.hona.dev "ps -eo pid,ppid,etimes,%cpu,%mem,cmd --sort=pid | grep -E 'opencode-changelog|bun.*src/discord|opencode serve'"
 ```
 
 If needed, stop the service, inspect processes, then start it again:
@@ -244,7 +245,7 @@ ssh root@cloud.hona.dev "systemctl start opencode-changelog-discord.service"
 Before deploying:
 
 ```bash
-npm run typecheck
+bun run typecheck
 ```
 
-On this Windows workspace, `cmd.exe /c npm ...` was sometimes needed to ensure the Node 24 toolchain was used instead of an older shell-local Node install.
+Use Bun for local validation and deployment commands.

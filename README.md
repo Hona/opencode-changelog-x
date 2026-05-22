@@ -5,8 +5,10 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 ## Stack
 
 - TypeScript
+- Effect 4
+- Bun
 - `@opencode-ai/sdk/v2`
-- local `opencode-ai` binary installed via npm dependencies
+- local `opencode-ai` binary installed via Bun dependencies
 - `discord.js`
 - `twitter-api-v2`
 - `twitter-text`
@@ -30,7 +32,7 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 
 ## Discord Preview Bot
 
-- Runs as a separate long-lived process via `npm run discord`.
+- Runs as a separate long-lived process via `bun run discord`.
 - Listens only in the hardcoded channel `1472697640880701523`.
 - Waits for the exact command `!previewchangelog`.
 - Uses the latest GitHub release tag as the baseline.
@@ -39,8 +41,8 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 
 This is intended to be deployed separately from the Twitter release cron. A typical setup is:
 
-- cron/CI runs `npm run bot` for real release posting to X
-- a Debian VPS runs `npm run discord` continuously for manual preview requests
+- cron/CI runs `bun run bot` for real release posting to X
+- a Debian VPS runs `bun run discord` continuously for manual preview requests
 
 ## Required Secrets
 
@@ -63,8 +65,8 @@ For local dry runs, you usually do not need `OPENCODE_API_KEY` if your local `op
 
 ## Optional Secrets / Env
 
-- `GITHUB_API_TOKEN`
-  Use this if you want higher rate limits or access to upstream draft releases.
+- `GH_TOKEN`
+  Optional. GitHub reads and workflow dispatches use the `gh` CLI only; use this when you prefer token-based `gh` auth over a persisted `gh auth login` session.
 - `GITHUB_PROCESS_DRAFTS=true`
   Allows processing draft releases when your token can see them.
 - `UPSTREAM_REPO_DIR`
@@ -85,15 +87,15 @@ For local dry runs, you usually do not need `OPENCODE_API_KEY` if your local `op
 ## Local Usage
 
 ```bash
-npm install
-UPSTREAM_REPO_DIR=../../sst/opencode npm run dry-run -- --tag v1.1.13
+bun install
+UPSTREAM_REPO_DIR=../../sst/opencode bun run dry-run -- --tag v1.1.13
 ```
 
 ```bash
-DISCORD_TOKEN=... npm run discord
+DISCORD_TOKEN=... bun run discord
 ```
 
-Because the project depends on `opencode-ai`, `npm run bot` puts the local `opencode` binary on `PATH`, which is what `@opencode-ai/sdk/v2` spawns.
+Because the project depends on `opencode-ai`, `bun run bot` puts the local `opencode` binary on `PATH`, which is what `@opencode-ai/sdk/v2` spawns.
 
 The Discord bot requires the bot account to have access to the configured channel, permission to create threads, permission to send embeds, and the Message Content intent enabled in the Discord developer portal.
 

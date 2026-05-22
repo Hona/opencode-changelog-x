@@ -12,7 +12,6 @@ export type TwitterCredentials = z.infer<typeof twitterCredentialsSchema>
 export type AppConfig = {
   githubOwner: string
   githubRepo: string
-  githubToken?: string
   githubReleaseLimit: number
   githubProcessDrafts: boolean
   upstreamCloneUrl: string
@@ -87,7 +86,6 @@ function readSharedConfig(env: NodeJS.ProcessEnv): SharedConfig {
   return {
     githubOwner,
     githubRepo,
-    githubToken: env.GITHUB_API_TOKEN?.trim() || env.GITHUB_TOKEN?.trim() || undefined,
     githubReleaseLimit: readPositiveInteger(env, "GITHUB_RELEASE_LIMIT", 20),
     githubProcessDrafts: readBoolean(env, "GITHUB_PROCESS_DRAFTS", false),
     upstreamCloneUrl: readString(env, "UPSTREAM_CLONE_URL", `https://github.com/${githubOwner}/${githubRepo}.git`),

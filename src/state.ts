@@ -1,9 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname } from "node:path"
+import { Context, Effect, Layer } from "effect"
 import { z } from "zod"
-import type { GithubRelease, PostedRelease, PostedReleaseStatus, ReleasePostProgress, StateFile } from "./types.js"
-
-const postedReleaseStatusSchema = z.enum(["posted", "errored"] satisfies PostedReleaseStatus[])
+import { RuntimeConfig } from "./runtime-config.js"
+import type { GithubRelease, PostedRelease, StateFile } from "./types.js"
 
 const postedReleaseSchema = z.object({
   releaseId: z.number(),
@@ -15,8 +15,6 @@ const postedReleaseSchema = z.object({
   publishedAt: z.string().nullable(),
   tweets: z.array(z.string()),
   tweetIds: z.array(z.string()),
-  status: postedReleaseStatusSchema.optional(),
-  error: z.string().optional(),
   postedAt: z.string(),
 })
 
@@ -25,27 +23,8 @@ const stateFileSchema = z.object({
   releases: z.array(postedReleaseSchema),
 })
 
-function createEmptyState(): StateFile {
-  return {
-    version: 1,
-    releases: [],
-  }
-}
-
 export function parseStateText(text: string): StateFile {
   return stateFileSchema.parse(JSON.parse(text))
-}
-
-export async function loadState(filePath: string): Promise<StateFile> {
-  try {
-    const text = await readFile(filePath, "utf8")
-    return parseStateText(text)
-  } catch (error) {
-    if (typeof error === "object" && error && "code" in error && error.code === "ENOENT") {
-      return createEmptyState()
-    }
-    throw error
-  }
 }
 
 export function getSavedRelease(state: StateFile, release: GithubRelease) {
@@ -56,13 +35,9 @@ export function isCompletePostedRelease(release: Pick<PostedRelease, "tweets" | 
   return release.tweets.length > 0 && release.tweetIds.length === release.tweets.length
 }
 
-export function isFinishedPostedRelease(release: Pick<PostedRelease, "status" | "tweets" | "tweetIds">) {
-  return release.status === "posted" || release.status === "errored" || isCompletePostedRelease(release)
-}
-
 export function hasPostedRelease(state: StateFile, release: GithubRelease) {
   const saved = getSavedRelease(state, release)
-  return saved ? isFinishedPostedRelease(saved) : false
+  return saved ? isCompletePostedRelease(saved) : false
 }
 
 function postedReleaseTimestamp(release: PostedRelease) {
@@ -70,7 +45,7 @@ function postedReleaseTimestamp(release: PostedRelease) {
 }
 
 export function getLatestPostedRelease(state: StateFile) {
-  return state.releases.filter(isFinishedPostedRelease).reduce<PostedRelease | undefined>((latest, release) => {
+  return state.releases.filter(isCompletePostedRelease).reduce<PostedRelease | undefined>((latest, release) => {
     if (!latest) return release
 
     const latestTimestamp = postedReleaseTimestamp(latest)
@@ -83,24 +58,22 @@ export function getLatestPostedRelease(state: StateFile) {
   }, undefined)
 }
 
-export function recordPostingProgress(state: StateFile, progress: ReleasePostProgress): StateFile {
+function recordRelease(state: StateFile, release: GithubRelease, tweets: string[], tweetIds: string[]): StateFile {
   const nextRelease: PostedRelease = {
-    releaseId: progress.release.id,
-    tag: progress.release.tag,
-    name: progress.release.name,
-    url: progress.release.url,
-    draft: progress.release.draft,
-    prerelease: progress.release.prerelease,
-    publishedAt: progress.release.publishedAt,
-    tweets: progress.tweets,
-    tweetIds: progress.tweetIds,
-    status: progress.status,
-    error: progress.error,
+    releaseId: release.id,
+    tag: release.tag,
+    name: release.name,
+    url: release.url,
+    draft: release.draft,
+    prerelease: release.prerelease,
+    publishedAt: release.publishedAt,
+    tweets,
+    tweetIds,
     postedAt: new Date().toISOString(),
   }
 
   const releases = state.releases
-    .filter((entry) => entry.releaseId !== progress.release.id && entry.tag !== progress.release.tag)
+    .filter((entry) => entry.releaseId !== release.id && entry.tag !== release.tag)
     .concat(nextRelease)
     .sort((left, right) => left.postedAt.localeCompare(right.postedAt))
 
@@ -116,31 +89,36 @@ export function recordPostedRelease(
   tweets: string[],
   tweetIds: string[],
 ): StateFile {
-  return recordPostingProgress(state, {
-    release,
-    tweets,
-    tweetIds,
-    status: "posted",
-  })
+  return recordRelease(state, release, tweets, tweetIds)
 }
 
-export function recordErroredRelease(
-  state: StateFile,
-  release: GithubRelease,
-  tweets: string[],
-  tweetIds: string[],
-  error: string,
-): StateFile {
-  return recordPostingProgress(state, {
-    release,
-    tweets,
-    tweetIds,
-    status: "errored",
-    error,
-  })
-}
+export class StateStore extends Context.Service<StateStore, {
+  readonly load: () => Effect.Effect<StateFile, unknown>
+  readonly save: (state: StateFile) => Effect.Effect<void, unknown>
+}>()("app/StateStore") {
+  static readonly layer = Layer.effect(
+    this,
+    Effect.gen(function* () {
+      const config = yield* RuntimeConfig
 
-export async function saveState(filePath: string, state: StateFile) {
-  await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(filePath, `${JSON.stringify(state, null, 2)}\n`, "utf8")
+      const load = Effect.fn("StateStore.load")(function* () {
+        return yield* Effect.tryPromise({
+          try: async () => parseStateText(await readFile(config.stateFile, "utf8")),
+          catch: (error) => error,
+        })
+      })
+
+      const save = Effect.fn("StateStore.save")(function* (state: StateFile) {
+        yield* Effect.tryPromise({
+          try: async () => {
+            await mkdir(dirname(config.stateFile), { recursive: true })
+            await writeFile(config.stateFile, `${JSON.stringify(state, null, 2)}\n`, "utf8")
+          },
+          catch: (error) => error,
+        })
+      })
+
+      return StateStore.of({ load, save })
+    }),
+  )
 }

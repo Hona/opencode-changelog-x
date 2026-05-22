@@ -1,4 +1,5 @@
 import { gunzipSync } from "node:zlib"
+import { Context, Effect, Layer } from "effect"
 import { z } from "zod"
 import type { ReleaseRange } from "./types.js"
 
@@ -163,13 +164,6 @@ export type ReleaseBundleInspection = {
   rootPackageVersion: string
   targets: Array<{ label: string } & BundleInspection>
 }
-
-export type BundleChangeSummaryInput = {
-  deltaText: string
-  rawReport: string
-}
-
-export type BundleChangeSummarizer = (input: BundleChangeSummaryInput) => Promise<string>
 
 type TargetBundleChange = {
   label: string
@@ -793,115 +787,135 @@ function analyzeStandaloneBinary(binary: Buffer): BundleAnalysis {
   return analysis
 }
 
-async function fetchVersionMetadata(packageName: string, version: string): Promise<VersionMetadata> {
-  const response = await fetch(`https://registry.npmjs.org/${encodePackageName(packageName)}/${version}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "opencode-changelog-x",
-    },
-    signal: AbortSignal.timeout(NPM_METADATA_TIMEOUT_MS),
+function fetchVersionMetadata(packageName: string, version: string): Effect.Effect<VersionMetadata, unknown> {
+  return Effect.gen(function* () {
+    const response = yield* Effect.tryPromise(() => fetch(`https://registry.npmjs.org/${encodePackageName(packageName)}/${version}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "opencode-changelog-x",
+      },
+      signal: AbortSignal.timeout(NPM_METADATA_TIMEOUT_MS),
+    }))
+
+    if (!response.ok) {
+      return yield* Effect.fail(new Error(`NPM package request failed for ${packageName}@${version} (${response.status} ${response.statusText})`))
+    }
+
+    const json = yield* Effect.tryPromise(() => response.json())
+    return versionMetadataSchema.parse(json)
   })
-
-  if (!response.ok) {
-    throw new Error(`NPM package request failed for ${packageName}@${version} (${response.status} ${response.statusText})`)
-  }
-
-  return versionMetadataSchema.parse(await response.json())
 }
 
-async function fetchPackument(packageName: string): Promise<Packument> {
-  const response = await fetch(`https://registry.npmjs.org/${encodePackageName(packageName)}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "opencode-changelog-x",
-    },
-    signal: AbortSignal.timeout(NPM_METADATA_TIMEOUT_MS),
+function fetchPackument(packageName: string): Effect.Effect<Packument, unknown> {
+  return Effect.gen(function* () {
+    const response = yield* Effect.tryPromise(() => fetch(`https://registry.npmjs.org/${encodePackageName(packageName)}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "opencode-changelog-x",
+      },
+      signal: AbortSignal.timeout(NPM_METADATA_TIMEOUT_MS),
+    }))
+
+    if (!response.ok) {
+      return yield* Effect.fail(new Error(`NPM packument request failed for ${packageName} (${response.status} ${response.statusText})`))
+    }
+
+    const json = yield* Effect.tryPromise(() => response.json())
+    return packumentSchema.parse(json)
   })
-
-  if (!response.ok) {
-    throw new Error(`NPM packument request failed for ${packageName} (${response.status} ${response.statusText})`)
-  }
-
-  return packumentSchema.parse(await response.json())
 }
 
-async function fetchSnapshotInfo(packageName: string, tag: string): Promise<SnapshotInfo | null> {
-  const packument = await fetchPackument(packageName)
-  const version = packument["dist-tags"]?.[tag]
-  if (!version) return null
+function fetchSnapshotInfo(packageName: string, tag: string): Effect.Effect<SnapshotInfo | null, unknown> {
+  return Effect.gen(function* () {
+    const packument = yield* fetchPackument(packageName)
+    const version = packument["dist-tags"]?.[tag]
+    if (!version) return null
 
-  return {
-    version,
-    publishedAt: packument.time?.[version] ?? null,
-  }
-}
-
-async function downloadTarball(url: string) {
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "opencode-changelog-x",
-    },
-    signal: AbortSignal.timeout(NPM_TARBALL_TIMEOUT_MS),
+    return {
+      version,
+      publishedAt: packument.time?.[version] ?? null,
+    }
   })
-
-  if (!response.ok) {
-    throw new Error(`NPM tarball request failed (${response.status} ${response.statusText}) for ${url}`)
-  }
-
-  return Buffer.from(await response.arrayBuffer())
 }
 
-async function downloadBundleBinary(packageName: string, version: string) {
-  const metadata = await fetchVersionMetadata(packageName, version)
-  const tarballUrl = metadata.dist?.tarball
+function downloadTarball(url: string): Effect.Effect<Buffer, unknown> {
+  return Effect.gen(function* () {
+    const response = yield* Effect.tryPromise(() => fetch(url, {
+      headers: {
+        "User-Agent": "opencode-changelog-x",
+      },
+      signal: AbortSignal.timeout(NPM_TARBALL_TIMEOUT_MS),
+    }))
 
-  if (!tarballUrl) {
-    throw new Error(`No tarball URL was published for ${packageName}@${version}`)
-  }
+    if (!response.ok) {
+      return yield* Effect.fail(new Error(`NPM tarball request failed (${response.status} ${response.statusText}) for ${url}`))
+    }
 
-  const tarball = await downloadTarball(tarballUrl)
-  return extractBinaryFromTarball(tarball)
+    const arrayBuffer = yield* Effect.tryPromise(() => response.arrayBuffer())
+    return Buffer.from(arrayBuffer)
+  })
 }
 
-export async function inspectBundle(packageName: string, version: string): Promise<BundleInspection> {
-  const binary = await downloadBundleBinary(packageName, version)
-  return {
-    packageName,
-    packageVersion: version,
-    analysis: analyzeStandaloneBinary(binary),
-    bunVersions: extractBunVersions(binary),
-  }
+function downloadBundleBinary(packageName: string, version: string): Effect.Effect<Buffer, unknown> {
+  return Effect.gen(function* () {
+    const metadata = yield* fetchVersionMetadata(packageName, version)
+    const tarballUrl = metadata.dist?.tarball
+
+    if (!tarballUrl) {
+      return yield* Effect.fail(new Error(`No tarball URL was published for ${packageName}@${version}`))
+    }
+
+    const tarball = yield* downloadTarball(tarballUrl)
+    return extractBinaryFromTarball(tarball)
+  })
 }
 
-export async function scanBundleBunVersions(packageName: string, version: string) {
-  const binary = await downloadBundleBinary(packageName, version)
-  return extractBunVersions(binary)
+function inspectBundle(packageName: string, version: string): Effect.Effect<BundleInspection, unknown> {
+  return Effect.gen(function* () {
+    const binary = yield* downloadBundleBinary(packageName, version)
+    return {
+      packageName,
+      packageVersion: version,
+      analysis: analyzeStandaloneBinary(binary),
+      bunVersions: extractBunVersions(binary),
+    }
+  })
 }
 
-export async function inspectReleaseBundles(
+function scanBundleBunVersions(packageName: string, version: string): Effect.Effect<string[], unknown> {
+  return Effect.gen(function* () {
+    const binary = yield* downloadBundleBinary(packageName, version)
+    return extractBunVersions(binary)
+  })
+}
+
+function inspectReleaseBundles(
   version: string,
   targets: readonly BundleTarget[] = BUNDLE_TARGETS,
-): Promise<ReleaseBundleInspection> {
-  const rootMetadata = await fetchVersionMetadata(OPENCODE_NPM_PACKAGE, version)
-  const inspectedTargets = await Promise.all(
-    targets.map(async (target) => {
-      const packageVersion = rootMetadata.optionalDependencies?.[target.packageName]
-      if (!packageVersion) {
-        throw new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${version}`)
-      }
+): Effect.Effect<ReleaseBundleInspection, unknown> {
+  return Effect.gen(function* () {
+    const rootMetadata = yield* fetchVersionMetadata(OPENCODE_NPM_PACKAGE, version)
+    const inspectedTargets = yield* Effect.all(
+      targets.map((target) => Effect.gen(function* () {
+        const packageVersion = rootMetadata.optionalDependencies?.[target.packageName]
+        if (!packageVersion) {
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${version}`))
+        }
 
-      const inspection = await inspectBundle(target.packageName, packageVersion)
-      return {
-        ...target,
-        ...inspection,
-      }
-    }),
-  )
+        const inspection = yield* inspectBundle(target.packageName, packageVersion)
+        return {
+          ...target,
+          ...inspection,
+        }
+      })),
+      { concurrency: "unbounded" },
+    )
 
-  return {
-    rootPackageVersion: version,
-    targets: inspectedTargets,
-  }
+    return {
+      rootPackageVersion: version,
+      targets: inspectedTargets,
+    }
+  })
 }
 
 function formatTargetSection(label: string, previous: BundleAnalysis | null, current: BundleAnalysis | null) {
@@ -923,93 +937,98 @@ function formatTargetSection(label: string, previous: BundleAnalysis | null, cur
   return [label, ...lines].join("\n")
 }
 
-export async function buildBundleSizeSection(
+function buildBundleSizeSection(
   range: ReleaseRange,
-  summarizeChange?: BundleChangeSummarizer,
-): Promise<string | null> {
-  if (!range.fromTag) {
-    return null
-  }
-
-  const previousVersion = extractVersionFromTag(range.fromTag)
-
-  if (!previousVersion) {
-    throw new Error(`Could not derive an npm version from ${range.fromTag}`)
-  }
-
-  let currentVersion: string
-  let previewSnapshot: SnapshotInfo | null = null
-
-  if (range.kind === "preview") {
-    previewSnapshot = await fetchSnapshotInfo(OPENCODE_NPM_PACKAGE, "dev")
-    if (!previewSnapshot) {
+): Effect.Effect<string | null, unknown> {
+  return Effect.gen(function* () {
+    if (!range.fromTag) {
       return null
     }
 
-    const snapshotPublishedAt = parseTimestamp(previewSnapshot.publishedAt)
-    const baselinePublishedAt = parseTimestamp(range.fromReleaseTimestamp ?? null)
-    if (snapshotPublishedAt === null || baselinePublishedAt === null) {
-      return null
+    const previousVersion = extractVersionFromTag(range.fromTag)
+
+    if (!previousVersion) {
+      return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.fromTag}`))
     }
 
-    if (snapshotPublishedAt < baselinePublishedAt) {
-      return null
-    }
+    let currentVersion: string
+    let previewSnapshot: SnapshotInfo | null = null
 
-    currentVersion = previewSnapshot.version
-  } else {
-    currentVersion = extractVersionFromTag(range.toTag) ?? ""
-  }
-
-  if (!currentVersion) {
-    throw new Error(`Could not derive an npm version from ${range.toTag}`)
-  }
-
-  const [previousRoot, currentRoot] = await Promise.all([
-    fetchVersionMetadata(OPENCODE_NPM_PACKAGE, previousVersion),
-    fetchVersionMetadata(OPENCODE_NPM_PACKAGE, currentVersion),
-  ])
-
-  const targetChanges = await Promise.all(
-    BUNDLE_TARGETS.map(async (target): Promise<TargetBundleChange> => {
-      const previousTargetVersion = previousRoot.optionalDependencies?.[target.packageName] ?? null
-      const currentTargetVersion = currentRoot.optionalDependencies?.[target.packageName] ?? null
-
-      const [previousAnalysis, currentAnalysis] = await Promise.all([
-        previousTargetVersion ? inspectBundle(target.packageName, previousTargetVersion).then((item) => item.analysis) : Promise.resolve(null),
-        currentTargetVersion ? inspectBundle(target.packageName, currentTargetVersion).then((item) => item.analysis) : Promise.resolve(null),
-      ])
-
-      return {
-        label: target.label,
-        previous: previousAnalysis,
-        current: currentAnalysis,
+    if (range.kind === "preview") {
+      previewSnapshot = yield* fetchSnapshotInfo(OPENCODE_NPM_PACKAGE, "dev")
+      if (!previewSnapshot) {
+        return null
       }
+
+      const snapshotPublishedAt = parseTimestamp(previewSnapshot.publishedAt)
+      const baselinePublishedAt = parseTimestamp(range.fromReleaseTimestamp ?? null)
+      if (snapshotPublishedAt === null || baselinePublishedAt === null) {
+        return null
+      }
+
+      if (snapshotPublishedAt < baselinePublishedAt) {
+        return null
+      }
+
+      currentVersion = previewSnapshot.version
+    } else {
+      currentVersion = extractVersionFromTag(range.toTag) ?? ""
+    }
+
+    if (!currentVersion) {
+      return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.toTag}`))
+    }
+
+    const [previousRoot, currentRoot] = yield* Effect.all([
+      fetchVersionMetadata(OPENCODE_NPM_PACKAGE, previousVersion),
+      fetchVersionMetadata(OPENCODE_NPM_PACKAGE, currentVersion),
+    ], { concurrency: "unbounded" })
+
+    const targetChanges = yield* Effect.all(
+      BUNDLE_TARGETS.map((target): Effect.Effect<TargetBundleChange, unknown> => Effect.gen(function* () {
+        const previousTargetVersion = previousRoot.optionalDependencies?.[target.packageName] ?? null
+        const currentTargetVersion = currentRoot.optionalDependencies?.[target.packageName] ?? null
+
+        const [previousAnalysis, currentAnalysis] = yield* Effect.all([
+          previousTargetVersion ? inspectBundle(target.packageName, previousTargetVersion).pipe(Effect.map((item) => item.analysis)) : Effect.succeed(null),
+          currentTargetVersion ? inspectBundle(target.packageName, currentTargetVersion).pipe(Effect.map((item) => item.analysis)) : Effect.succeed(null),
+        ], { concurrency: "unbounded" })
+
+        return {
+          label: target.label,
+          previous: previousAnalysis,
+          current: currentAnalysis,
+        }
+      })),
+      { concurrency: "unbounded" },
+    )
+
+    const significantChanges = targetChanges.filter(isSignificantTargetChange)
+
+    if (significantChanges.length === 0) {
+      return "No noticeable bundle change"
+    }
+
+    const deltaText = formatDelta(chooseBundleDelta(significantChanges))
+    return normalizeBundleSummary(`Bundle ${deltaText} because ${buildFallbackBundleReason(significantChanges)}`, deltaText)
+  })
+}
+
+export type BundleSizeService = {
+  readonly inspectBundle: (packageName: string, version: string) => Effect.Effect<BundleInspection, unknown>
+  readonly scanBundleBunVersions: (packageName: string, version: string) => Effect.Effect<string[], unknown>
+  readonly inspectReleaseBundles: (version: string, targets?: readonly BundleTarget[]) => Effect.Effect<ReleaseBundleInspection, unknown>
+  readonly buildSection: (range: ReleaseRange) => Effect.Effect<string | null, unknown>
+}
+
+export class BundleSize extends Context.Service<BundleSize, BundleSizeService>()("app/BundleSize") {
+  static readonly layer = Layer.succeed(
+    this,
+    this.of({
+      inspectBundle,
+      scanBundleBunVersions,
+      inspectReleaseBundles,
+      buildSection: buildBundleSizeSection,
     }),
   )
-
-  const significantChanges = targetChanges.filter(isSignificantTargetChange)
-
-  if (significantChanges.length === 0) {
-    return "No noticeable bundle change"
-  }
-
-  const deltaText = formatDelta(chooseBundleDelta(significantChanges))
-  const rawReport = buildSectionWithLines([
-    `Required output prefix: Bundle ${deltaText} because`,
-    previewSnapshot ? buildPreviewSnapshotLine(previewSnapshot) : null,
-    ...significantChanges
-      .map((change) => formatTargetSection(change.label, change.previous, change.current))
-      .filter((section): section is string => Boolean(section)),
-  ])
-
-  if (summarizeChange) {
-    try {
-      return normalizeBundleSummary(await summarizeChange({ deltaText, rawReport }), deltaText)
-    } catch (error) {
-      console.warn(`Falling back to deterministic bundle summary: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  }
-
-  return normalizeBundleSummary(`Bundle ${deltaText} because ${buildFallbackBundleReason(significantChanges)}`, deltaText)
 }

@@ -1,505 +1,25 @@
-import { exec } from "node:child_process"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { dirname, join } from "node:path"
-import { promisify } from "node:util"
-import {
-  Client,
-  EmbedBuilder,
-  Events,
-  GatewayIntentBits,
-  TextChannel,
-  ThreadAutoArchiveDuration,
-  type Message,
-} from "discord.js"
-import { readDiscordConfig, type DiscordConfig } from "./config.js"
-import { PREVIEW_MODEL } from "./constants.js"
-import { createPostGenerator } from "./generate.js"
-import { getLatestRelease } from "./github.js"
-import { getLatestPostedRelease, hasPostedRelease, loadState, parseStateText } from "./state.js"
-import type { GithubRelease, ReleasePostReport } from "./types.js"
-import { prepareUpstreamCheckout } from "./upstream.js"
-import {
-  checkBetaNpmStaleness,
-  fetchLatestBetaFailureUrl,
-  fetchLatestReleaseTag,
-  fetchPublishWorkflowRuns,
-  getAllRunIds,
-  getCompletedRunIds,
-  getNewAlerts,
-  getNewlySeenRuns,
-  loadWorkflowState,
-  saveWorkflowState,
-  type BetaNpmStatus,
-  type WorkflowAlert,
-} from "./workflows.js"
+import { Client, Events, GatewayIntentBits, TextChannel } from "discord.js"
+import { readDiscordConfig } from "./config.js"
+import { BetaMonitor } from "./discord/beta-monitor.js"
+import { getErrorMessage } from "./discord/errors.js"
+import { PreviewCommand } from "./discord/preview-command.js"
+import { PublishWorkflowMonitor } from "./discord/publish-workflow-monitor.js"
+import { ReleasePoll } from "./discord/release-poll.js"
+import { createDiscordRuntime } from "./discord/runtime.js"
+import type { AlertChannel } from "./discord/types.js"
 
-const execAsync = promisify(exec)
-
-const PREVIEW_COMMAND = "!previewchangelog"
-const PREVIEW_EMBED_COLOR = 0x5865f2
-const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096
-const RELEASE_POLL_INTERVAL_MS = 10 * 60 * 1000
-const WORKFLOW_POLL_INTERVAL_MS = 5 * 60 * 1000
-const BETA_CHECK_INTERVAL_MS = 10 * 60 * 1000
-const BETA_NPM_PACKAGE = "opencode-ai"
-const WORKFLOW_OWNER = "Hona"
-const WORKFLOW_REPO = "opencode-changelog-x"
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error)
-}
-
-function buildThreadName(fromTag: string | null) {
-  const name = fromTag ? `Preview since ${fromTag}` : "Preview changelog"
-  return name.length <= 100 ? name : `${name.slice(0, 97)}...`
-}
-
-function buildInfoEmbed(title: string, description: string) {
-  return new EmbedBuilder()
-    .setColor(PREVIEW_EMBED_COLOR)
-    .setTitle(title)
-    .setDescription(description)
-}
-
-function splitPreviewText(text: string, maxLength: number) {
-  const chunks: string[] = []
-  let remaining = text.replace(/\r/g, "").trim()
-
-  while (remaining.length > maxLength) {
-    let splitIndex = remaining.lastIndexOf("\n\n", maxLength)
-    if (splitIndex < Math.floor(maxLength / 2)) {
-      splitIndex = remaining.lastIndexOf("\n", maxLength)
-    }
-    if (splitIndex < Math.floor(maxLength / 2)) {
-      splitIndex = remaining.lastIndexOf(" ", maxLength)
-    }
-    if (splitIndex <= 0) {
-      splitIndex = maxLength
-    }
-
-    chunks.push(remaining.slice(0, splitIndex).trim())
-    remaining = remaining.slice(splitIndex).trim()
+function createAlertChannel(channel: TextChannel): AlertChannel {
+  return {
+    async send(content) {
+      const msg = await channel.send(content)
+      return { id: msg.id }
+    },
   }
-
-  if (remaining) {
-    chunks.push(remaining)
-  }
-
-  return chunks.length > 0 ? chunks : [text]
-}
-
-function buildPostEmbeds(report: ReleasePostReport) {
-  const chunks = splitPreviewText(report.post, DISCORD_EMBED_DESCRIPTION_LIMIT)
-
-  return chunks.map((chunk, index) =>
-    new EmbedBuilder()
-      .setColor(PREVIEW_EMBED_COLOR)
-      .setTitle(chunks.length === 1 ? "Preview" : `Preview ${index + 1}/${chunks.length}`)
-      .setDescription(chunk)
-      .setURL(report.compareUrl)
-      .setFooter({
-        text: report.fromTag ? `${report.fromTag} -> ${report.toLabel}` : report.toLabel,
-      }),
-  )
-}
-
-type ThreadSender = {
-  send: (options: { embeds: EmbedBuilder[] }) => Promise<unknown>
-}
-
-type LatestReleaseBaseline = {
-  tag: string
-  releaseTimestamp: string | null
-}
-
-type LatestReleaseCache = LatestReleaseBaseline & {
-  cachedAt: string
-}
-
-function getReleaseTimestamp(release: { publishedAt: string | null; createdAt: string }) {
-  return release.publishedAt ?? release.createdAt
-}
-
-async function sendThreadEmbed(channel: ThreadSender, embed: EmbedBuilder) {
-  await channel.send({ embeds: [embed] })
-}
-
-function buildLatestReleaseCachePath(config: DiscordConfig) {
-  return join(dirname(config.stateFile), "latest-github-release.json")
-}
-
-async function readLatestReleaseCache(filePath: string) {
-  try {
-    const text = await readFile(filePath, "utf8")
-    const payload = JSON.parse(text) as Partial<LatestReleaseCache>
-    if (typeof payload.tag !== "string" || !payload.tag.trim()) {
-      return null
-    }
-
-    return {
-      tag: payload.tag.trim(),
-      releaseTimestamp: typeof payload.releaseTimestamp === "string" ? payload.releaseTimestamp : null,
-    } satisfies LatestReleaseBaseline
-  } catch (error) {
-    if (typeof error === "object" && error && "code" in error && error.code === "ENOENT") {
-      return null
-    }
-
-    throw error
-  }
-}
-
-async function writeLatestReleaseCache(filePath: string, release: LatestReleaseBaseline) {
-  await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(
-    filePath,
-    `${JSON.stringify({ ...release, cachedAt: new Date().toISOString() } satisfies LatestReleaseCache, null, 2)}\n`,
-    "utf8",
-  )
-}
-
-async function resolveLatestReleaseBaseline(config: DiscordConfig) {
-  const cacheFile = buildLatestReleaseCachePath(config)
-
-  try {
-    const latestRelease = await getLatestRelease(config)
-
-    if (!latestRelease) {
-      return await readLatestReleaseCache(cacheFile)
-    }
-
-    const baseline = {
-      tag: latestRelease.tag,
-      releaseTimestamp: getReleaseTimestamp(latestRelease),
-    } satisfies LatestReleaseBaseline
-    await writeLatestReleaseCache(cacheFile, baseline)
-    return baseline
-  } catch (error) {
-    const cachedRelease = await readLatestReleaseCache(cacheFile)
-    if (cachedRelease) {
-      console.warn(`Falling back to cached latest release ${cachedRelease.tag}: ${getErrorMessage(error)}`)
-      return cachedRelease
-    }
-
-    const state = await loadState(config.stateFile)
-    const postedRelease = getLatestPostedRelease(state)
-    if (postedRelease) {
-      console.warn(`Falling back to posted release state ${postedRelease.tag}: ${getErrorMessage(error)}`)
-      return {
-        tag: postedRelease.tag,
-        releaseTimestamp: postedRelease.publishedAt ?? postedRelease.postedAt,
-      } satisfies LatestReleaseBaseline
-    }
-
-    throw error
-  }
-}
-
-async function generatePreview(message: Message<true>, config: DiscordConfig) {
-  const latestRelease = await resolveLatestReleaseBaseline(config)
-  const latestReleaseTag = latestRelease?.tag ?? null
-  const thread = await message.startThread({
-    name: buildThreadName(latestReleaseTag),
-    autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
-    reason: "OpenCode changelog preview",
-  })
-
-  const checkout = await prepareUpstreamCheckout(config)
-
-  try {
-    const range = await checkout.resolvePreviewRange(
-      latestReleaseTag,
-      latestRelease?.releaseTimestamp ?? null,
-    )
-
-    if (range.commitCount === 0) {
-      const baseline = latestReleaseTag ?? "the repository start"
-      await sendThreadEmbed(thread, buildInfoEmbed("No unreleased commits", `Nothing new landed after ${baseline}.`))
-      return
-    }
-
-    await thread.setName(buildThreadName(range.fromTag))
-    console.log(`Starting preview for ${message.author.tag}: ${range.fromTag ?? "<none>"} -> ${range.toLabel}`)
-
-    const generator = await createPostGenerator(config, checkout.directory, PREVIEW_MODEL)
-
-    try {
-      const report = await generator.generateReport(range)
-
-      for (const embed of buildPostEmbeds(report)) {
-        await sendThreadEmbed(thread, embed)
-      }
-
-      console.log(`Preview posted for ${message.author.tag}: ${report.fromTag ?? "<none>"} -> ${report.toLabel}`)
-    } finally {
-      await generator.close()
-    }
-  } catch (error) {
-    await sendThreadEmbed(thread, buildInfoEmbed("Preview failed", getErrorMessage(error)))
-    throw error
-  } finally {
-    await checkout.close()
-  }
-}
-
-async function handleMessage(message: Message, config: DiscordConfig, busy: { active: boolean }) {
-  if (!message.inGuild()) return
-  if (message.author.bot) return
-  if (message.channelId !== config.discordChannelId) return
-  if (message.content.trim() !== PREVIEW_COMMAND) return
-
-  if (busy.active) {
-    await message.reply("Another operation is already running. Try again shortly.")
-    return
-  }
-
-  busy.active = true
-
-  try {
-    await message.react("⏳")
-    await generatePreview(message as Message<true>, config)
-    await message.react("✅")
-  } catch (error) {
-    console.error(error)
-
-    try {
-      await message.react("❌")
-    } catch {
-      // Ignore reaction failures after logging the actual error.
-    }
-  } finally {
-    busy.active = false
-  }
-}
-
-type AlertChannel = {
-  send(content: string): Promise<{ id: string }>
-  editMessage(messageId: string, content: string): Promise<void>
-}
-
-async function loadLatestReleasePollState(config: DiscordConfig) {
-  try {
-    await execAsync("git fetch --quiet origin master", { timeout: 60_000 })
-    const { stdout } = await execAsync("git show origin/master:data/posted-releases.json", {
-      timeout: 30_000,
-      maxBuffer: 10 * 1024 * 1024,
-    })
-    return parseStateText(stdout)
-  } catch (error) {
-    console.warn(`Falling back to local release state before dispatch check: ${getErrorMessage(error)}`)
-    return loadState(config.stateFile)
-  }
-}
-
-async function hasActiveReleasePollRun(config: DiscordConfig) {
-  try {
-    const runs = await fetchPublishWorkflowRuns(WORKFLOW_OWNER, WORKFLOW_REPO)
-    return runs.some((run) => run.status !== "completed")
-  } catch (error) {
-    console.warn(`Could not check active release poll runs: ${getErrorMessage(error)}`)
-    return false
-  }
-}
-
-async function getUnpostedLatestRelease(config: DiscordConfig) {
-  const [latestRelease, state] = await Promise.all([
-    getLatestRelease(config),
-    loadLatestReleasePollState(config),
-  ])
-
-  if (!latestRelease) return null
-  return hasPostedRelease(state, latestRelease) ? null : latestRelease
-}
-
-async function dispatchReleasePoll(config: DiscordConfig) {
-  try {
-    if (await hasActiveReleasePollRun(config)) {
-      console.log("Release poll already running; skipping dispatch.")
-      return
-    }
-
-    const pendingRelease = await getUnpostedLatestRelease(config)
-    if (!pendingRelease) {
-      console.log("No unposted release found; skipping release poll dispatch.")
-      return
-    }
-
-    await execAsync("gh workflow run poll.yml -f dry_run=false", { timeout: 30_000 })
-    console.log(`Release poll dispatched for ${pendingRelease.tag}.`)
-  } catch (error) {
-    console.error(`Release poll dispatch failed: ${getErrorMessage(error)}`)
-  }
-}
-
-function startReleasePollLoop(config: DiscordConfig) {
-  async function tick() {
-    await dispatchReleasePoll(config)
-    setTimeout(tick, RELEASE_POLL_INTERVAL_MS)
-  }
-
-  setTimeout(tick, 30_000)
-}
-
-function formatTriggeredAlert(alert: WorkflowAlert): string {
-  return `\`${alert.actor}\` triggered release\n[View workflow run](<${alert.url}>)`
-}
-
-function formatCompletedAlert(alert: WorkflowAlert, tag: string | null): string {
-  if (alert.success && tag) {
-    return `\`${alert.actor}\` triggered \`${tag}\` release\n[View workflow run](<${alert.url}>)`
-  }
-  if (alert.success) {
-    return `\`${alert.actor}\` triggered release — **published**\n[View workflow run](<${alert.url}>)`
-  }
-  const verb = alert.conclusion === "cancelled" ? "cancelled" : "failed"
-  return `\`${alert.actor}\` triggered release — **${verb}**\n[Open logs](<${alert.url}>)`
-}
-
-async function checkPublishWorkflows(
-  config: DiscordConfig,
-  channel: AlertChannel,
-  pendingMessages: Map<number, string>,
-) {
-  const workflowStateFile = join(dirname(config.stateFile), "publish-workflow-state.json")
-
-  const [runs, state] = await Promise.all([
-    fetchPublishWorkflowRuns(WORKFLOW_OWNER, WORKFLOW_REPO),
-    loadWorkflowState(workflowStateFile),
-  ])
-
-  if (state.seenRunIds.length === 0 && state.reportedRunIds.length === 0) {
-    const allIds = getAllRunIds(runs)
-    const completedIds = getCompletedRunIds(runs)
-    if (allIds.length > 0) {
-      console.log(`Seeding workflow state with ${allIds.length} existing run(s).`)
-      await saveWorkflowState(workflowStateFile, { seenRunIds: allIds, reportedRunIds: completedIds })
-      return
-    }
-  }
-
-  let dirty = false
-  let nextSeen = state.seenRunIds
-  let nextReported = state.reportedRunIds
-
-  const triggered = getNewlySeenRuns(runs, state)
-  for (const alert of triggered) {
-    const sent = await channel.send(formatTriggeredAlert(alert))
-    pendingMessages.set(alert.runId, sent.id)
-    console.log(`Posted triggered alert: run ${alert.runId} by ${alert.actor}`)
-  }
-  if (triggered.length > 0) {
-    nextSeen = [...nextSeen, ...triggered.map((a) => a.runId)].slice(-100)
-    dirty = true
-  }
-
-  const completed = getNewAlerts(runs, state)
-  for (const alert of completed) {
-    const tag = alert.success
-      ? await fetchLatestReleaseTag(config.githubOwner, config.githubRepo)
-      : null
-    const content = formatCompletedAlert(alert, tag)
-    const messageId = pendingMessages.get(alert.runId)
-
-    if (messageId) {
-      try {
-        await channel.editMessage(messageId, content)
-        pendingMessages.delete(alert.runId)
-      } catch {
-        await channel.send(content)
-      }
-    } else {
-      await channel.send(content)
-    }
-
-    console.log(`Posted completion alert: ${alert.conclusion} run ${alert.runId} by ${alert.actor}${tag ? ` (${tag})` : ""}`)
-  }
-  if (completed.length > 0) {
-    nextReported = [...nextReported, ...completed.map((a) => a.runId)].slice(-100)
-    dirty = true
-  }
-
-  if (dirty) {
-    await saveWorkflowState(workflowStateFile, { seenRunIds: nextSeen, reportedRunIds: nextReported })
-  }
-}
-
-function startWorkflowMonitorLoop(config: DiscordConfig, channel: AlertChannel) {
-  const pendingMessages = new Map<number, string>()
-
-  async function tick() {
-    try {
-      await checkPublishWorkflows(config, channel, pendingMessages)
-    } catch (error) {
-      console.error(`Workflow monitor error: ${getErrorMessage(error)}`)
-    }
-    setTimeout(tick, WORKFLOW_POLL_INTERVAL_MS)
-  }
-
-  setTimeout(tick, 5_000)
-}
-
-function formatBetaAge(ageMs: number): string {
-  const hours = Math.floor(ageMs / (60 * 60 * 1000))
-  const mins = Math.floor((ageMs % (60 * 60 * 1000)) / (60 * 1000))
-  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
-}
-
-function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null): string {
-  let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
-  if (failureUrl) {
-    msg += `\n[Last failure](<${failureUrl}>)`
-  }
-  return msg
-}
-
-function formatBetaResolvedAlert(status: BetaNpmStatus): string {
-  return `~~Beta release was stale~~ — resolved (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
-}
-
-function startBetaMonitorLoop(config: DiscordConfig, channel: AlertChannel) {
-  let alertMessageId: string | null = null
-
-  async function tick() {
-    try {
-      const status = await checkBetaNpmStaleness(BETA_NPM_PACKAGE)
-      if (!status) return
-
-      if (status.stale) {
-        const failureUrl = await fetchLatestBetaFailureUrl(config.githubOwner, config.githubRepo)
-        const content = formatBetaStaleAlert(status, failureUrl)
-
-        if (!alertMessageId) {
-          const sent = await channel.send(content)
-          alertMessageId = sent.id
-          console.log(`Beta stale alert: ${status.version} is ${formatBetaAge(status.ageMs)} old`)
-        } else {
-          try {
-            await channel.editMessage(alertMessageId, content)
-          } catch {
-            const sent = await channel.send(content)
-            alertMessageId = sent.id
-          }
-        }
-      } else if (alertMessageId) {
-        try {
-          await channel.editMessage(alertMessageId, formatBetaResolvedAlert(status))
-        } catch {
-          // Message might have been deleted, just clear state.
-        }
-        alertMessageId = null
-        console.log(`Beta stale alert resolved: ${status.version}`)
-      }
-    } catch (error) {
-      console.error(`Beta monitor error: ${getErrorMessage(error)}`)
-    }
-    setTimeout(tick, BETA_CHECK_INTERVAL_MS)
-  }
-
-  setTimeout(tick, 15_000)
 }
 
 async function main() {
   const config = readDiscordConfig()
+  const runtime = createDiscordRuntime(config)
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -507,28 +27,29 @@ async function main() {
       GatewayIntentBits.MessageContent,
     ],
   })
-  const busy = { active: false }
+
+  let disposed = false
+  const shutdown = () => {
+    if (disposed) return
+    disposed = true
+    client.destroy()
+    void runtime.dispose()
+  }
+
+  process.once("SIGINT", shutdown)
+  process.once("SIGTERM", shutdown)
 
   client.once(Events.ClientReady, async (readyClient) => {
     console.log(`Discord preview bot ready as ${readyClient.user.tag}`)
 
-    startReleasePollLoop(config)
+    runtime.runFork(ReleasePoll.use((releasePoll) => releasePoll.run))
 
     try {
       const channel = await readyClient.channels.fetch(config.discordChannelId)
       if (channel instanceof TextChannel) {
-        const alertChannel: AlertChannel = {
-          async send(content) {
-            const msg = await channel.send(content)
-            return { id: msg.id }
-          },
-          async editMessage(messageId, content) {
-            const msg = await channel.messages.fetch(messageId)
-            await msg.edit(content)
-          },
-        }
-        startWorkflowMonitorLoop(config, alertChannel)
-        startBetaMonitorLoop(config, alertChannel)
+        const alertChannel = createAlertChannel(channel)
+        runtime.runFork(PublishWorkflowMonitor.use((monitor) => monitor.run(alertChannel)))
+        runtime.runFork(BetaMonitor.use((monitor) => monitor.run(alertChannel)))
         console.log("Workflow monitor started.")
         console.log("Beta monitor started.")
       } else {
@@ -540,14 +61,19 @@ async function main() {
   })
 
   client.on(Events.MessageCreate, (message) => {
-    void handleMessage(message, config, busy)
+    void runtime.runPromise(PreviewCommand.use((preview) => preview.handleMessage(message))).catch(console.error)
   })
 
   client.on(Events.Error, (error) => {
     console.error(error)
   })
 
-  await client.login(config.discordToken)
+  try {
+    await client.login(config.discordToken)
+  } catch (error) {
+    shutdown()
+    throw error
+  }
 }
 
 main().catch((error) => {

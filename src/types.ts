@@ -45,8 +45,6 @@ export type ReleasePostReport = {
   post: string
 }
 
-export type PostedReleaseStatus = "posted" | "errored"
-
 export type PostedRelease = {
   releaseId: number
   tag: string
@@ -57,17 +55,7 @@ export type PostedRelease = {
   publishedAt: string | null
   tweets: string[]
   tweetIds: string[]
-  status?: PostedReleaseStatus
-  error?: string
   postedAt: string
-}
-
-export type ReleasePostProgress = {
-  release: GithubRelease
-  tweets: string[]
-  tweetIds: string[]
-  status?: PostedReleaseStatus
-  error?: string
 }
 
 export type StateFile = {
