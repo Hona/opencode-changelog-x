@@ -10,7 +10,6 @@ export type WorkflowRun = {
   status: string
   actor: { login: string }
   url: string
-  displayTitle: string
 }
 
 export type WorkflowState = {
@@ -25,7 +24,6 @@ export type WorkflowAlert = {
   runId: number
   success: boolean
   actor: string
-  title: string
   url: string
   conclusion: string
 }
@@ -75,7 +73,6 @@ export function getNewlySeenRuns(runs: WorkflowRun[], state: WorkflowState): Wor
       runId: run.databaseId,
       success: run.conclusion === "success",
       actor: run.actor.login,
-      title: run.displayTitle,
       url: run.url,
       conclusion: run.conclusion,
     }))
@@ -88,7 +85,6 @@ export function getNewAlerts(runs: WorkflowRun[], state: WorkflowState): Workflo
       runId: run.databaseId,
       success: run.conclusion === "success",
       actor: run.actor.login,
-      title: run.displayTitle,
       url: run.url,
       conclusion: run.conclusion,
     }))

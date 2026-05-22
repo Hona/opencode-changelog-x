@@ -17,7 +17,6 @@ type WorkflowRunApiResponse = {
     status: string
     triggering_actor: { login: string }
     html_url: string
-    display_title: string
   }>
 }
 
@@ -57,7 +56,6 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
           status: run.status,
           actor: { login: run.triggering_actor.login },
           url: run.html_url,
-          displayTitle: run.display_title,
         }))
       })
 

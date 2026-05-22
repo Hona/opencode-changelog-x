@@ -2,7 +2,6 @@ export type GithubRelease = {
   id: number
   tag: string
   name: string
-  body: string
   url: string
   draft: boolean
   prerelease: boolean

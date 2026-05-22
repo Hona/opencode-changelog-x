@@ -14,7 +14,6 @@ const releaseSchema = z.object({
   id: z.number(),
   tag_name: z.string(),
   name: z.string().nullable().optional(),
-  body: z.string().nullable().optional(),
   html_url: z.string().url(),
   draft: z.boolean(),
   prerelease: z.boolean(),
@@ -29,7 +28,6 @@ function mapRelease(release: z.infer<typeof releaseSchema>): GithubRelease {
     id: release.id,
     tag: release.tag_name,
     name: release.name?.trim() || release.tag_name,
-    body: release.body ?? "",
     url: release.html_url,
     draft: release.draft,
     prerelease: release.prerelease,
@@ -74,7 +72,6 @@ function fetchReleasesPageEffect(config: AppConfig, github: GithubCliService, pa
 export class GithubReleases extends Context.Service<GithubReleases, {
   readonly latest: () => Effect.Effect<GithubRelease | null, GithubReleasesError>
   readonly list: () => Effect.Effect<GithubRelease[], GithubReleasesError>
-  readonly getByTag: (tag: string) => Effect.Effect<GithubRelease, GithubReleasesError>
 }>()("app/GithubReleases") {
   static readonly layer = Layer.effect(
     this,
@@ -108,27 +105,7 @@ export class GithubReleases extends Context.Service<GithubReleases, {
           .sort(compareReleaseOrder)
       })
 
-      const getByTag = Effect.fn("GithubReleases.getByTag")(function* (tag: string) {
-        const stdout = yield* github.api(`repos/${config.githubOwner}/${config.githubRepo}/releases/tags/${tag}`).pipe(
-          Effect.mapError((cause) => new GithubReleasesError({ message: `GitHub tag release request failed for ${tag}`, cause })),
-        )
-        const json = yield* Effect.try({
-          try: () => JSON.parse(stdout),
-          catch: (cause) => new GithubReleasesError({ message: "GitHub tag release response body could not be parsed", cause }),
-        })
-        const release = mapRelease(releaseSchema.parse(json))
-
-        if (release.draft && !config.githubProcessDrafts) {
-          return yield* Effect.fail(new GithubReleasesError({
-            message: `${tag} is a draft release. Set GITHUB_PROCESS_DRAFTS=true to allow it.`,
-            cause: release,
-          }))
-        }
-
-        return release
-      })
-
-      return GithubReleases.of({ latest, list, getByTag })
+      return GithubReleases.of({ latest, list })
     }),
   )
 

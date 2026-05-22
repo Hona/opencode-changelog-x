@@ -80,29 +80,6 @@
       "postedAt": "2026-04-04T21:08:36.801Z"
     },
     {
-      "releaseId": 305518093,
-      "tag": "v1.3.16",
-      "name": "v1.3.16",
-      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.3.16",
-      "draft": false,
-      "prerelease": false,
-      "publishedAt": "2026-04-06T03:45:09Z",
-      "tweets": [
-        "OpenCode v1.3.16 released. TL;DR: ACP session controls are more protocol-native. Console-managed providers and org switching now show up in the TUI. Plugin resolution is sturdier on npm alias/git specs and Windows. Token/provider accounting bugs were fixed.",
-        "ACP got more protocol-native session control: session responses now publish selectable model/mode options, and OpenCode implements ACP's config-option setter to change them. ACP clients need less OpenCode-specific logic.",
-        "There is also a new experimental Console API surface: fetch active Console-managed provider metadata, list available orgs across accounts, and switch the active org. The generated JS SDK/OpenAPI was updated with those endpoints.",
-        "TUI/provider UX now consumes that state end to end. Console-managed providers are labeled with the active org, blocked from local reconnect flows, and a new org switcher shows up when multiple orgs exist.",
-        "TUI input behavior is more controllable too: mouse capture can be disabled via tui.json or OPENCODE_DISABLE_MOUSE, and on Windows Ctrl+Z now defaults to prompt undo while terminal suspend is suppressed when unsupported.",
-        "Plugin/package resolution is more robust. OpenCode now parses plugin specs with npm-package-arg, so aliases and git/npm protocol specs resolve correctly, and Windows cache paths sanitize illegal characters that used to break installs.",
-        "Model/runtime fixes: Azure options are sent under both openai and azure namespaces so settings survive either AI SDK path, and usage accounting no longer double-counts reasoning tokens. Vertex Anthropic cache-write tokens are now separated too.",
-        "Compare: https://github.com/anomalyco/opencode/compare/v1.3.15...v1.3.16"
-      ],
-      "tweetIds": [],
-      "status": "errored",
-      "error": "Request failed with code 403: Reply to this conversation is not allowed because you have not been mentioned or otherwise engaged by the author of the post you are replying to. Partial tweets exist on X, but the previous run did not record their IDs.",
-      "postedAt": "2026-04-06T03:49:19.000Z"
-    },
-    {
       "releaseId": 305557001,
       "tag": "v1.3.17",
       "name": "v1.3.17",
@@ -126,7 +103,6 @@
         "2041072701100413087",
         "2041072744054370503"
       ],
-      "status": "posted",
       "postedAt": "2026-04-06T08:37:18.240Z"
     },
     {
@@ -159,7 +135,6 @@
         "2041678574055485495",
         "2041678617105854475"
       ],
-      "status": "posted",
       "postedAt": "2026-04-08T00:44:49.703Z"
     },
     {
@@ -176,7 +151,6 @@
       "tweetIds": [
         "2042139506585882719"
       ],
-      "status": "posted",
       "postedAt": "2026-04-09T07:16:14.260Z"
     },
     {
@@ -193,7 +167,6 @@
       "tweetIds": [
         "2042285421174919204"
       ],
-      "status": "posted",
       "postedAt": "2026-04-09T16:56:03.052Z"
     },
     {
@@ -210,7 +183,6 @@
       "tweetIds": [
         "2042415474164507102"
       ],
-      "status": "posted",
       "postedAt": "2026-04-10T01:32:50.077Z"
     },
     {
@@ -227,7 +199,6 @@
       "tweetIds": [
         "2044217880271536617"
       ],
-      "status": "posted",
       "postedAt": "2026-04-15T00:54:57.205Z"
     },
     {
@@ -244,7 +215,6 @@
       "tweetIds": [
         "2044294550076682509"
       ],
-      "status": "posted",
       "postedAt": "2026-04-15T05:59:36.702Z"
     },
     {
@@ -261,7 +231,6 @@
       "tweetIds": [
         "2044329933950816319"
       ],
-      "status": "posted",
       "postedAt": "2026-04-15T08:20:12.828Z"
     },
     {
@@ -278,7 +247,6 @@
       "tweetIds": [
         "2044904225671458859"
       ],
-      "status": "posted",
       "postedAt": "2026-04-16T22:22:14.656Z"
     },
     {
@@ -295,7 +263,6 @@
       "tweetIds": [
         "2045139536750018793"
       ],
-      "status": "posted",
       "postedAt": "2026-04-17T13:57:17.188Z"
     },
     {
@@ -312,7 +279,6 @@
       "tweetIds": [
         "2045195060224905682"
       ],
-      "status": "posted",
       "postedAt": "2026-04-17T17:37:55.013Z"
     },
     {
@@ -329,7 +295,6 @@
       "tweetIds": [
         "2045238907638337866"
       ],
-      "status": "posted",
       "postedAt": "2026-04-17T20:32:09.074Z"
     },
     {
@@ -346,7 +311,6 @@
       "tweetIds": [
         "2045303632849985793"
       ],
-      "status": "posted",
       "postedAt": "2026-04-18T00:49:20.746Z"
     },
     {
@@ -363,7 +327,6 @@
       "tweetIds": [
         "2045713747092652051"
       ],
-      "status": "posted",
       "postedAt": "2026-04-19T03:58:59.592Z"
     },
     {
@@ -380,7 +343,6 @@
       "tweetIds": [
         "2045805744457715974"
       ],
-      "status": "posted",
       "postedAt": "2026-04-19T10:04:33.507Z"
     },
     {
@@ -397,7 +359,6 @@
       "tweetIds": [
         "2046127799191449615"
       ],
-      "status": "posted",
       "postedAt": "2026-04-20T07:24:17.297Z"
     },
     {
@@ -414,7 +375,6 @@
       "tweetIds": [
         "2046669741457092910"
       ],
-      "status": "posted",
       "postedAt": "2026-04-21T19:17:46.419Z"
     },
     {
@@ -431,7 +391,6 @@
       "tweetIds": [
         "2047192592505266688"
       ],
-      "status": "posted",
       "postedAt": "2026-04-23T05:55:23.820Z"
     },
     {
@@ -448,7 +407,6 @@
       "tweetIds": [
         "2047346619280941211"
       ],
-      "status": "posted",
       "postedAt": "2026-04-23T16:07:26.667Z"
     },
     {
@@ -465,7 +423,6 @@
       "tweetIds": [
         "2047667170310492437"
       ],
-      "status": "posted",
       "postedAt": "2026-04-24T13:21:11.989Z"
     },
     {
@@ -482,7 +439,6 @@
       "tweetIds": [
         "2047707435234906497"
       ],
-      "status": "posted",
       "postedAt": "2026-04-24T16:01:11.897Z"
     },
     {
@@ -499,7 +455,6 @@
       "tweetIds": [
         "2048050939144393016"
       ],
-      "status": "posted",
       "postedAt": "2026-04-25T14:46:09.603Z"
     },
     {
@@ -516,7 +471,6 @@
       "tweetIds": [
         "2048510346499908092"
       ],
-      "status": "posted",
       "postedAt": "2026-04-26T21:11:40.860Z"
     },
     {
@@ -533,7 +487,6 @@
       "tweetIds": [
         "2048586078668423521"
       ],
-      "status": "posted",
       "postedAt": "2026-04-27T02:12:36.812Z"
     },
     {
@@ -550,7 +503,6 @@
       "tweetIds": [
         "2048621415448883449"
       ],
-      "status": "posted",
       "postedAt": "2026-04-27T04:33:01.769Z"
     },
     {
@@ -567,7 +519,6 @@
       "tweetIds": [
         "2049197337956995400"
       ],
-      "status": "posted",
       "postedAt": "2026-04-28T18:41:32.372Z"
     },
     {
@@ -584,7 +535,6 @@
       "tweetIds": [
         "2049634115079594165"
       ],
-      "status": "posted",
       "postedAt": "2026-04-29T23:37:08.157Z"
     },
     {
@@ -601,24 +551,7 @@
       "tweetIds": [
         "2050098916553556378"
       ],
-      "status": "posted",
       "postedAt": "2026-05-01T06:24:05.461Z"
-    },
-    {
-      "releaseId": 316709811,
-      "tag": "v1.14.32",
-      "name": "v1.14.32",
-      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.14.32",
-      "draft": false,
-      "prerelease": false,
-      "publishedAt": "2026-05-02T15:34:14Z",
-      "tweets": [
-        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.14.32 released. TL;DR: Effect-backed instance lifecycle, workspace adapter/API cleanup, TUI prompt fixes, provider + SDK correctness.\n\n𝗖𝗼𝗿𝗲 & 𝗛𝗧𝗧𝗣 𝗔𝗣𝗜\n• Instance load/reload/dispose now runs through an Effect service with explicit bootstrap and scoped cleanup.\n▸ This tightens async context propagation across HTTP API, workspace routing, plugins, and lifecycle paths.\n• OpenAPI normalization restores parameter parity for path/query IDs and regenerates @opencode-ai/sdk.\n• Workspace creation accepts the TUI’s minimal payload shape; missing extra is normalized to null.\n• Archived session timestamps now reject non-finite values while preserving legacy negative archive timestamps.\n\n𝗪𝗼𝗿𝗸𝘀𝗽𝗮𝗰𝗲𝘀 & 𝗣𝗹𝘂𝗴𝗶𝗻𝘀\n• Experimental workspace “adaptor” naming is standardized to “adapter” across routes, SDK, TUI, and @opencode-ai/plugin types.\n• Workspace adapter callbacks now bridge Promise code back into Effect/ALS context, so adapters that re-enter runtime keep instance/workspace state.\n\n𝗧𝗨𝗜\n• Upgraded @opentui/core and @opentui/solid to 0.2.2.\n• Shell-mode prompt stays editable: textarea actions are no longer suspended, fixing backspace/delete-word/arrow movement.\n• Logo subpixel rendering is gated on truecolor support, and system theme palette prewarm reduces first-paint fallback.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀 & 𝗧𝗼𝗼𝗹𝘀\n• Read tool only sends supported image attachments to providers: JPEG/PNG/GIF/WebP plus PDFs. BMP/TIFF/AVIF-like files fall back to text.\n• Cross-model reasoning history is downgraded to text instead of carrying provider-specific reasoning metadata, fixing Bedrock-style incompatibilities.\n• Zen removes hardcoded OpenAI safety_identifier injection, adds provider.model metrics, and lets payloadModifier template $ip, $workspace, and $header.* values.\n• NPM package loading handles stale cache dirs without installed package contents by reifying before resolving entrypoints.\n\nBundle size change\n\nmacOS arm64\n• Total: 123.3 MB -> 123.4 MB (+32.3 KB)\n• Bun runtime: 60.6 MB -> 60.6 MB (+256 B)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+24.6 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 1.7 MB -> 1.7 MB (-208 B)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 113.6 KB -> 121.2 KB (+7.6 KB)\n\nLinux x64\n• Total: 162.8 MB -> 162.8 MB (+20.0 KB)\n• Bun runtime: 96.2 MB -> 96.2 MB (no change)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+24.6 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 5.5 MB -> 5.5 MB (-4.3 KB)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 110.1 KB -> 109.8 KB (-306 B)\n\nWindows x64\n• Total: 174.7 MB -> 174.7 MB (+24.5 KB)\n• Bun runtime: 111.5 MB -> 111.5 MB (+296 B)\n• CLI/TUI JS: 14.1 MB -> 14.1 MB (+24.6 KB)\n• Web UI assets: 41.2 MB -> 41.2 MB (no change)\n• Native addons: 2.1 MB -> 2.1 MB (-512 B)\n• WASM: 5.7 MB -> 5.7 MB (no change)\n• Bundle metadata: 107.6 KB -> 107.7 KB (+84 B)\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.14.31...v1.14.32"
-      ],
-      "tweetIds": [],
-      "status": "errored",
-      "error": "Request failed with code 403",
-      "postedAt": "2026-05-02T15:41:15.756Z"
     },
     {
       "releaseId": 316745216,
@@ -634,7 +567,6 @@
       "tweetIds": [
         "2050667011643224442"
       ],
-      "status": "posted",
       "postedAt": "2026-05-02T20:01:29.915Z"
     },
     {
@@ -651,7 +583,6 @@
       "tweetIds": [
         "2051444936512274505"
       ],
-      "status": "posted",
       "postedAt": "2026-05-04T23:32:41.630Z"
     },
     {
@@ -668,7 +599,6 @@
       "tweetIds": [
         "2051469839248617517"
       ],
-      "status": "posted",
       "postedAt": "2026-05-05T01:11:38.907Z"
     },
     {
@@ -685,7 +615,6 @@
       "tweetIds": [
         "2051566407414944232"
       ],
-      "status": "posted",
       "postedAt": "2026-05-05T07:35:22.568Z"
     },
     {
@@ -702,7 +631,6 @@
       "tweetIds": [
         "2051601282436092069"
       ],
-      "status": "posted",
       "postedAt": "2026-05-05T09:53:57.397Z"
     },
     {
@@ -719,7 +647,6 @@
       "tweetIds": [
         "2051618918943314234"
       ],
-      "status": "posted",
       "postedAt": "2026-05-05T11:04:02.316Z"
     },
     {
@@ -736,7 +663,6 @@
       "tweetIds": [
         "2052187395483632080"
       ],
-      "status": "posted",
       "postedAt": "2026-05-07T00:42:57.633Z"
     },
     {
@@ -753,7 +679,6 @@
       "tweetIds": [
         "2052402378553606651"
       ],
-      "status": "posted",
       "postedAt": "2026-05-07T14:57:13.652Z"
     },
     {
@@ -770,7 +695,6 @@
       "tweetIds": [
         "2053157648502001917"
       ],
-      "status": "posted",
       "postedAt": "2026-05-09T16:58:24.037Z"
     },
     {
@@ -787,7 +711,6 @@
       "tweetIds": [
         "2053177442492096692"
       ],
-      "status": "posted",
       "postedAt": "2026-05-09T18:17:03.246Z"
     },
     {
@@ -804,7 +727,6 @@
       "tweetIds": [
         "2053197735604494513"
       ],
-      "status": "posted",
       "postedAt": "2026-05-09T19:37:41.497Z"
     },
     {
@@ -821,7 +743,6 @@
       "tweetIds": [
         "2053268283780923459"
       ],
-      "status": "posted",
       "postedAt": "2026-05-10T00:18:01.497Z"
     },
     {
@@ -838,7 +759,6 @@
       "tweetIds": [
         "2053303651763163186"
       ],
-      "status": "posted",
       "postedAt": "2026-05-10T02:38:33.870Z"
     },
     {
@@ -855,7 +775,6 @@
       "tweetIds": [
         "2053634668105204020"
       ],
-      "status": "posted",
       "postedAt": "2026-05-11T00:33:54.352Z"
     },
     {
@@ -872,7 +791,6 @@
       "tweetIds": [
         "2053659926837256537"
       ],
-      "status": "posted",
       "postedAt": "2026-05-11T02:14:16.487Z"
     },
     {
@@ -889,7 +807,6 @@
       "tweetIds": [
         "2054690540784886202"
       ],
-      "status": "posted",
       "postedAt": "2026-05-13T22:29:33.994Z"
     },
     {
@@ -906,7 +823,6 @@
       "tweetIds": [
         "2054761455811964981"
       ],
-      "status": "posted",
       "postedAt": "2026-05-14T03:11:21.485Z"
     },
     {
@@ -923,7 +839,6 @@
       "tweetIds": [
         "2055087320177479892"
       ],
-      "status": "posted",
       "postedAt": "2026-05-15T00:46:13.583Z"
     },
     {
@@ -940,7 +855,6 @@
       "tweetIds": [
         "2055140031191564469"
       ],
-      "status": "posted",
       "postedAt": "2026-05-15T04:15:40.859Z"
     },
     {
@@ -957,7 +871,6 @@
       "tweetIds": [
         "2055526525513146540"
       ],
-      "status": "posted",
       "postedAt": "2026-05-16T05:51:28.277Z"
     },
     {
@@ -974,7 +887,6 @@
       "tweetIds": [
         "2055635098846777783"
       ],
-      "status": "posted",
       "postedAt": "2026-05-16T13:02:54.231Z"
     },
     {
@@ -991,7 +903,6 @@
       "tweetIds": [
         "2055652719268855844"
       ],
-      "status": "posted",
       "postedAt": "2026-05-16T14:12:55.224Z"
     },
     {
@@ -1008,7 +919,6 @@
       "tweetIds": [
         "2056069262330974699"
       ],
-      "status": "posted",
       "postedAt": "2026-05-17T17:48:06.841Z"
     },
     {
@@ -1025,7 +935,6 @@
       "tweetIds": [
         "2056481212617589193"
       ],
-      "status": "posted",
       "postedAt": "2026-05-18T21:05:03.465Z"
     },
     {
@@ -1042,7 +951,6 @@
       "tweetIds": [
         "2057216675670524162"
       ],
-      "status": "posted",
       "postedAt": "2026-05-20T21:47:31.487Z"
     },
     {
@@ -1059,7 +967,6 @@
       "tweetIds": [
         "2057595141624393863"
       ],
-      "status": "posted",
       "postedAt": "2026-05-21T22:51:24.814Z"
     }
   ]
