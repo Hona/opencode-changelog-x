@@ -984,6 +984,22 @@
         "2057936845602767297"
       ],
       "postedAt": "2026-05-22T21:29:13.413Z"
+    },
+    {
+      "releaseId": 328192865,
+      "tag": "v1.15.10",
+      "name": "v1.15.10",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.10",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-23T01:04:24Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.10 released. TL;DR: prod desktop legacy flows are restored, app sync readiness is corrected, Anthropic tool-result typing is stabilized, and Zed downloads now target 1.15.10.\n\n𝗔𝗽𝗽\nChanged\n• Changed the production legacy home screen back to a project-first launcher with recent projects, server status, explicit open-project flow, and loading/empty states.\n\nFixed\n• Fixed production desktop session pages being treated as the v2 new-session route, restoring review/file-tree side panels and normal session panel sizing behavior.\n• Fixed directory sync readiness so child stores start as loading, move to partial during bootstrap, and only become complete after slow project/session/provider loads succeed.\n\n𝗟𝗟𝗠\n• Fixed Anthropic Messages tool-result content handling so downstream consumer packages no longer hit unstable typechecking around content-array results.\n\n𝗭𝗲𝗱\n• Updated the Zed extension manifest and agent-server artifact URLs to v1.15.10 for macOS, Linux, and Windows targets.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.9...v1.15.10"
+      ],
+      "tweetIds": [
+        "2057992090991067295"
+      ],
+      "postedAt": "2026-05-23T01:08:44.920Z"
     }
   ]
 }
