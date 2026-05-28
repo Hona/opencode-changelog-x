@@ -1016,6 +1016,22 @@
         "2059486300844036176"
       ],
       "postedAt": "2026-05-27T04:06:12.308Z"
+    },
+    {
+      "releaseId": 331030480,
+      "tag": "v1.15.12",
+      "name": "v1.15.12",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.15.12",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-05-28T19:34:49Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.15.12 released. TL;DR: ACP-next can prompt, OpenAI gets experimental Responses WebSockets, TUI gains workspace management, and App layout redesigns become toggleable.\n\n𝗔𝗖𝗣\nAdded\n• Added ACP-next session/prompt handling for text, images, embedded resources, file links, slash commands, and /compact.\n• Added ACP permission mediation with allow once, always allow, and reject outcomes, including proposed-edit handoff when the client supports writing files.\n• Added ACP usage updates after prompts with context-window size and session cost.\n\nChanged\n• Improved ACP-next startup and warm config switches by caching directory snapshots and avoiding historical session scans for default model selection.\n\nFixed\n• Fixed ACP session/list so newly created live ACP sessions appear before persistence catches up.\n\n𝗟𝗟𝗠\n• Added an experimental OpenAI Responses WebSocket transport for streamed /responses calls, with per-session pooling, HTTP fallback, connection age limits, and release-build opt-in via OPENCODE_EXPERIMENTAL_WEBSOCKETS.\n• Fixed OpenAI WebSocket stream failure handling with active idle/connect timeouts, retry budgeting before first events, abort propagation, and custom base URL support.\n\n𝗧𝗨𝗜\nAdded\n• Added an experimental Workspaces dialog exposed through workspace.list and /workspaces, with connection status, path details, sync, and delete confirmation.\n\nChanged\n• Changed session navigation, session list, and scroll bindings so the important global keys stay active while prompt modes or autocomplete are focused.\n\nFixed\n• Restored the live thinking spinner in both TUI session renderers.\n• Fixed subagent retry visibility by showing retry status inline and surfacing retry errors when entering the child session.\n• Fixed editor launches from root or non-git worktree paths so they fall back to the project directory instead of opening at /.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\nChanged\n• Changed event streaming and PTY WebSocket connect routes to use the typed HTTP API middleware stack, including instance context, workspace routing, and route-specific auth.\n\nFixed\n• Fixed remote workspace proxying so non-GET request bodies are forwarded instead of being dropped.\n• Fixed existing-session routes to prefer the persisted session directory when resolving workspace context.\n• Fixed Basic auth decoding so passwords may contain colons.\n\n𝗔𝗽𝗽\n• Added Settings > General > New layout and designs, making the redesigned layout, home, composer, titlebar, and session UI user-toggleable in desktop builds.\n• Fixed redesigned desktop tabs and home behavior, including tab close visibility, all-project recent sessions, and multi-server grouping only when multiple servers exist.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Anthropic Opus 4.7+ adaptive reasoning detection so newer Opus 4.x IDs get the expanded effort set and summarized thinking display.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed git worktree discovery by anchoring primary worktree detection to the project worktree instead of the current sandbox path.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Improved Go referral claiming by applying invite cookies from the referral surface, clearing consumed cookies, blocking self-referrals, and ignoring accounts that already paid for Lite.\n• Improved the OpenCode Stats surface with a model-stats hero, anchored sections, mobile navigation, preloaded IBM Plex Mono weights, normalized provider/model attribution, and lower-memory ingest batching.\n\n𝗭𝗲𝗻\n• Changed IP and API-key rate limits to Redis-backed counters, reducing request-path database writes.\n• Removed per-request API-key last-used writes from Zen request handling.\n\n𝗦𝗗𝗞\n• Updated generated v2 SDK/OpenAPI PTY connect types to expose cursor and ticket query parameters.\n\n𝗨𝗜\n• Updated v2 shared UI components to use the v2 font and theme tokens consistently across menus, controls, inputs, and stories.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.15.11...v1.15.12"
+      ],
+      "tweetIds": [
+        "2060084522709053678"
+      ],
+      "postedAt": "2026-05-28T19:43:19.555Z"
     }
   ]
 }
