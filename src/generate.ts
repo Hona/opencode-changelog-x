@@ -525,8 +525,9 @@ function createGenerator(
         }));
         const sessionID = session.data?.id;
         if (!sessionID) {
+            const response = session.response;
             return yield* Effect.fail(new Error(
-                "OpenCode session creation returned no session ID",
+                `OpenCode session creation returned no session ID (${response?.status ?? "unknown"} ${response?.statusText ?? "response"})`,
             ));
         }
 

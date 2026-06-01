@@ -11,6 +11,16 @@ export type EffectRunningOpencode = {
 
 const OPENCODE_OUTPUT_TAIL_LIMIT = 50_000
 
+function serverAuthHeaders(env: NodeJS.ProcessEnv) {
+  const password = env.OPENCODE_SERVER_PASSWORD
+  if (!password) return undefined
+
+  const username = env.OPENCODE_SERVER_USERNAME ?? "opencode"
+  return {
+    Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
+  }
+}
+
 async function killProcessTree(proc: ReturnType<typeof spawn>) {
     if (!proc.pid) return
 
@@ -130,6 +140,7 @@ function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
     const client = createOpencodeClient({
       baseUrl: url,
       directory: repoDir,
+      headers: serverAuthHeaders(process.env),
     })
 
     return {
