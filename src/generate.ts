@@ -526,8 +526,13 @@ function createGenerator(
         const sessionID = session.data?.id;
         if (!sessionID) {
             const response = session.response;
+            const serverOutput = opencode.getOutput();
             return yield* Effect.fail(new Error(
-                `OpenCode session creation returned no session ID (${response?.status ?? "unknown"} ${response?.statusText ?? "response"})`,
+                [
+                    `OpenCode session creation returned no session ID (${response?.status ?? "unknown"} ${response?.statusText ?? "response"})`,
+                    `Response error: ${JSON.stringify(session.error ?? null)}`,
+                    serverOutput ? `Recent opencode output:\n${serverOutput}` : "Recent opencode output: <empty>",
+                ].join("\n"),
             ));
         }
 
