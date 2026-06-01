@@ -1,3 +1,5 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { dirname, join } from "node:path"
 import { Context, Effect, Layer } from "effect"
 import { z } from "zod"
 import { isoDateStringFromString, type IsoDateString } from "../domain/value-objects.js"
@@ -23,6 +25,13 @@ const workflowRunsResponseSchema = z.object({
     created_at: z.string().transform(isoDateStringFromString),
   })),
 })
+
+const betaMonitorStateSchema = z.object({
+  messageId: z.string().min(1),
+  stale: z.boolean(),
+})
+
+type BetaMonitorState = z.infer<typeof betaMonitorStateSchema>
 
 function formatBetaAge(ageMs: number): string {
   const hours = Math.floor(ageMs / (60 * 60 * 1000))
@@ -52,7 +61,31 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
       const config = yield* RuntimeConfig
       const github = yield* GithubCli
       const npm = yield* NpmRegistry
-      let wasStale = false
+      const statePath = join(dirname(config.stateFile), "beta-monitor-state.json")
+
+      const loadState = Effect.fn("BetaMonitor.loadState")(function* () {
+        return yield* Effect.tryPromise({
+          try: async () => {
+            try {
+              return betaMonitorStateSchema.parse(JSON.parse(await readFile(statePath, "utf8")))
+            } catch (error) {
+              if (error instanceof Error && "code" in error && error.code === "ENOENT") return null
+              throw error
+            }
+          },
+          catch: (error) => error,
+        })
+      })
+
+      const saveState = Effect.fn("BetaMonitor.saveState")(function* (state: BetaMonitorState) {
+        yield* Effect.tryPromise({
+          try: async () => {
+            await mkdir(dirname(statePath), { recursive: true })
+            await writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`, "utf8")
+          },
+          catch: (error) => error,
+        })
+      })
 
       const checkBetaNpmStaleness = Effect.fn("BetaMonitor.checkBetaNpmStaleness")(function* () {
         const data = yield* npm.packument(OPENCODE_NPM_PACKAGE)
@@ -103,22 +136,29 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
 
       const checkOnceUnsafe = Effect.fn("BetaMonitor.checkOnce")(function* (channel: AlertChannel) {
         const status = yield* checkBetaNpmStaleness()
+        const state = yield* loadState()
 
         if (status.stale) {
           const failureUrl = yield* fetchLatestBetaFailureUrl()
           const content = formatBetaStaleAlert(status, failureUrl)
 
-          if (!wasStale) {
-            yield* Effect.tryPromise(() => channel.send(content))
-            wasStale = true
+          if (state) {
+            yield* Effect.tryPromise(() => channel.edit(state.messageId, content))
+            if (!state.stale) {
+              yield* saveState({ ...state, stale: true })
+              yield* Effect.sync(() => console.log(`Beta stale alert: ${status.version} is ${formatBetaAge(status.ageMs)} old`))
+            }
+          } else {
+            const message = yield* Effect.tryPromise(() => channel.send(content))
+            yield* saveState({ messageId: message.id, stale: true })
             yield* Effect.sync(() => console.log(`Beta stale alert: ${status.version} is ${formatBetaAge(status.ageMs)} old`))
           }
           return
         }
 
-        if (wasStale) {
-          yield* Effect.tryPromise(() => channel.send(formatBetaResolvedAlert(status)))
-          wasStale = false
+        if (state?.stale) {
+          yield* Effect.tryPromise(() => channel.edit(state.messageId, formatBetaResolvedAlert(status)))
+          yield* saveState({ ...state, stale: false })
           yield* Effect.sync(() => console.log(`Beta stale alert resolved: ${status.version}`))
         }
       })

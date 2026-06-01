@@ -14,6 +14,9 @@ function createAlertChannel(channel: TextChannel): AlertChannel {
       const msg = await channel.send(content)
       return { id: msg.id }
     },
+    async edit(messageId, content) {
+      await channel.messages.edit(messageId, content)
+    },
   }
 }
 
