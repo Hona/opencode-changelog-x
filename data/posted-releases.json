@@ -1064,6 +1064,22 @@
         "2062734248893612143"
       ],
       "postedAt": "2026-06-05T03:12:23.529Z"
+    },
+    {
+      "releaseId": 335006608,
+      "tag": "v1.16.2",
+      "name": "v1.16.2",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.16.2",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-05T15:58:51Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.16.2 released. TL;DR: v2 sessions get durable context epochs, App gets multi-server tab/state isolation, Snowflake Cortex lands, and TUI can navigate diff hunks/background subagents.\n\n𝗔𝗴𝗲𝗻𝘁\nAdded\n• Added durable v2 context epochs: instructions, selected-agent system text, and available skill guidance are snapshotted per session and refreshed as explicit system update messages.\n• Added default_agent config support for selecting the default primary agent when a session has no agent yet.\n• Added background promotion for synchronous subagents so a blocking task can be detached and continue running.\n\nChanged\n• Changed permission checks to evaluate against the selected agent and fail closed when an agent cannot be resolved.\n\nFixed\n• Fixed edit tool safety by refusing empty oldString replacements on existing files and tightening fuzzy block-anchor matches that could replace too much.\n\n𝗔𝗽𝗽\nAdded\n• Added server-scoped home, project, session, terminal, worktree, and query state so multiple servers no longer share local-only caches.\n\nChanged\n• Changed the home screen to focus projects and session search across configured servers while suppressing stale status indicators from inactive servers.\n\nFixed\n• Fixed titlebar session-tab overflow with scrollable tabs, server-aware tab metadata, and preserved close/new-tab navigation.\n\n𝗧𝗨𝗜\nAdded\n• Added [ and ] hunk navigation in /diff with help and footer hints.\n• Added Ctrl+B session.background to detach synchronous subagents when experimental background subagents are enabled.\n\nFixed\n• Fixed permission replies in attach/workspace routing by sending the session directory with replies.\n• Fixed terminal theme refresh after palette reloads, SIGUSR2, and resize-triggered palette changes.\n• Fixed editor launch in attach mode when the remote project path does not exist locally by falling back to local cwd.\n• Fixed /models slash autocomplete precedence and guarded path/diff metadata formatting inputs.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added Snowflake Cortex provider support with account/PAT login, SNOWFLAKE_ACCOUNT/SNOWFLAKE_CORTEX_PAT env auth, Cortex request/stream normalization, and model catalog integration.\n\nFixed\n• Fixed Amazon Bedrock hangs in packaged builds by using Node export conditions instead of browser conditions.\n• Fixed GPT-5 reasoning options so only compatible providers receive Responses-only fields; Azure chat-completions paths drop unsupported include/reasoningSummary fields.\n\n𝗟𝗟𝗠\n• Changed Anthropic Messages system-update lowering to fall back to provider-compatible text when native placement is invalid, while still rejecting updates that split local tool calls from results.\n\n𝗖𝗟𝗜\n• Fixed daemon lifecycle handling with versioned registrations, timed health checks, safe stale-process replacement, and atomic registration cleanup.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added POST /experimental/session/{sessionID}/background to promote running task subagents tied to a session into background jobs, gated by the experimental background-subagent flag.\n\n𝗦𝗗𝗞\n• Updated JS SDK/OpenAPI for the background-subagent endpoint, session context-updated events, and the new system session-message variant.\n\n𝗦𝘁𝗼𝗿𝗮𝗴𝗲\n• Added session context epoch persistence for baselines, snapshots, replacement sequence, revision, and agent so v2 sessions can replay context changes durably.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Added same-process native tool attachment APIs with schema-validated execution and model output projection; location tools keep precedence over application-level tools.\n\nBundle +3.0 MB because mostly CLI/TUI JS +8.9 MB and Bun runtime +26.0 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.16.0...v1.16.2"
+      ],
+      "tweetIds": [
+        "2062928470460567856"
+      ],
+      "postedAt": "2026-06-05T16:04:09.536Z"
     }
   ]
 }
