@@ -1128,6 +1128,22 @@
         "2064751537247703073"
       ],
       "postedAt": "2026-06-10T16:48:22.541Z"
+    },
+    {
+      "releaseId": 337397154,
+      "tag": "v1.17.3",
+      "name": "v1.17.3",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.3",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-10T18:00:28Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.3 released. TL;DR: native filesystem search fallback fixed; file find stays available via ripgrep when FFF is unavailable.\n\n𝗖𝗼𝗿𝗲\n• Fixed filesystem search backend selection so OpenCode falls back to ripgrep when native FFF is disabled or unavailable.\n• Improved reliability for file-find flows on runtimes/platforms where FFF cannot initialize, instead of failing during search service startup.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.2...v1.17.3"
+      ],
+      "tweetIds": [
+        "2064771448305062168"
+      ],
+      "postedAt": "2026-06-10T18:07:29.705Z"
     }
   ]
 }
