@@ -1096,6 +1096,22 @@
         "2064547371506430271"
       ],
       "postedAt": "2026-06-10T03:17:05.650Z"
+    },
+    {
+      "releaseId": 337163482,
+      "tag": "v1.17.1",
+      "name": "v1.17.1",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.1",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-10T11:38:01Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.1 released. TL;DR: references become agent-visible; App adds durable new-session drafts; MCP handling is safer; Anthropic and Zen model support updated.\n\n𝗖𝗼𝗿𝗲\nAdded\n• Added description and hidden metadata to local and Git project references.\n\nFixed\n• Fixed deprecated reference config handling so old configs are accepted and migrated to references.\n• Fixed ripgrep-backed file search so .git metadata stays hidden and catch-all searches still respect ignored files.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added described project references to agent context, so agents can discover when to inspect configured external directories or repos.\n• Added configured reference directories to the external-directory permission allowlist, reducing prompts when reading referenced code or docs.\n\n𝗔𝗽𝗽\n• Added /new-session draft routing for the new layout, with draft tabs that promote into real session tabs on submit.\n• Fixed draft project switching so changing directories retargets the existing draft instead of spawning a separate new-session flow.\n\n𝗧𝗨𝗜\n• Changed @ reference autocomplete to respect hidden: true and show the underlying repo/path beside aliases.\n\n𝗠𝗖𝗣\n• Fixed MCP client creation failures so broken servers report failed status and half-created clients are closed.\n• Applied configured MCP timeouts to prompt and resource reads, not just tool discovery.\n\n𝗟𝗟𝗠\n• Updated the Anthropic adapter dependency to handle Anthropic fallback response shapes instead of failing those responses.\n\n𝗭𝗲𝗻\n• Added DeepSeek V4 Pro to the Zen model list as deepseek-v4-pro on the OpenAI-compatible chat-completions endpoint.\n• Updated DeepSeek V4 pricing docs, including the DeepSeek V4 Flash cached-input price.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Fixed macOS auto-update packaging by moving Electron Builder to 26.15.2.\n\n𝗦𝗗𝗞\n• Updated generated OpenAPI and JS SDK types for references, deprecated reference compatibility, and reference metadata.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.0...v1.17.1"
+      ],
+      "tweetIds": [
+        "2064675866102161579"
+      ],
+      "postedAt": "2026-06-10T11:47:41.257Z"
     }
   ]
 }
