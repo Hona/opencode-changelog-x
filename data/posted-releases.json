@@ -1112,6 +1112,22 @@
         "2064675866102161579"
       ],
       "postedAt": "2026-06-10T11:47:41.257Z"
+    },
+    {
+      "releaseId": 337346828,
+      "tag": "v1.17.2",
+      "name": "v1.17.2",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.2",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-10T16:42:56Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.2 released. TL;DR: fff search is default on non-Windows, subagent permissions now honor subagent rules, attachment picking is restored, and Linux Desktop launchers are fixed.\n\n𝗖𝗼𝗿𝗲\n• Changed filesystem search to use fff by default on non-Windows, with `OPENCODE_DISABLE_FFF=true` as the opt-out and Windows staying on ripgrep by default.\n• Removed the initial fff scan gate, so search initialization no longer fails just because the first index pass exceeds 5s.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed task-spawned subagents so their own edit/tool permissions are preserved instead of inheriting parent agent restrictions.\n• Changed Plan Mode to deny the built-in `general` subagent by default, while still allowing users to explicitly permit it via task permissions.\n\n𝗖𝗟𝗜\n• Fixed remote config auth failures to recognize SSO/login HTML responses as expired authentication instead of opaque JSON decode errors.\n• Fixed `opencode auth login <url>` to bypass project instance startup when re-authenticating a URL, so a stale remote-config token can be replaced.\n\n𝗔𝗽𝗽\n• Fixed prompt attachment picking by restoring the platform file picker and browser file-input fallback instead of routing selection through server-side file reads.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Fixed Linux launcher identity so app id, executable name, desktop file name, icon base, and StartupWMClass line up for dev/beta/prod builds.\n• Added a hidden legacy prod desktop entry so existing Linux pins to `opencode-desktop.desktop` keep opening after upgrade.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.1...v1.17.2"
+      ],
+      "tweetIds": [
+        "2064751537247703073"
+      ],
+      "postedAt": "2026-06-10T16:48:22.541Z"
     }
   ]
 }
