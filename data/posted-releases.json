@@ -1144,6 +1144,22 @@
         "2064771448305062168"
       ],
       "postedAt": "2026-06-10T18:07:29.705Z"
+    },
+    {
+      "releaseId": 338332704,
+      "tag": "v1.17.4",
+      "name": "v1.17.4",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.4",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-12T02:19:40Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.4 released. TL;DR: connector auth foundation ships, MCP gets cwd/header fixes, v2 API/SDK expands, and TUI error visibility improves.\n\n𝗖𝗼𝗿𝗲\n• Added a scoped connector registry for key and OAuth auth flows, including attempt state, refresh, cancellation, expiration, and connector update events.\n• Changed provider resolution so active credentials are projected into provider request config and model availability follows the selected credential.\n\n𝗦𝘁𝗼𝗿𝗮𝗴𝗲\n• Added credential persistence with one active credential per connector and one-time import from legacy auth.json.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed provider content-filter finishes so blocked or partially blocked responses surface as visible session errors instead of silently going idle.\n• Improved git snapshot creation for huge repos by reusing source object storage and large-index settings to avoid expensive rehashing.\n\n𝗧𝗨𝗜\nChanged\n• Replaced the v2 sync debug path with a location-aware data cache for sessions, messages, permissions, questions, connectors, references, models, agents, commands, and skills.\n\nFixed\n• Fixed prompt submission failures so the TUI shows an error toast instead of dropping the failure.\n• Fixed failed pending terminal tools so patch and todo failures show concrete failure labels.\n• Fixed scoped shutdown so the session exit epilogue still prints after cleanup.\n• Fixed session-list search filtering.\n\n𝗠𝗖𝗣\nAdded\n• Added cwd for local MCP servers, with relative paths resolved from the workspace directory.\n• Added MCP server log notification handling so server-emitted logs flow into OpenCode logs with severity.\n\nFixed\n• Fixed remote MCP OAuth and debug requests so configured headers are preserved.\n• Fixed MCP catalog timeouts so tool, prompt, and resource discovery respects configured timeout values.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added OpenAI connector methods for ChatGPT Pro/Plus browser OAuth and headless device OAuth.\n\nFixed\n• Fixed Gemini tool-schema compatibility for JSON Schema type arrays, including Gemini models reached through GitHub Copilot proxy paths.\n• Fixed Cloudflare Workers AI credential handling by deriving the Workers endpoint from accountId metadata when no base URL is set.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Changed built-in provider plugins to use Connector and Credential services instead of the legacy account plugin.\n• Added automatic API-key connector registration for providers discovered from models.dev environment metadata.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\nAdded\n• Added v2 connector API routes for listing connectors, key auth, OAuth begin/status/complete/cancel, and connector OpenAPI schemas.\n• Added v2 session create/get, location get, and per-session question list endpoints.\n\nChanged\n• Changed v2 filesystem reads to serve raw bytes with content type from /api/fs/read/* instead of JSON-wrapped file content.\n\n𝗦𝗗𝗞\n• Updated the generated JS SDK and OpenAPI types for connector auth, location, session, question, credential events, content-filter errors, MCP cwd, and raw filesystem reads.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added a Data navigation link to the hosted console header.\n• Updated Data page canonical URLs and social unfurl metadata for opencode.ai/data with a PNG banner.\n\n𝗭𝗲𝗻\n• Changed Zen checkout to save card and Link payment methods for off-session use, improving follow-up billing flows.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.3...v1.17.4"
+      ],
+      "tweetIds": [
+        "2065475873491317127"
+      ],
+      "postedAt": "2026-06-12T16:46:37.753Z"
     }
   ]
 }
