@@ -89,9 +89,28 @@ describe("OpencodeServer", () => {
     directories.push(directory)
     await execFileAsync("git", ["init"], { cwd: directory })
     await mkdir(join(directory, ".opencode"), { recursive: true })
-    await writeFile(join(directory, ".opencode", "opencode.jsonc"), JSON.stringify({
-      reference: { effect: "github.com/Effect-TS/effect-smol" },
-    }), "utf8")
+    // Mirrors anomalyco/opencode .opencode/opencode.jsonc as of v1.17.4.
+    await writeFile(join(directory, ".opencode", "opencode.jsonc"), `{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {},
+  "permission": {},
+  "references": {
+    "effect": {
+      "repository": "github.com/Effect-TS/effect-smol",
+      "description": "Use for Effect v4 and effect-smol implementation details",
+    },
+    "opencode-local": {
+      "path": "~/.local/share/opencode",
+      "description": "Contains opencode logs and data",
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}
+`, "utf8")
     const runtime = makeRuntime(directory)
 
     try {
