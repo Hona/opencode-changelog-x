@@ -1176,6 +1176,22 @@
         "2065889257785266426"
       ],
       "postedAt": "2026-06-13T20:09:16.215Z"
+    },
+    {
+      "releaseId": 339057641,
+      "tag": "v1.17.6",
+      "name": "v1.17.6",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.6",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-13T22:39:10Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.6 released. TL;DR: safer project-directory refresh, clearer move-session failures, and more explicit MCP client negotiation.\n\n𝗖𝗼𝗿𝗲\n• Fixed project copy refresh so unavailable copy roots are skipped instead of aborting the whole directory scan.\n• Preserved existing source directories when a previously git-backed root is no longer a checkout.\n\n𝗧𝗨𝗜\n• Fixed the move-session dialog to surface project-directory load failures with an error toast and recover to an empty result.\n\n𝗠𝗖𝗣\n• Changed MCP client initialization to explicitly declare client capabilities during normal connection and OAuth auth flows, improving compatibility with stricter MCP servers.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.5...v1.17.6"
+      ],
+      "tweetIds": [
+        "2065928982701502623"
+      ],
+      "postedAt": "2026-06-13T22:47:07.347Z"
     }
   ]
 }
