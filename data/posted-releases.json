@@ -1160,6 +1160,22 @@
         "2065475873491317127"
       ],
       "postedAt": "2026-06-12T16:46:37.753Z"
+    },
+    {
+      "releaseId": 339035802,
+      "tag": "v1.17.5",
+      "name": "v1.17.5",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.5",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-13T19:59:05Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.5 released. TL;DR: Snowflake Cortex gets browser OAuth, MCP sessions self-recover, v2 integrations/project copies hit the API, and App/TUI polish lands.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added Snowflake Cortex external-browser OAuth via /connect, with PKCE, optional role scoping, local callback capture, token refresh, and retry after 401.\n\nChanged\n• Updated Snowflake Cortex token handling to prefer SNOWFLAKE_CORTEX_TOKEN or options.token while keeping SNOWFLAKE_CORTEX_PAT/PAT fallback.\n\nFixed\n• Fixed Snowflake Cortex request/stream compatibility by mapping max_tokens, normalizing empty SSE roles, and treating “conversation complete” as a normal stop.\n\n𝗠𝗖𝗣\n• Fixed expired streamable HTTP MCP sessions by reinitializing and retrying once after a session-bound POST returns 404.\n• Fixed closed MCP clients staying registered after disconnect; tool definitions now clear and publish tool-change events.\n• Fixed structured MCP output being hidden by surfacing structuredContent as JSON text.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\nAdded\n• Added v2 integration discovery/auth routes for list/get, key connect, OAuth start/status/complete/cancel, and connection state.\n• Added credential label update/remove endpoints for stored integration credentials.\n• Added location-scoped v2 project-copy create/remove/refresh endpoints.\n\nChanged\n• Changed local server composition to build from layer nodes, consolidating dependency wiring for the instance HTTP API.\n\n𝗦𝘁𝗼𝗿𝗮𝗴𝗲\nAdded\n• Added full-schema bootstrap for empty SQLite databases, so fresh installs no longer replay every historical migration file.\n• Added project-directory strategy metadata so worktree copies can be refreshed, sorted, and removed safely.\n\nChanged\n• Changed credential persistence to integration-scoped records instead of connector/method active slots.\n\n𝗦𝗗𝗞\n• Updated generated JS SDK/OpenAPI for integration, credential, project-copy, project-directory, and event-schema changes.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed commands using $ARGUMENTS so file parts already supplied by the user are not injected a second time.\n\n𝗧𝗨𝗜\nFixed\n• Fixed duplicate renderable IDs in assistant text/tool rows, preventing rendering collisions when different messages reuse part IDs.\n• Restored spacing around subtask inline tool rows, assistant summaries, and assistant errors.\n\nChanged\n• Improved move-session working-copy handling with current/other grouping, safer deletion prompts, and fallback navigation when the current copy is removed.\n\n𝗔𝗽𝗽\nAdded\n• Added overflow fades to titlebar session tabs and keeps active/new tabs scrolled into view.\n\nChanged\n• Changed v2 visibility preferences so file tree/search/status/custom-agent controls apply in web sessions, not just desktop.\n\nFixed\n• Fixed the terminal resize gutter hitbox by moving the handle outside the clipped panel.\n\n𝗨𝗜\n• Updated OC-2 v2 grey ramps, foreground/icon contrast picking, and tab styling for stronger light/dark separation.\n\n𝗖𝗟𝗜\n• Fixed opencode run in-process SDK fetches to attach the local Authorization header before hitting the embedded server.\n• Fixed serve layering so credential-backed API surfaces are available in the standalone server command.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\nAdded\n• Added a Go banner for MiniMax M3 3x usage limits.\n\nChanged\n• Updated Go model lists from Kimi K2.5 to Kimi K2.7 Code and removed MiniMax M2.5 from current listings.\n• Updated stats pricing views to use models.dev catalog prices and added markers for small countries on usage maps.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.4...v1.17.5"
+      ],
+      "tweetIds": [
+        "2065889257785266426"
+      ],
+      "postedAt": "2026-06-13T20:09:16.215Z"
     }
   ]
 }
