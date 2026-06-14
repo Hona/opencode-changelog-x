@@ -1192,6 +1192,22 @@
         "2065928982701502623"
       ],
       "postedAt": "2026-06-13T22:47:07.347Z"
+    },
+    {
+      "releaseId": 339225134,
+      "tag": "v1.17.7",
+      "name": "v1.17.7",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.7",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-14T18:49:23Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.7 released. TL;DR: canonical v2 PTY API; safer App draft server scoping; integration-backed provider availability; MCP/ACP polish.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\nAdded\n• Added canonical location-scoped /api/pty routes for list/create/get/update/remove plus ticketed WebSocket connection and cursor replay.\n• Added bounded exited-PTY retention on the canonical API, including exitCode visibility until explicit removal.\n\nChanged\n• Changed PTY WebSocket delivery to preserve replay, cursor metadata, live output, and close ordering through one outbound stream.\n\n𝗔𝗽𝗽\n• Fixed /new-session drafts so SDK and sync hooks follow the draft’s server instead of the globally selected server.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed provider/model availability to come from integration connections, so env keys and stored credentials are reflected consistently.\n• Fixed model auth resolution to prefer active stored credentials and credential metadata over static configured auth.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Fixed plugin client requests to reuse the active OpenCode server URL instead of hard-coded localhost fallback.\n• Fixed shell.env hooks applying to PTY terminal sessions, with plugin env merged before forced terminal variables.\n\n𝗧𝗨𝗜\n• Fixed @ mention autocomplete to match item names only, not descriptions or URIs.\n• Improved provider/model refresh after catalog or integration updates.\n\n𝗠𝗖𝗣\n• Added MCP roots support, returning the current project directory as a file:// root when servers request roots.\n• Updated mcp debug initialization to use the MCP SDK’s latest protocol version.\n\n𝗔𝗖𝗣\n• Fixed shell tool calls in ACP clients to show the actual command and resolved working directory instead of a generic shell title.\n\n𝗦𝗗𝗞\n• Added generated v2 PTY client methods and types for the new /api/pty surface.\n• Updated generated provider and credential types for integration-backed provider availability and location-scoped credential update/remove.\n\n𝗭𝗲𝗻\n• Added provider budget-aware routing so fill-mode providers can stop receiving traffic after spend contribution reaches the configured budget.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.6...v1.17.7"
+      ],
+      "tweetIds": [
+        "2066234603526893969"
+      ],
+      "postedAt": "2026-06-14T19:01:33.071Z"
     }
   ]
 }
