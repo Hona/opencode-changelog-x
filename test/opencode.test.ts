@@ -6,7 +6,7 @@ import { tmpdir } from "node:os"
 import { promisify } from "node:util"
 import { Effect, Layer, ManagedRuntime } from "effect"
 import type { AppConfig } from "../src/config.js"
-import { OpencodeServer } from "../src/opencode.js"
+import { OPENCODE_SERVER_ARGS, OpencodeServer } from "../src/opencode.js"
 import { RuntimeConfig } from "../src/runtime-config.js"
 
 const directories: string[] = []
@@ -59,6 +59,11 @@ function makeRuntime(directory: string) {
 }
 
 describe("OpencodeServer", () => {
+  test("prints only server errors to captured output", () => {
+    expect(OPENCODE_SERVER_ARGS).toContain("--print-logs")
+    expect(OPENCODE_SERVER_ARGS).toContain("--log-level=ERROR")
+  })
+
   test.serial("authenticates its client when the spawned server requires a password", async () => {
     const directory = await mkdtemp(join(tmpdir(), "opencode-server-test-"))
     directories.push(directory)

@@ -1,15 +1,23 @@
 import { spawn } from "node:child_process"
+import { setTimeout as delay } from "node:timers/promises"
 import { createOpencodeClient } from "@opencode-ai/sdk/v2"
 import { Context, Effect, Layer } from "effect"
 import { RuntimeConfig } from "./runtime-config.js"
 
 export type EffectRunningOpencode = {
   client: ReturnType<typeof createOpencodeClient>
-  getOutput: () => string
+  getOutput: () => Promise<string>
   close: Effect.Effect<void, unknown>
 }
 
 const OPENCODE_OUTPUT_TAIL_LIMIT = 50_000
+export const OPENCODE_SERVER_ARGS = [
+  "serve",
+  "--hostname=127.0.0.1",
+  "--port=0",
+  "--print-logs",
+  "--log-level=ERROR",
+]
 
 function serverAuthHeaders(env: NodeJS.ProcessEnv) {
   const password = env.OPENCODE_SERVER_PASSWORD
@@ -46,7 +54,7 @@ async function killProcessTree(proc: ReturnType<typeof spawn>) {
 
 function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
   return Effect.tryPromise(async (signal) => {
-    const proc = spawn("opencode", ["serve", "--hostname=127.0.0.1", "--port=0"], {
+    const proc = spawn("opencode", OPENCODE_SERVER_ARGS, {
       env: {
         ...process.env,
         OPENCODE_CONFIG_CONTENT: JSON.stringify({}),
@@ -145,7 +153,8 @@ function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
 
     return {
       client,
-      getOutput() {
+      async getOutput() {
+        await delay(100)
         return output.trim()
       },
       close: Effect.tryPromise(closeProcess),

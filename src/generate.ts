@@ -502,7 +502,7 @@ function createGenerator(
 
         const output = extractText(result);
         if (!output) {
-            const serverOutput = opencode.getOutput();
+            const serverOutput = yield* Effect.promise(() => opencode.getOutput());
             return yield* Effect.fail(new Error(
                 [
                     "OpenCode returned no text output",
@@ -526,7 +526,7 @@ function createGenerator(
         const sessionID = session.data?.id;
         if (!sessionID) {
             const response = session.response;
-            const serverOutput = opencode.getOutput();
+            const serverOutput = yield* Effect.promise(() => opencode.getOutput());
             return yield* Effect.fail(new Error(
                 [
                     `OpenCode session creation returned no session ID (${response?.status ?? "unknown"} ${response?.statusText ?? "response"})`,

@@ -14,10 +14,10 @@
     "check": "bun run typecheck"
   },
   "dependencies": {
-    "@opencode-ai/sdk": "^1.17.4",
+    "@opencode-ai/sdk": "1.17.7",
     "discord.js": "^14.26.0",
     "effect": "4.0.0-beta.66",
-    "opencode-ai": "^1.17.4",
+    "opencode-ai": "1.17.7",
     "twitter-api-v2": "^1.29.0",
     "twitter-text": "^3.1.0",
     "zod": "^4.3.6"
