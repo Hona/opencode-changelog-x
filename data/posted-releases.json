@@ -1208,6 +1208,22 @@
         "2066234603526893969"
       ],
       "postedAt": "2026-06-14T19:01:33.071Z"
+    },
+    {
+      "releaseId": 341044941,
+      "tag": "v1.17.8",
+      "name": "v1.17.8",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.8",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-17T21:27:18Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.8 released. TL;DR: faster App timelines; off-thread markdown highlighting; safer MCP/provider tool handling; OpenCode Go moves to GLM-5.2.\n\n𝗔𝗽𝗽\n• Improved session timelines with stable row projection and TanStack virtualization, reducing rerenders and scroll jumps during streaming and history loads.\n• Added a Home tab toggle that remembers the last active tab and exposes the shortcut through the titlebar.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Added a new desktop directory picker with tree navigation, path suggestions, and home/root/parent controls when new layout designs are enabled.\n• Fixed desktop image attachments so selected files can preserve their native source path instead of only the basename.\n\n𝗨𝗜\n• Added worker-backed streaming markdown code highlighting with incremental Shiki token updates, keeping large code blocks from blocking message rendering.\n• Fixed custom scrollbar thumb dragging so pointer position maps correctly to scroll position and cancel events end dragging cleanly.\n\n𝗠𝗖𝗣\n• Fixed long-running MCP tools so progress notifications reset call timeouts.\n• Fixed MCP tool results marked as errors so they fail with readable text instead of being treated as successful output.\n• Fixed MCP OAuth callback cleanup so the local callback server stops after completion, timeout, or cancellation.\n• Fixed MCP OAuth callback error pages to escape provider-supplied HTML.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed OpenAI and Azure-compatible tool schemas by lowering JSON Schema to their supported subset before provider calls.\n• Fixed schemas that imply object or array types but omit explicit type/properties, improving compatibility with MCP-derived tools.\n• Fixed Cloudflare AI Gateway auth by passing the API key into the unified model client.\n\n𝗧𝗨𝗜\n• Fixed Move session error handling so load failures render inline, while refresh failures keep the existing directory list usable.\n\n𝗭𝗲𝗻\n• Added GLM-5.2 to OpenCode Go model surfaces and removed GLM-5 from Go model lists, limits, pricing, and API docs.\n• Changed Go model stats to scope usage, geo, peers, and rankings to OpenCode Go, with model ranks based on the latest week.\n\n𝗗𝗼𝗰𝘀\n• Fixed docs language selection so the chosen locale persists across pages.\n\nBundle +9.4 MB because mostly Web UI assets +27.8 MB and CLI/TUI JS +134.4 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.7...v1.17.8"
+      ],
+      "tweetIds": [
+        "2067359338344116645"
+      ],
+      "postedAt": "2026-06-17T21:30:50.789Z"
     }
   ]
 }
