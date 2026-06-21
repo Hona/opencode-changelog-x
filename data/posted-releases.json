@@ -1224,6 +1224,22 @@
         "2067359338344116645"
       ],
       "postedAt": "2026-06-17T21:30:50.789Z"
+    },
+    {
+      "releaseId": 342418275,
+      "tag": "v1.17.9",
+      "name": "v1.17.9",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.9",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-21T00:03:11Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.9 released. TL;DR:\nAgent step limits now behave correctly, GLM-5.2 thinking variants land, Bedrock/Copilot provider handling improves, and the TUI gets cleaner subagent/error behavior.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed configured agent step limits in the v2 runner: the final step disables tools and forces a text-only summary instead of failing the run.\n• Changed agents without a configured step limit to continue past the old hard 25-step local tool cap.\n• Changed steered follow-up prompts to stay as normal user messages, preserving message shape and improving prompt-cache stability.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added High/Max thinking variants for GLM-5.2 across OpenAI-compatible and Anthropic-compatible providers.\n• Added OpenRouter GLM-5.2 High/XHigh reasoning variants using OpenRouter’s native effort mapping.\n• Fixed GitHub Copilot model discovery so configured provider headers are passed through.\n• Fixed Devstral model detection to use locale-stable lowercase matching.\n\n𝗟𝗟𝗠\n• Fixed Amazon Bedrock Converse topK forwarding by sending it through model-specific request fields as top_k.\n\n𝗧𝗨𝗜\nFixed\n• Fixed subagent task rows merging visually with neighboring inline tools.\n• Fixed inline spacing around assistant summaries, assistant errors, block tools, and multi-line rows.\n• Fixed the Console org switcher so org-load failures render inline instead of tearing down the dialog.\n• Fixed background-subagent shortcut visibility so it only appears when the server advertises support.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added /experimental/capabilities so clients can discover enabled experimental runtime features.\n\n𝗦𝗗𝗞\n• Updated the generated JS SDK and OpenAPI types for experimental capability discovery.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added unique-user charts to OpenCode Data home and model pages.\n• Fixed model peer rankings to use the same ranking window as the displayed model rank.\n\n𝗭𝗲𝗻\n• Improved provider budget telemetry so usage is recorded when spend is tracked and includes per-model budget usage.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.8...v1.17.9"
+      ],
+      "tweetIds": [
+        "2068487086576156705"
+      ],
+      "postedAt": "2026-06-21T00:12:06.900Z"
     }
   ]
 }
