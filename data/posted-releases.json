@@ -1256,6 +1256,22 @@
         "2069884691558314426"
       ],
       "postedAt": "2026-06-24T20:45:41.908Z"
+    },
+    {
+      "releaseId": 344675068,
+      "tag": "v1.17.11",
+      "name": "v1.17.11",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.11",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-06-25T12:09:29Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.11 released. TL;DR:\nApp tabs/session state are steadier; v2 gets snapshot-backed session revert; SDK/protocol generation expands; provider and MCP fixes land.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added snapshot-backed session revert plumbing for staging, clearing, and committing rollback boundaries with file diffs.\n• Fixed fast file search startup so unavailable fff indexes fail closed instead of crashing or scanning broad roots.\n\n𝗔𝗽𝗽\nAdded\n• Added draggable/reorderable titlebar tabs with autoscroll and Chrome-style Ctrl+Tab/Ctrl+Shift+Tab cycling.\n• Added inline titlebar tab renaming.\n• Added Home session archive actions and a clearer empty state for starting a first session.\n\nChanged\n• Changed prompt drafts to keep the project server they belong to, so submission targets the correct local or remote server.\n• Centralized per-server session info, messages, todos, permissions, and questions to reduce stale cross-directory UI.\n\nFixed\n• Fixed prompt submission rollback so text, context, and images restore to the correct prompt after failures or draft handoffs.\n• Fixed missing session tabs being closed when the target session no longer exists.\n• Fixed todo dock state leaking across session navigation.\n• Fixed Home project actions to be unavailable when the selected server is unhealthy.\n\nRemoved\n• Removed the App timeline session progress stripe and its setting.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed OpenAI textVerbosity mapping so request options emit text.verbosity.\n• Fixed custom/console provider models being pruned when omitted from local config.\n• Fixed directory-scoped provider catalogs so explicit directory consumers do not silently fall back to global providers.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added v2 session revert stage, clear, and commit routes with typed OpenAPI errors.\n• Changed the HTTP contract to be assembled from @opencode-ai/protocol, shared with generated clients.\n\n𝗦𝗗𝗞\n• Added @opencode-ai/client generation target with zero-Effect Promise and Effect-native clients.\n• Added @opencode-ai/sdk-next for in-process Effect usage without opening a network listener.\n• Added @opencode-ai/httpapi-codegen for Promise/Effect APIs generated from Effect HttpApi + Schema contracts.\n\n𝗠𝗖𝗣\n• Fixed opencode mcp auth to print the OAuth authorization URL before opening the browser, so manual auth is always available.\n\n𝗧𝗨𝗜\n• Restored OpenTUI 0.3.4 after reverting the 0.4.2 update.\n• Fixed provider API-key dialog descriptions in the terminal UI.\n\nBundle -3.1 MB because mostly Native addons -3.3 MB and CLI/TUI JS +126.0 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.10...v1.17.11"
+      ],
+      "tweetIds": [
+        "2070119162454970708"
+      ],
+      "postedAt": "2026-06-25T12:17:24.135Z"
     }
   ]
 }
