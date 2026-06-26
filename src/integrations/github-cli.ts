@@ -2,7 +2,7 @@ import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 import { Context, Effect, Layer, Schema } from "effect"
 import { z } from "zod"
-import { releaseTagFromString, workflowRunIdFromNumber, type ReleaseTag } from "../domain/value-objects.js"
+import { isoDateStringFromString, releaseTagFromString, workflowRunIdFromNumber, type ReleaseTag } from "../domain/value-objects.js"
 import type { WorkflowRun, WorkflowTarget } from "../workflows.js"
 
 const execFileAsync = promisify(execFile)
@@ -19,6 +19,11 @@ const workflowRunApiResponseSchema = z.object({
     status: z.string(),
     triggering_actor: z.object({ login: z.string() }),
     html_url: z.string().url(),
+    created_at: z.string().transform(isoDateStringFromString),
+    updated_at: z.string().transform(isoDateStringFromString),
+    run_attempt: z.number().int().positive(),
+    head_branch: z.string(),
+    head_sha: z.string(),
   })),
 })
 
@@ -58,6 +63,11 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
           status: run.status,
           actor: { login: run.triggering_actor.login },
           url: run.html_url,
+          createdAt: run.created_at,
+          updatedAt: run.updated_at,
+          attempt: run.run_attempt,
+          headBranch: run.head_branch,
+          headSha: run.head_sha,
         }))
       })
 

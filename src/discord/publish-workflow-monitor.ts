@@ -6,10 +6,12 @@ import { RuntimeConfig } from "../runtime-config.js"
 import {
   getNewAlerts,
   getNewlySeenRuns,
+  findUnexpectedHistoricalRuns,
   isWorkflowStateForTarget,
   parseWorkflowStateText,
   stringifyWorkflowState,
   type WorkflowAlert,
+  type WorkflowRun,
   type WorkflowState,
   type WorkflowTarget,
 } from "../workflows.js"
@@ -40,6 +42,36 @@ function formatCompletedAlert(alert: WorkflowAlert, tag: string | null): string 
 
 function formatWorkflowTarget(target: WorkflowTarget) {
   return `${target.owner}/${target.repo} ${target.workflow}`
+}
+
+export function formatUnexpectedRunsDiagnostic(runs: WorkflowRun[], state: WorkflowState) {
+  const watermark = Math.max(...state.seenRunIds, ...state.reportedRunIds)
+  const unexpected = findUnexpectedHistoricalRuns(runs, state)
+  return JSON.stringify({
+    event: "workflow-monitor-rejected-historical-response",
+    target: {
+      owner: state.owner,
+      repo: state.repo,
+      workflow: state.workflow,
+    },
+    watermark,
+    seenRunIds: state.seenRunIds,
+    reportedRunIds: state.reportedRunIds,
+    unexpectedRunIds: unexpected.map((run) => run.databaseId),
+    returnedRunCount: runs.length,
+    returnedRuns: runs.map((run) => ({
+      id: run.databaseId,
+      createdAt: run.createdAt,
+      updatedAt: run.updatedAt,
+      status: run.status,
+      conclusion: run.conclusion,
+      actor: run.actor.login,
+      attempt: run.attempt,
+      headBranch: run.headBranch,
+      headSha: run.headSha,
+      url: run.url,
+    })),
+  })
 }
 
 class WorkflowMonitorStateStore extends Context.Service<WorkflowMonitorStateStore, {
@@ -100,6 +132,12 @@ export class PublishWorkflowMonitor extends Context.Service<PublishWorkflowMonit
               workflow: state.workflow,
             })}`,
           ))
+        }
+
+        const unexpectedHistoricalRuns = findUnexpectedHistoricalRuns(runs, state)
+        if (unexpectedHistoricalRuns.length > 0) {
+          yield* Effect.sync(() => console.error(formatUnexpectedRunsDiagnostic(runs, state)))
+          return
         }
 
         let dirty = false

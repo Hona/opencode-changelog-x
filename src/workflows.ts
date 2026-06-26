@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { workflowRunIdFromNumber, type WorkflowRunId } from "./domain/value-objects.js"
+import { workflowRunIdFromNumber, type IsoDateString, type WorkflowRunId } from "./domain/value-objects.js"
 
 export type WorkflowTarget = {
   owner: string
@@ -13,6 +13,11 @@ export type WorkflowRun = {
   status: string
   actor: { login: string }
   url: string
+  createdAt: IsoDateString
+  updatedAt: IsoDateString
+  attempt: number
+  headBranch: string
+  headSha: string
 }
 
 export type WorkflowState = {
@@ -49,6 +54,15 @@ export function isWorkflowStateForTarget(state: WorkflowState, target: WorkflowT
 
 export function stringifyWorkflowState(state: WorkflowState) {
   return `${JSON.stringify(state, null, 2)}\n`
+}
+
+export function findUnexpectedHistoricalRuns(runs: WorkflowRun[], state: WorkflowState): WorkflowRun[] {
+  const knownIds = [...state.seenRunIds, ...state.reportedRunIds]
+  if (knownIds.length === 0) return []
+
+  const watermark = Math.max(...knownIds)
+  const known = new Set(knownIds)
+  return runs.filter((run) => !known.has(run.databaseId) && run.databaseId <= watermark)
 }
 
 export function getNewlySeenRuns(runs: WorkflowRun[], state: WorkflowState): WorkflowAlert[] {
