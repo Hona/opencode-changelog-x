@@ -28,6 +28,20 @@ const workflowRunApiResponseSchema = z.object({
   })),
 })
 
+const workflowRunsJq = `{workflow_runs: [.workflow_runs[] | {
+  id,
+  conclusion,
+  status,
+  triggering_actor: {login: .triggering_actor.login},
+  html_url,
+  created_at,
+  updated_at,
+  run_attempt,
+  head_branch,
+  head_sha,
+  event
+}]}`
+
 function workflowPath(target: WorkflowTarget) {
   return `repos/${target.owner}/${target.repo}/actions/workflows/${encodeURIComponent(target.workflow)}`
 }
@@ -55,7 +69,7 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
 
       const listWorkflowDispatchRuns = Effect.fn("GithubCli.listWorkflowDispatchRuns")(function* (target: WorkflowTarget) {
         const params = new URLSearchParams({ per_page: "100" })
-        const stdout = yield* api(`${workflowPath(target)}/runs?${params}`)
+        const stdout = yield* api(`${workflowPath(target)}/runs?${params}`, ["--jq", workflowRunsJq])
         const response = workflowRunApiResponseSchema.parse(JSON.parse(stdout))
 
         return selectWorkflowDispatchRuns(response.workflow_runs.map((run) => ({
