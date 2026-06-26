@@ -18,6 +18,7 @@ export type WorkflowRun = {
   attempt: number
   headBranch: string
   headSha: string
+  event: string
 }
 
 export type WorkflowState = {
@@ -63,6 +64,12 @@ export function findUnexpectedHistoricalRuns(runs: WorkflowRun[], state: Workflo
   const watermark = Math.max(...knownIds)
   const known = new Set(knownIds)
   return runs.filter((run) => !known.has(run.databaseId) && run.databaseId <= watermark)
+}
+
+export function selectWorkflowDispatchRuns(runs: WorkflowRun[]): WorkflowRun[] {
+  return runs
+    .filter((run) => run.event === "workflow_dispatch")
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 export function getNewlySeenRuns(runs: WorkflowRun[], state: WorkflowState): WorkflowAlert[] {

@@ -3,7 +3,7 @@ import { promisify } from "node:util"
 import { Context, Effect, Layer, Schema } from "effect"
 import { z } from "zod"
 import { isoDateStringFromString, releaseTagFromString, workflowRunIdFromNumber, type ReleaseTag } from "../domain/value-objects.js"
-import type { WorkflowRun, WorkflowTarget } from "../workflows.js"
+import { selectWorkflowDispatchRuns, type WorkflowRun, type WorkflowTarget } from "../workflows.js"
 
 const execFileAsync = promisify(execFile)
 
@@ -24,6 +24,7 @@ const workflowRunApiResponseSchema = z.object({
     run_attempt: z.number().int().positive(),
     head_branch: z.string(),
     head_sha: z.string(),
+    event: z.string(),
   })),
 })
 
@@ -53,11 +54,11 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
       })
 
       const listWorkflowDispatchRuns = Effect.fn("GithubCli.listWorkflowDispatchRuns")(function* (target: WorkflowTarget) {
-        const params = new URLSearchParams({ event: "workflow_dispatch", per_page: "20" })
+        const params = new URLSearchParams({ per_page: "100" })
         const stdout = yield* api(`${workflowPath(target)}/runs?${params}`)
         const response = workflowRunApiResponseSchema.parse(JSON.parse(stdout))
 
-        return response.workflow_runs.map((run) => ({
+        return selectWorkflowDispatchRuns(response.workflow_runs.map((run) => ({
           databaseId: workflowRunIdFromNumber(run.id),
           conclusion: run.conclusion ?? "",
           status: run.status,
@@ -68,7 +69,8 @@ export class GithubCli extends Context.Service<GithubCli, GithubCliService>()("a
           attempt: run.run_attempt,
           headBranch: run.head_branch,
           headSha: run.head_sha,
-        }))
+          event: run.event,
+        })))
       })
 
       const hasActiveWorkflowDispatchRun = Effect.fn("GithubCli.hasActiveWorkflowDispatchRun")(function* (target: WorkflowTarget) {

@@ -69,6 +69,7 @@ export function formatUnexpectedRunsDiagnostic(runs: WorkflowRun[], state: Workf
       attempt: run.attempt,
       headBranch: run.headBranch,
       headSha: run.headSha,
+      event: run.event,
       url: run.url,
     })),
   })

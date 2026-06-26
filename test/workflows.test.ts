@@ -1,20 +1,21 @@
 import { describe, expect, test } from "bun:test"
 import { isoDateStringFromString, workflowRunIdFromNumber } from "../src/domain/value-objects.js"
 import { formatUnexpectedRunsDiagnostic } from "../src/discord/publish-workflow-monitor.js"
-import { findUnexpectedHistoricalRuns, type WorkflowRun, type WorkflowState } from "../src/workflows.js"
+import { findUnexpectedHistoricalRuns, selectWorkflowDispatchRuns, type WorkflowRun, type WorkflowState } from "../src/workflows.js"
 
-function run(id: number): WorkflowRun {
+function run(id: number, options: { event?: string; createdAt?: string } = {}): WorkflowRun {
   return {
     databaseId: workflowRunIdFromNumber(id),
     conclusion: "success",
     status: "completed",
     actor: { login: "Hona" },
     url: `https://github.com/anomalyco/opencode/actions/runs/${id}`,
-    createdAt: isoDateStringFromString("2026-05-01T00:00:00Z"),
+    createdAt: isoDateStringFromString(options.createdAt ?? "2026-05-01T00:00:00Z"),
     updatedAt: isoDateStringFromString("2026-05-01T00:30:00Z"),
     attempt: 1,
     headBranch: "dev",
     headSha: "abc123",
+    event: options.event ?? "workflow_dispatch",
   }
 }
 
@@ -64,8 +65,19 @@ describe("findUnexpectedHistoricalRuns", () => {
         attempt: 1,
         headBranch: "dev",
         headSha: "abc123",
+        event: "workflow_dispatch",
         url: "https://github.com/anomalyco/opencode/actions/runs/25468200151",
       }],
     })
+  })
+})
+
+describe("selectWorkflowDispatchRuns", () => {
+  test("filters an unfiltered workflow feed and sorts dispatches newest first", () => {
+    const older = run(28100000000, { createdAt: "2026-06-24T10:00:00Z" })
+    const newer = run(28200000000, { createdAt: "2026-06-25T10:00:00Z" })
+    const push = run(28300000000, { event: "push", createdAt: "2026-06-26T10:00:00Z" })
+
+    expect(selectWorkflowDispatchRuns([older, push, newer])).toEqual([newer, older])
   })
 })
