@@ -1288,6 +1288,22 @@
         "2072046615356207333"
       ],
       "postedAt": "2026-06-30T19:56:24.720Z"
+    },
+    {
+      "releaseId": 347529370,
+      "tag": "v1.17.13",
+      "name": "v1.17.13",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.13",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-01T15:19:06Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.13 released. TL;DR: Desktop tabs are now window-scoped; App gets WSL/question/composer polish; Providers fix Copilot Responses replay and OpenAI-style reasoning variants.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\nAdded\n• Added per-window Desktop identity so restored windows keep separate routes, tab stacks, recent tabs, and window state.\n• Added session tab hover previews with project, title, path, branch, and server context.\n\nChanged\n• Changed deep links and menu commands to target the last-focused window instead of a single global main window.\n• Changed WSL add-server probing to batch distro and OpenCode checks through one stricter IPC path.\n\nFixed\n• Fixed stale local storage buildup by deleting empty workspace stores and pruning old draft stores.\n\n𝗔𝗽𝗽\nAdded\n• Added a redesigned WSL add-server flow with installed distro statuses, distro catalog search, WSL install/unavailable states, and inline OpenCode install/update actions.\n• Added a minimizable question dock so pending questions can be collapsed without losing answer progress.\n• Added v2 model selector/manage-models controls with searchable provider groups, free/latest tags, and provider-level visibility toggles.\n\nChanged\n• Changed missing-session errors in the new layout to stay scoped inside the session panel with an Unknown Session tab and close-tab action.\n• Improved composer model/variant controls and context-usage tooltip alignment for the v2 layout.\n\nFixed\n• Fixed session timeline virtualization near scroll bounds by clamping out-of-range offsets before range calculation.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed OpenAI-style reasoning variants by forcing reasoning mode for OpenAI, Azure OpenAI, and Bedrock Mantle models when reasoning is supported or explicitly requested.\n• Fixed GitHub Copilot Responses replay by keeping response/item metadata in the Copilot namespace, allowing stale item IDs to be stripped before later requests.\n\n𝗨𝗜\n• Improved session markdown rendering with more natural heading/block spacing and v2 copy-button tooltips.\n• Improved inline code path detection across many more filenames and extensions, so rendered file references are recognized more reliably.\n\n𝗭𝗲𝗻\n• Updated Zen model tables for Claude Sonnet 5, MiniMax M3, and Kimi K2.7 Code, with older Claude, MiniMax, and Kimi entries moved into deprecation tables.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.12...v1.17.13"
+      ],
+      "tweetIds": [
+        "2072341309801603404"
+      ],
+      "postedAt": "2026-07-01T15:27:25.340Z"
     }
   ]
 }
