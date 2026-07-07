@@ -1320,6 +1320,22 @@
         "2074206512432689535"
       ],
       "postedAt": "2026-07-06T18:59:04.263Z"
+    },
+    {
+      "releaseId": 350399617,
+      "tag": "v1.17.15",
+      "name": "v1.17.15",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.15",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-07T15:31:38Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.15 released. TL;DR: App command palette refresh, safer session compaction, cleaner provider/config error handling, and richer model stats.\n\n𝗔𝗽𝗽\nAdded\n• Added a v2 command palette for the new layout that searches commands, files, and sessions with grouped results and keyboard navigation.\n• Added model context, provider, input, reasoning, latest, and free metadata tooltips back to the v2 model selector.\n\nChanged\n• Changed theme and color-scheme settings to apply only on selection instead of hover preview.\n\nFixed\n• Fixed contextual terminal shortcuts so Cmd/Ctrl-W can close the active terminal instead of falling through to global tab close behavior.\n• Fixed session tabs preserving known title and directory while session data reloads.\n• Fixed tab unread/attention state for pending questions, not only permission prompts and unseen messages.\n• Fixed rendered Markdown task lists so checkbox items no longer show duplicate list markers.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed compaction summaries to preserve completed/active/blocked work state plus relevant files as dedicated sections, reducing context loss after long sessions.\n• Fixed agent permission rules using ~ or $HOME for external_directory, read, and edit paths so home-relative filesystem policies match real paths.\n\n𝗖𝗼𝗿𝗲\n• Fixed config startup around OPENCODE_CONFIG_DIR: missing config dirs are created before writing .gitignore, and unreadable config dirs are ignored instead of aborting.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Z.AI GLM max-token errors being classified as generic provider failures instead of context-overflow errors.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Fixed macOS titlebar/window appearance to follow the selected app color scheme, including native frame hairline and shadow refreshes.\n• Adjusted macOS traffic-light positioning for the updated titlebar layout.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added dedicated model-detail trend sections for daily token usage and daily unique users, with interactive line/bar charts and nav anchors.\n• Redesigned model efficiency metrics to split total spend, input/output unit cost, average cost/session, average tokens/session, and cache ratio.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.14...v1.17.15"
+      ],
+      "tweetIds": [
+        "2074519127134237095"
+      ],
+      "postedAt": "2026-07-07T15:41:17.405Z"
     }
   ]
 }
