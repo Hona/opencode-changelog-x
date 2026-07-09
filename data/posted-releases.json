@@ -1336,6 +1336,22 @@
         "2074519127134237095"
       ],
       "postedAt": "2026-07-07T15:41:17.405Z"
+    },
+    {
+      "releaseId": 351318322,
+      "tag": "v1.17.16",
+      "name": "v1.17.16",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.16",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-09T06:36:00Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.16 released. TL;DR:\nApp review/file workflows get sharper, xAI/Grok behavior improves, Stats gains model comparisons, and Desktop can reveal local projects.\n\n𝗔𝗽𝗽\nAdded\n• Added a composer add menu for images/files, slash commands, context mentions, and shell commands without throwing away the current draft.\n• Added an inline file-browser tab in the session side panel, with project tree browsing, search, preview tabs, and double-click/Enter to pin files.\n• Added per-session review state so review mode and selected file survive tab switches and reloads.\n• Added a provider-connection tip on new sessions when no paid provider is connected.\n\nFixed\n• Fixed large/capped review diffs by loading the selected file patch on demand.\n• Fixed review layout sizing by reserving a minimum review-pane width instead of capping chat width to 45% of the window.\n• Fixed hidden session panes by unmounting inactive review/file-tree content instead of keeping stale invisible panes alive.\n• Fixed new-session routing across legacy and new layouts, including draft redirects and new-session shortcut behavior.\n• Fixed command palette first-open flash.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Added Reveal in Finder/File Explorer/file manager for local projects from the home project menu.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added Grok reasoning-effort variants for xAI and OpenRouter Grok models instead of suppressing them.\n• Improved xAI cache hit rate by sending stable session prompt-cache keys through the Responses API.\n• Added xAI Responses support for PDF file inputs via inline data or Files API IDs.\n• Changed prompt-cache key injection so OpenAI/xAI defaults can still be explicitly disabled.\n\n𝗖𝗼𝗿𝗲\n• Fixed the experimental file watcher so it only starts for VCS-backed project roots, avoiding watcher work in plain directories.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added model comparison pages for usage rank, token share, sessions, cost, cache ratio, context/output limits, release date, and capability flags.\n• Added a model comparison home with searchable model pair selection and related comparison cards.\n• Improved stats model pages with comparison cards and a wider peer set around the current model.\n• Updated square OpenCode avatar preview assets.\n\n𝗭𝗲𝗻\n• Documented Grok 4.5 as a Zen chat-completions model with tiered pricing above and below 200K tokens.\n\n𝗨𝗜\n• Fixed session turn changed-file summaries to use localized singular/plural counts.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.15...v1.17.16"
+      ],
+      "tweetIds": [
+        "2075110821986734553"
+      ],
+      "postedAt": "2026-07-09T06:52:28.498Z"
     }
   ]
 }
