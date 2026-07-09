@@ -1352,6 +1352,22 @@
         "2075110821986734553"
       ],
       "postedAt": "2026-07-09T06:52:28.498Z"
+    },
+    {
+      "releaseId": 351578045,
+      "tag": "v1.17.17",
+      "name": "v1.17.17",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.17",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-09T15:03:12Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.17 released. TL;DR: App new-layout polish, sub-agent row redesign, Meta/OpenAI provider tuning, and Zen 529 retries.\n\n𝗔𝗽𝗽\nAdded\n• Added a v2 unpaid model picker for the new layout, with free OpenCode models, model tooltips, keyboard navigation, and shortcuts into provider connection.\n• Added a dev-channel tabs intro card and right-side drawer with persisted dismissal state.\n\nChanged\n• Changed the dev-channel help button from a placeholder popover into an opencode.ai link opened through the platform shell.\n• Restyled the session revert dock for the new layout while preserving collapsed preview, restore actions, keyboard toggling, and composer overlap behavior.\n\nFixed\n• Fixed clipped descenders in v2 model controls by normalizing model label and button line height.\n\n𝗔𝗴𝗲𝗻𝘁\n• Changed sub-agent task rows to the v2 session design, with flatter rows, a dedicated subagent icon for idle rows, and clearer running-state color treatment.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added Meta provider routing through the OpenAI Responses endpoint.\n\nChanged\n• Changed Meta reasoning variants to expose OpenAI-style effort selection with reasoning summaries and encrypted reasoning content.\n• Changed prompt-cache key defaults to apply across OpenAI SDK-backed providers unless disabled.\n\n𝗭𝗲𝗻\n• Fixed Zen inference failover so HTTP 529 overload responses retry with the same exponential backoff path used for 429.\n• Fixed Zen streamed-error handling so 529 responses are decoded and tracked as retryable provider errors instead of falling through as normal streams.\n\n𝗨𝗜\n• Added shared v2 agent colors for review and writer agents.\n• Updated v2 dialog container sizing support for the new App model picker and drawer-backed flows.\n\nApp assets include a new 13,024,739-byte tabs intro video.\n\nBundle +12.5 MB because mostly Web UI assets +37.4 MB and Bun runtime +102.1 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.16...v1.17.17"
+      ],
+      "tweetIds": [
+        "2075235927446740996"
+      ],
+      "postedAt": "2026-07-09T15:09:35.931Z"
     }
   ]
 }
