@@ -1400,6 +1400,22 @@
         "2076708834123403323"
       ],
       "postedAt": "2026-07-13T16:42:24.363Z"
+    },
+    {
+      "releaseId": 353419214,
+      "tag": "v1.17.20",
+      "name": "v1.17.20",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.20",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-13T21:09:56Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.20 released. TL;DR: OpenAI Codex drops a stale Luna request shim; Azure/GitLab provider adapters update; Data breadcrumbs become real accessible selects.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nChanged\n• Updated the Azure provider adapter to @ai-sdk/azure 3.0.88, aligning OpenCode with the newer upstream Azure OpenAI SDK.\n• Updated the GitLab provider adapter to gitlab-ai-provider 6.11.1.\n\nFixed\n• Fixed ChatGPT Pro/Plus Codex requests by removing the stale Luna compatibility rewrite; Responses API payloads and WebSocket streams now pass through in the current shape.\n\n𝗔𝗽𝗽\n• Changed Data lab/model breadcrumbs from custom details menus to Kobalte-powered selects, improving keyboard navigation, focus handling, selected-state highlighting, and mobile sizing.\n• Fixed the Compare page breadcrumb so Compare is exposed as the current page to assistive tech.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.19...v1.17.20"
+      ],
+      "tweetIds": [
+        "2076776838693523484"
+      ],
+      "postedAt": "2026-07-13T21:12:37.885Z"
     }
   ]
 }
