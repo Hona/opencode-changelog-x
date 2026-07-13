@@ -1384,6 +1384,22 @@
         "2075293711760601473"
       ],
       "postedAt": "2026-07-09T18:59:12.789Z"
+    },
+    {
+      "releaseId": 353276745,
+      "tag": "v1.17.19",
+      "name": "v1.17.19",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.17.19",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-13T16:34:56Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.17.19 released. TL;DR:\nProvider/model routing is more accurate, App v2 workflow is smoother, Desktop/TUI local context is clearer, and stats/Zen accounting got safer.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added models.dev reasoning metadata support so variant controls can come from effort, toggle, and token-budget capabilities instead of heuristics.\n• Added OpenAI pro reasoning mode mapping for catalog modes that expose reasoning.mode.\n\nChanged\n• Updated OpenAI OAuth/Codex handling for GPT-5.6 Sol, Terra, and Luna limits plus Luna Responses Lite request framing.\n\nFixed\n• Fixed gateway reasoning variants for custom Anthropic and Google aliases by routing from upstream API IDs.\n• Fixed xAI Responses defaults to opt out of provider-side storage while keeping prompt-cache keys.\n• Fixed unsupported OpenAI OAuth aliases and ChatGPT-incompatible pro variants from appearing in OAuth model lists.\n\n𝗔𝗽𝗽\nAdded\n• Added per-draft composer model selection, including model and variant persistence when a draft is promoted into a session.\n• Added v2 attachment and comment cards in the composer and timeline, with inline review-comment chips and file-type labels.\n• Added local Open In App controls in the v2 review/file panel for installed editors, terminals, file manager, and path copy.\n\nChanged\n• Changed v2 review/file tabs to keep the file browser mounted across tab switches, preserving sidebar scroll and search state.\n• Updated edit-project to the v2 dialog style with icon upload, color controls, and startup command editing.\n\nFixed\n• Fixed context usage token totals to reflect the current context window from the latest assistant message.\n• Fixed new-session composer focus and state transitions during session creation.\n\n𝗗𝗲𝘀𝗸𝘁𝗼𝗽\n• Added a reveal-path bridge so local attachments can open in the system file manager when the original path exists.\n\n𝗧𝗨𝗜\n• Added an idle-session directory hint in the prompt footer.\n• Fixed TUI worker launches to forward the parent environment into the server worker.\n\n𝗖𝗼𝗿𝗲\n• Changed fff-backed file search to disable unused mmap and content-index caches, reducing background cache overhead.\n\n𝗭𝗲𝗻\n• Added GPT 5.6 Sol, Terra, and Luna model/pricing entries for Zen.\n• Fixed OpenAI cache-write token accounting so Responses usage can track prompt-cache writes.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added public model comparison pages with model picker details, comparison cards, radar visuals, canonical URLs, and sitemap entries.\n• Fixed comparison browsing polish around sticky headers, breadcrumbs, overscroll, and native trackpad scrolling.\n\n𝗜𝗻𝗳𝗿𝗮\n• Changed stats sync to use one Athena grouping-sets query, hourly incremental passes, daily full refreshes, and delayed restart scheduling to reduce scan cost and crash-loop churn.\n• Fixed stats sync OOM risk by increasing service memory and accumulating Athena result pages iteratively.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.18...v1.17.19"
+      ],
+      "tweetIds": [
+        "2076708834123403323"
+      ],
+      "postedAt": "2026-07-13T16:42:24.363Z"
     }
   ]
 }
