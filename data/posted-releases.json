@@ -1416,6 +1416,22 @@
         "2076776838693523484"
       ],
       "postedAt": "2026-07-13T21:12:37.885Z"
+    },
+    {
+      "releaseId": 354044580,
+      "tag": "v1.18.0",
+      "name": "v1.18.0",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.0",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-14T20:29:48Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.0 released. TL;DR: fresh desktop installs move to v2; Home removes per-project request fan-out; permissions become server-scoped; timeline and focus regressions are fixed.\n\n𝗔𝗽𝗽\nChanged\n• Changed fresh desktop installs to use the tab-based v2 interface by default; existing installs retain an interface switch until September 14, 2026.\n• Improved Home cold loading with one paginated, server-wide v2 session index kept current by live session events.\n• Increased initial timeline loading from 2 to 20 messages while retaining 200-message history pages.\n• Improved file comments in session prompts with wider in-message cards, truncation tooltips, and five-item collapsing.\n\nFixed\n• Fixed permission auto-accept for remote, background, and child sessions, with independent state per server and submissions bound to their originating server.\n• Fixed timeline scroll resynchronization after route reconnects and bottom anchoring during consecutive content resizes.\n• Fixed cached terminal mounts stealing composer focus while preserving explicit focus for terminal tabs and newly created terminals.\n• Fixed composer caret position after request dialogs blur and refocus the editor.\n• Fixed project-selector positioning crashes by waiting for its popover anchor to connect.\n• Fixed status severity: server failures are red, MCP/LSP issues are warnings, healthy is green, and initialization is neutral.\n\n𝗗𝗮𝘁𝗮\n• Expanded the model-comparison picker from the first 120 entries to the full catalog.\n• Improved comparison discovery by proxying /data/sitemap.xml through Console and normalizing comparison titles, descriptions, and canonical metadata.\n\n𝗨𝗜\n• Fixed Markdown inline-code spans adjacent to tilde or backtick runs being parsed incorrectly.\n\nBundle -10.8 MB because mostly Web UI assets -32.2 MB and Bun runtime -86.7 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.17.20...v1.18.0"
+      ],
+      "tweetIds": [
+        "2077129643535073386"
+      ],
+      "postedAt": "2026-07-14T20:34:33.066Z"
     }
   ]
 }
