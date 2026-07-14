@@ -1432,6 +1432,22 @@
         "2077129643535073386"
       ],
       "postedAt": "2026-07-14T20:34:33.066Z"
+    },
+    {
+      "releaseId": 354075977,
+      "tag": "v1.18.1",
+      "name": "v1.18.1",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.1",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-14T21:37:54Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.1 released. TL;DR:\nApp diffs now honor theme backgrounds, and model-provider groups render with correct spacing.\n\n𝗔𝗽𝗽\n• Fixed diff views falling back to black/white instead of inheriting the active theme background.\n• Fixed missing spacing between provider groups in the model-management dialog.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.0...v1.18.1"
+      ],
+      "tweetIds": [
+        "2077147088958206252"
+      ],
+      "postedAt": "2026-07-14T21:43:52.323Z"
     }
   ]
 }
