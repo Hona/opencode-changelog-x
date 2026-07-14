@@ -349,6 +349,7 @@ Rules:
 - The post must start exactly with "${firstTweetPrefix}".
 - The first line should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
 - After the first line, structure the body as product sections using the taxonomy above.
+- Section order: If present, TUI and App must be the first product headings. Order TUI and App by your perceived importance. Order all remaining product headings by your perceived importance.
 - Inside each product section, only use action subsections when the section has 3+ bullets and at least two distinct action groups.
 - Action subsections must be one of: Added, Changed, Fixed, Removed.
 - If a product section has one or two bullets, do not use action subsections. Put bullets directly under the product heading.

@@ -25,4 +25,13 @@ describe("generation prompt taxonomy", () => {
     expect(prompt).not.toContain("𝗗𝗲𝘀𝗸𝘁𝗼𝗽")
     expect(prompt).toContain("use Data instead of Console for OpenCode Data and stats changes")
   })
+
+  test("prioritizes TUI and App headings before all others", () => {
+    const prompt = buildGenerationPrompt(range)
+
+    expect(prompt).toContain("If present, TUI and App must be the first product headings")
+    expect(prompt).toContain("Order TUI and App by your perceived importance")
+    expect(prompt).toContain("Order all remaining product headings by your perceived importance")
+    expect(prompt).not.toContain("TUI must be the first product heading")
+  })
 })
