@@ -230,10 +230,10 @@ OpenCode runtime
 - Sync: sync schema, sync events, and cross-instance synchronization.
 
 Product surfaces
-- App: local browser app UI and renderer behavior used outside the Electron shell.
-- Desktop: Electron shell, native menu, windows, sidecar, updater, desktop packaging, app icons, and preload/main process behavior.
+- App: local browser UI, Electron desktop shell, native menus and windows, sidecars, updater, desktop packaging, app icons, preload/main processes, and desktop-specific platform integrations.
 - Console: hosted console app, console API, console resources, workspace routes, auth routes, billing routes, and cloud console functions.
 - Zen: Zen-specific console routes, Zen onboarding, Zen billing, Zen sharing, Zen branding, and Zen-specific enterprise flows.
+- Data: OpenCode Data and the stats site, model rankings and comparisons, usage and cost analytics, data ingestion and sync, stats storage, and data-specific infrastructure.
 - Enterprise: enterprise package, enterprise web routes, enterprise sharing, team features, and enterprise storage.
 
 Developer surfaces
@@ -255,9 +255,9 @@ Rules for sections:
 - Never make compound headings. Do not use "&", "/", commas, or "and" in a heading.
 - If two areas changed, create two sections. If a change spans two areas, place it under the area users will notice first.
 - Omit empty sections instead of merging them into a broad bucket.
-- Prefer the most specific accurate section: use TUI instead of CLI for terminal UI changes, Zen instead of Console for Zen-only changes, and VS Code or Zed for editor-extension changes.`;
+- Prefer the most specific accurate section: use TUI instead of CLI for terminal UI changes, use Data instead of Console for OpenCode Data and stats changes, use Zen instead of Console for Zen-only changes, and use VS Code or Zed for editor-extension changes.`;
 
-function buildGenerationPrompt(range: ReleaseRange) {
+export function buildGenerationPrompt(range: ReleaseRange) {
     const firstTweetPrefix = getExpectedFirstPrefix(range);
     const displayRange = getDisplayRange(range);
     const gitRange = getGitRange(range);
@@ -289,7 +289,7 @@ Prioritize:
 - fixes with clear behavior changes
 - notable architecture or plugin-system changes
 - provider/model/tooling changes
-- TUI, Desktop, App, Console, and Zen changes with concrete code backing
+- TUI, App, Console, Zen, and Data changes with concrete code backing
 
 Deprioritize:
 - docs/tests/chore-only changes
@@ -322,7 +322,7 @@ Rules:
   CLI -> 𝗖𝗟𝗜
   Console -> 𝗖𝗼𝗻𝘀𝗼𝗹𝗲
   Core -> 𝗖𝗼𝗿𝗲
-  Desktop -> 𝗗𝗲𝘀𝗸𝘁𝗼𝗽
+  Data -> 𝗗𝗮𝘁𝗮
   Docs -> 𝗗𝗼𝗰𝘀
   Enterprise -> 𝗘𝗻𝘁𝗲𝗿𝗽𝗿𝗶𝘀𝗲
   GitHub -> 𝗚𝗶𝘁𝗛𝘂𝗯
@@ -422,14 +422,15 @@ Compare: https://github.com/anomalyco/opencode/compare/v1.14.20...v1.14.21
 
 <example>
 ${STYLED_OPENCODE} v1.14.22 released. TL;DR:
-Desktop startup is safer, App session loading is faster, and provider auth is easier to debug.
-
-𝗗𝗲𝘀𝗸𝘁𝗼𝗽
-• Fixed startup recovery when the sidecar exits before the first window opens.
-• Added an Export Logs action that collects app, server, crash, and netlog files into Downloads.
+App startup is safer, session loading is faster, and provider auth is easier to debug.
 
 𝗔𝗽𝗽
-• Improved recent-session loading by reusing per-directory sync context.
+Added
+• Added an Export Logs action that collects app, server, crash, and netlog files into Downloads.
+
+Fixed
+• Fixed startup recovery when the sidecar exits before the first window opens.
+• Fixed slow recent-session loading by reusing per-directory sync context.
 • Fixed custom providers appearing stale after config updates.
 
 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀
