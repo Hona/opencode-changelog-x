@@ -1448,6 +1448,22 @@
         "2077147088958206252"
       ],
       "postedAt": "2026-07-14T21:43:52.323Z"
+    },
+    {
+      "releaseId": 354544728,
+      "tag": "v1.18.2",
+      "name": "v1.18.2",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.2",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-15T16:15:38Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.2 released. TL;DR:\nDesktop navigation and session visibility improve; subagent recursion is bounded and configurable; Meta defaults to xhigh reasoning; Windows directory creation is more resilient.\n\n𝗔𝗽𝗽\nAdded\n• Added Cmd/Ctrl+N as an alternate new-tab shortcut alongside Cmd/Ctrl+T.\n• Restored the Help button in release builds.\n\nFixed\n• Fixed active sessions with a null archive timestamp disappearing from the Home session list.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added configurable subagent nesting limits via subagent_depth: default 1 blocks subagents from launching more subagents, 0 blocks all launches, and higher values opt into deeper nesting.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed Meta models using the OpenAI-compatible adapter from high to xhigh default reasoning effort.\n\n𝗖𝗼𝗿𝗲\n• Fixed recursive directory creation on Windows when Bun spuriously reports an existing target, avoiding false filesystem failures.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added a localized, dismissible desktop-tabs announcement with a direct path to downloads.\n• Updated the desktop download page with an autoplaying tabs demo and removed Beta wording from the desktop section.\n\n𝗦𝗗𝗞\n• Added subagent_depth to OpenAPI and generated JavaScript SDK config types.\n\nConsole static assets grew by 14.9 MB due to the desktop tabs promo video.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.1...v1.18.2"
+      ],
+      "tweetIds": [
+        "2077430065088938408"
+      ],
+      "postedAt": "2026-07-15T16:28:19.167Z"
     }
   ]
 }
