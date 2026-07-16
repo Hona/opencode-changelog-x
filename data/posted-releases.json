@@ -1464,6 +1464,22 @@
         "2077430065088938408"
       ],
       "postedAt": "2026-07-15T16:28:19.167Z"
+    },
+    {
+      "releaseId": 355168624,
+      "tag": "v1.18.3",
+      "name": "v1.18.3",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.3",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-16T15:34:33Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.3 released. TL;DR: Home gets session search in Cmd/Ctrl+K; home scrolling is corrected; custom-agent and WSL startup state is fixed; TUI subagent navigation is smoother.\n\n𝗔𝗽𝗽\nAdded\n• Added a Home-specific Cmd/Ctrl+K palette that searches commands and sessions across projects, opens sessions in tabs, and marks already-open sessions.\n\nChanged\n• Changed palette routing to follow the active screen; Cmd/Ctrl+Shift+P remains supported, while Cmd/Ctrl+P opens files in sessions.\n\nFixed\n• Fixed home-page scroll targeting with one synchronized viewport, sticky controls and correctly mapped scrollbar behavior.\n• Fixed desktop initialization to wait for WSL server discovery before marking the app ready.\n• Restored the agent selector and cycling shortcuts whenever custom agents are detected; hidden-agent mode defaults to Build.\n\nRemoved\n• Removed the inactive floating help button.\n\n𝗧𝗨𝗜\n• Fixed Up from the first item in the direct subagent selector to close the menu.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.2...v1.18.3"
+      ],
+      "tweetIds": [
+        "2077780920489373761"
+      ],
+      "postedAt": "2026-07-16T15:42:29.548Z"
     }
   ]
 }
