@@ -1480,6 +1480,22 @@
         "2077780920489373761"
       ],
       "postedAt": "2026-07-16T15:42:29.548Z"
+    },
+    {
+      "releaseId": 356798299,
+      "tag": "v1.18.4",
+      "name": "v1.18.4",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.4",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-20T15:28:21Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.4 released. TL;DR:\nApp gets a shared v2 composer and live diff tabs; Kimi reasoning and provider edge cases are fixed; Zen Go adds OpenAI Responses compatibility; Windows and Nix integration improve.\n\n𝗔𝗽𝗽\nChanged\n• Rebuilt the new-layout composer on shared session UI state, covering structured mentions, command/context menus, shell mode, attachments, comments, history, and model controls.\n• Redesigned provider onboarding with search, keyboard navigation, direct API-key flows, custom OpenAI-compatible providers, and a compact free-model selector.\n• Improved review file tabs with live diffs, lazy detail loading, revision tracking, bounded file navigation, and double-click sidebar width reset.\n• Updated embedded terminals to report App light/dark mode and preserve color-scheme reporting across restore and reconnect.\n\nFixed\n• Fixed @mentions completing at the actual cursor and remaining structured during paste.\n• Fixed built-in command selection so it preserves existing prompt drafts.\n• Fixed attachment-only and comment-only submissions emitting empty text parts.\n• Fixed missing or deleted parent messages discarding already-loaded assistant history.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added adaptive Kimi thinking on Anthropic-compatible transports, with summarized reasoning, high default effort, and low through max variants.\n\nChanged\n• Changed reasoning variants to honor explicit provider effort metadata and suppress unsupported controls instead of inventing heuristic fallbacks.\n\nFixed\n• Fixed Azure Cognitive Services non-deployment endpoints to use /openai/v1 while preserving deployment-based URLs.\n• Fixed OpenAI requests with delayed response headers by increasing the default timeout from 10 seconds to 5 minutes; configuration can still override or disable it.\n\n𝗭𝗲𝗻\n• Added an OpenAI Responses-compatible endpoint for OpenCode Go’s lite model catalog, including streaming and reasoning variants.\n• Updated the Go catalog for Grok 4.5 and Kimi K3, with Kimi K3 usage weighted at 2x across rolling, weekly, and monthly quotas.\n\n𝗟𝗟𝗠\n• Improved context-overflow detection for request-too-large and token-limit responses while excluding throttling, rate-limit, and too-many-requests errors.\n\n𝗖𝗼𝗿𝗲\n• Changed Windows PTY spawning to use the bundled ConPTY DLL backend.\n\n𝗗𝗮𝘁𝗮\n• Fixed incomplete comparison radar charts to close missing axes at zero and improved comparison layouts for long model names and wide screens.\n\n𝗥𝗲𝗹𝗲𝗮𝘀𝗲\n• Restored Nix Linux desktop integration with launcher metadata, application icons, and AppStream metadata.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.3...v1.18.4"
+      ],
+      "tweetIds": [
+        "2079230069352829253"
+      ],
+      "postedAt": "2026-07-20T15:40:53.645Z"
     }
   ]
 }
