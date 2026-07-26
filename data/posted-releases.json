@@ -1496,6 +1496,22 @@
         "2079230069352829253"
       ],
       "postedAt": "2026-07-20T15:40:53.645Z"
+    },
+    {
+      "releaseId": 359564426,
+      "tag": "v1.18.5",
+      "name": "v1.18.5",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.5",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-24T22:18:16Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.5 released. TL;DR:\nApp gains legacy/current server interoperability; session events and PTYs render end-to-end; Mistral/Claude reasoning is corrected; Zen and Go expand models.\n\n𝗔𝗽𝗽\nAdded\n• Added protocol detection and compatibility routing for legacy and current servers across projects, sessions, provider auth, MCP, permissions, VCS, files, and PTYs.\n• Added current-session projection for user, assistant, shell, tool, retry, and compaction events, including coalesced streaming deltas.\n• Added current /api/pty WebSocket tickets, lifecycle handling, and dual-endpoint desktop health checks.\n• Added drag reordering for project rows.\n\nFixed\n• Fixed paginated timelines so assistant-only pages recover their parent user turn and retain chronological order.\n• Fixed optimistic turns disappearing before durable protocol events arrive.\n• Fixed inline file mentions being misclassified as ordinary data-URL attachments.\n• Fixed nested slash-command autocomplete.\n• Fixed protocol state leaking into unsupported layouts and legacy-only provider/plugin behavior.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed adaptive-thinking detection for Claude 4.7+, 5.x, and unversioned future IDs across Anthropic, Vertex, Bedrock, and SAP transports; Opus 4.5 effort variants now retain explicit thinking budgets.\n• Fixed prompt-cache and provider-option routing by SDK namespace instead of provider alias, including snake_case cache APIs and automatic gateway caching.\n• Fixed MiniMax M3 thinking controls on NVIDIA and Lilac transports.\n• Fixed Mistral-family tool-call ID normalization for Codestral, Pixtral, and Mixtral models.\n\n𝗟𝗟𝗠\n• Fixed Mistral multi-turn reasoning by preserving structured thinking, tool/reference chunks, signatures, and prompt-cache keys through streaming and history replay.\n\n𝗭𝗲𝗻\n• Added Claude Opus 5, Gemini 3.6 Flash, Gemini 3.5 Flash Lite, Laguna S 2.1 Free, and Ling 3.0 Flash Free.\n• Added workspace and provider-specific upstream blocks that reject affected Anthropic or OpenAI requests before dispatch.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed grep results through symlinked directories to preserve the caller-visible alias path instead of exposing the resolved target.\n• Changed Muse Spark instructions toward evidence-based verification, precise source references, and objective output instead of mandatory task-tracking workflows.\n\n𝗖𝗟𝗜\n• Fixed session imports to distinguish missing files, permission failures, and malformed JSON instead of reporting every read failure as file-not-found.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added Hy3 to OpenCode Go through the opencode-go/hy3 chat-completions model.\n• Removed the desktop promotional overlay.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.4...v1.18.5"
+      ],
+      "tweetIds": [
+        "2081482969001136294"
+      ],
+      "postedAt": "2026-07-26T20:53:06.752Z"
     }
   ]
 }
