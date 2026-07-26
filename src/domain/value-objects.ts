@@ -33,9 +33,13 @@ export function workflowRunIdFromNumber(value: unknown): WorkflowRunId {
   return positiveInteger(value, "Workflow run id") as WorkflowRunId
 }
 
+export function isReleaseTag(value: unknown): value is string {
+  return typeof value === "string" && /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(value.trim())
+}
+
 export function releaseTagFromString(value: unknown): ReleaseTag {
   const tag = nonEmptyString(value, "Release tag")
-  if (!/^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(tag)) {
+  if (!isReleaseTag(tag)) {
     throw new Error(`Release tag must be a semver tag: ${tag}`)
   }
   return tag as ReleaseTag

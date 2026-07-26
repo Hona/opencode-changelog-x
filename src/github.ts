@@ -2,6 +2,7 @@ import { Context, Effect, Layer, Schema } from "effect"
 import { z } from "zod"
 import type { AppConfig } from "./config.js"
 import { compareReleaseOrder, createGithubRelease, type GithubRelease } from "./domain/releases.js"
+import { isReleaseTag } from "./domain/value-objects.js"
 import { GithubCli, type GithubCliService } from "./integrations/github-cli.js"
 import { RuntimeConfig } from "./runtime-config.js"
 
@@ -73,7 +74,10 @@ export class GithubReleases extends Context.Service<GithubReleases, {
       const latest = Effect.fn("GithubReleases.latest")(function* () {
         for (let page = 1; ; page += 1) {
           const releases = yield* fetchReleasesPageEffect(config, github, page)
-          const latest = releases.map(mapRelease).find((release) => isEligibleRelease(config, release))
+          const latest = releases
+            .filter((release) => isReleaseTag(release.tag_name))
+            .map(mapRelease)
+            .find((release) => isEligibleRelease(config, release))
 
           if (latest) return latest
           if (releases.length < config.githubReleaseLimit) return null
@@ -91,6 +95,7 @@ export class GithubReleases extends Context.Service<GithubReleases, {
         }
 
         return payload
+          .filter((release) => isReleaseTag(release.tag_name))
           .map(mapRelease)
           .filter((release) => isEligibleRelease(config, release))
           .sort(compareReleaseOrder)
