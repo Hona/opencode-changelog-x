@@ -1512,6 +1512,22 @@
         "2081482969001136294"
       ],
       "postedAt": "2026-07-26T20:53:06.752Z"
+    },
+    {
+      "releaseId": 360175138,
+      "tag": "v1.18.6",
+      "name": "v1.18.6",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.6",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-27T02:47:44Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.6 released. TL;DR:\nApp v1 provider/MCP refresh is fixed, v2 client compatibility is stabilized, and remote reference caches are branch-isolated.\n\n𝗔𝗽𝗽\nChanged\n• Pinned the App and session UI to a versioned @opencode-ai/client v2 snapshot, isolating dual-protocol support from generated-client drift.\n\nFixed\n• Fixed v1 provider and model catalogs remaining stale after API-key or OAuth authentication, including project-scoped availability.\n• Fixed v1 MCP bootstrap so server statuses and resources refresh through legacy endpoints.\n• Fixed v2 terminal attachment when connect tickets are unavailable by allowing direct WebSocket connections.\n• Fixed v2 tool-call status, metadata, output, attachments, and errors rendering against the updated event contract.\n\n𝗖𝗼𝗿𝗲\n• Fixed remote reference caching so branch-specific checkouts stay isolated; refreshing one branch no longer moves or overwrites another, and stale checkouts self-heal.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.5...v1.18.6"
+      ],
+      "tweetIds": [
+        "2081574110975451559"
+      ],
+      "postedAt": "2026-07-27T02:55:16.722Z"
     }
   ]
 }
