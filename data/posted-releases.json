@@ -1560,6 +1560,22 @@
         "2081988137606127970"
       ],
       "postedAt": "2026-07-28T06:20:28.352Z"
+    },
+    {
+      "releaseId": 361269996,
+      "tag": "v1.18.9",
+      "name": "v1.18.9",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.9",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-28T18:15:01Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.9 released. TL;DR: MCP 1.x compatibility returns; App navigation and project reordering are more stable; model settings gain persistent collapsible providers.\n\n𝗔𝗽𝗽\nAdded\n• Added collapsible provider groups to model settings, persisted per server; searches temporarily expand all groups.\n• Added a development-build-only v2 desktop runtime behind OPENCODE_SIDECAR_V2=1, connecting the App to a reusable authenticated background CLI service.\n\nFixed\n• Fixed route-transition crashes caused by reentrant Solid cleanup.\n• Fixed project drag-and-drop autoscroll by preserving the core scroll plugins.\n• Fixed home-session loading so only list-dependent UI suspends instead of blocking the whole home page.\n\n𝗠𝗖𝗣\nChanged\n• Restored MCP 1.x ecosystem compatibility by returning to the stable SDK while retaining paginated catalogs, output validation, and expired HTTP-session recovery.\n• Improved opencode mcp debug with raw initialization probes, HTTP and WWW-Authenticate details, and OAuth discovery checks that do not complete authorization.\n\nFixed\n• Fixed tool discovery for servers with unresolved output-schema references by ignoring only the invalid output schema instead of rejecting the server.\n• Fixed refresh-token OAuth flows to request offline_access only when the authorization server advertises support.\n\n𝗦𝗗𝗞\n• Removed the optional iss field from generated MCP OAuth callback requests; callbacks now submit only the authorization code.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.8...v1.18.9"
+      ],
+      "tweetIds": [
+        "2082169824453759484"
+      ],
+      "postedAt": "2026-07-28T18:22:25.838Z"
     }
   ]
 }
