@@ -1544,6 +1544,22 @@
         "2081644934843543903"
       ],
       "postedAt": "2026-07-27T07:36:42.420Z"
+    },
+    {
+      "releaseId": 360858647,
+      "tag": "v1.18.8",
+      "name": "v1.18.8",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.8",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-28T06:07:54Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.8 released. TL;DR: App navigation and stability improve; MCP moves to its v2 client with expired-session recovery; Gemini request compatibility improves.\n\n𝗔𝗽𝗽\nAdded\n• Added Cmd/Ctrl+Shift+O to open the project selector from the new-session view.\n• Added AppStream metadata to Linux DEB/RPM packages for correct software-center identification.\n\nChanged\n• Changed the status indicator to blue when MCP authentication or client registration needs user action, separating it from generic service warnings.\n\nFixed\n• Fixed tab cycling and numbered shortcuts to follow visible tab order while unresolved sessions load.\n• Fixed tab drag reordering to preserve hidden or unresolved tabs.\n• Fixed Windows file-tree folders with backslash or trailing separators failing to expand and open nested files.\n• Fixed freezes when closing projects from the home view.\n• Fixed review and file side-panel loading from suspending the entire session view.\n• Fixed provider lists remaining stale across projects after a new connection completes.\n\n𝗠𝗖𝗣\nChanged\n• Moved transport and catalog handling to the v2 client SDK with automatic protocol-version negotiation and native paginated discovery.\n• Extended OAuth callbacks and persisted credentials with issuer and registration metadata, including optional iss support in the server API and JS SDK.\n\nFixed\n• Fixed expired Streamable HTTP sessions by clearing stale IDs, re-handshaking once, and retrying affected requests; concurrent failures share recovery.\n• Fixed opencode mcp debug to honor callbackPort and test the actual SDK connection path.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Gemini requests by omitting deprecated temperature, top-p, and top-k defaults for newer models; configured aliases now use the upstream API model ID for compatibility decisions.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed the built-in customization skill to use environment rather than unsupported env for local MCP environment variables.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Fixed Safari repaint instability on brand asset download controls.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.7...v1.18.8"
+      ],
+      "tweetIds": [
+        "2081988137606127970"
+      ],
+      "postedAt": "2026-07-28T06:20:28.352Z"
     }
   ]
 }
