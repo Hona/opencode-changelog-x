@@ -1576,6 +1576,22 @@
         "2082169824453759484"
       ],
       "postedAt": "2026-07-28T18:22:25.838Z"
+    },
+    {
+      "releaseId": 362488900,
+      "tag": "v1.18.10",
+      "name": "v1.18.10",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.10",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-07-30T14:43:53Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.10 released. TL;DR:\nApp recovery and composer UX are safer, Modal models are discovered dynamically, and model catalogs now use OpenCode-hosted endpoints.\n\n𝗔𝗽𝗽\nFixed\n• Fixed startup with malformed persisted tabs by discarding invalid entries and upgrading valid legacy tabs.\n• Fixed duplicate file and clipboard attachments while still accepting changed files from the same path.\n• Restored the agent picker for existing profiles while keeping it hidden by default on fresh installs.\n• Fixed model variant controls appearing before model metadata finishes loading.\n\nChanged\n• Kept the New Session button visible while composing another new session.\n• Changed review navigation to Left/Right arrows with wraparound between the first and last files.\n• Changed V2 notifications to stack, support swipe-down dismissal, and coalesce exact repeated toasts.\n• Added scroll-position-aware edge fades to attachment strips and review file trees.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added authenticated discovery of Modal workspace models, including capabilities, pricing, limits, and reasoning variants.\n• Changed the runtime model catalog source to models.opencode.ai.\n\n𝗗𝗮𝘁𝗮\n• Changed stats model catalog, pricing, and lab data to OpenCode-hosted endpoints.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Fixed Cloudflare compatibility for server-side fetches to public endpoints.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.9...v1.18.10"
+      ],
+      "tweetIds": [
+        "2082840609820139730"
+      ],
+      "postedAt": "2026-07-30T14:47:53.552Z"
     }
   ]
 }
