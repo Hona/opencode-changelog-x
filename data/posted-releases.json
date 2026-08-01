@@ -1592,6 +1592,22 @@
         "2082840609820139730"
       ],
       "postedAt": "2026-07-30T14:47:53.552Z"
+    },
+    {
+      "releaseId": 363507340,
+      "tag": "v1.18.11",
+      "name": "v1.18.11",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.11",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-01T11:44:45Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.11 released. TL;DR: desktop links use system apps; Go adds GPT 5.6 Luna; MCP SSE retry loops stop; custom reasoning fields broaden.\n\n𝗔𝗽𝗽\n• Fixed desktop link routing: HTTP(S) and mail links open in system apps, terminal file URLs open locally, and unsupported schemes are blocked.\n• Fixed prompt agent, model, and variant selectors retaining stale state.\n• Fixed session tabs, header controls, and new-session status views retaining stale session state.\n• Fixed the legacy directory picker opening at the project directory before home metadata loaded.\n• Fixed file-tree tab clipping by enforcing a 240px minimum panel width.\n• Fixed notification clicks to navigate through the active app router instead of a shared global handler.\n\n𝗭𝗲𝗻\nAdded\n• Added GPT 5.6 Luna to OpenCode Go's surfaced model lineup, endpoint metadata, and 2x promotional usage limits.\n• Added per-model Go data-policy disclosures instead of a blanket zero-retention claim, including retention and training-use exceptions.\n\nChanged\n• Changed DeepSeek V4 Flash on Go to require explicit opt-in to China-hosted providers, with the workspace toggle now exposed.\n• Updated published GPT 5.6 pricing: Terra token rates drop 20% and Luna rates drop 80% across input, output, and cache tiers.\n\nFixed\n• Restored the requests-per-5-hour graph axis and grid for readable quota comparisons.\n\n𝗠𝗖𝗣\n• Fixed Streamable HTTP/SSE clients reconnecting after JSON-RPC error responses; errors now count as completed responses instead of triggering retry loops.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added shorthand strings and arbitrary field names for interleaved reasoning metadata, including reasoning_text, so custom providers can expose vendor-specific reasoning streams.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.10...v1.18.11"
+      ],
+      "tweetIds": [
+        "2083522006436200931"
+      ],
+      "postedAt": "2026-08-01T11:55:31.136Z"
     }
   ]
 }
