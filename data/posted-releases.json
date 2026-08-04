@@ -1608,6 +1608,22 @@
         "2083522006436200931"
       ],
       "postedAt": "2026-08-01T11:55:31.136Z"
+    },
+    {
+      "releaseId": 364554470,
+      "tag": "v1.18.12",
+      "name": "v1.18.12",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.12",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-04T00:55:29Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.12 released. TL;DR: Buffered blob drafts fix composer lag; diff review is sharper; Azure GPT-5.5+ completion requests stop failing; Gemini reasoning usage is counted.\n\n𝗔𝗽𝗽\nChanged\n• Changed prompt drafts/history to async IndexedDB on web and buffered SQLite on desktop, storing images as deduplicated blobs and migrating legacy data URLs.\n• Improved diff review with semantic add/delete colors, tighter gutters, click-to-deselect ranges, stable comment highlights, and cleared selections after comment submission or cancellation.\n\nFixed\n• Fixed Open Project search so every known project remains discoverable while the idle recent list stays capped at five.\n• Fixed stale turn errors lingering after generation successfully resumes.\n• Fixed protocol-v2 bootstrap to stop calling legacy global and project config endpoints.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Azure OpenAI completion-mode requests for GPT-5.5+ by omitting unsupported reasoningEffort while preserving it for Responses API requests.\n\n𝗭𝗲𝗻\nAdded\n• Added Qwen3.8 Max to OpenCode Go's model and Lite-plan listings, with its Anthropic-compatible endpoint, limits, pricing, and retention documented.\n\nChanged\n• Updated DeepSeek V4 Flash's Go privacy status to no training and zero-day retention under its renewed monthly ZDR agreement.\n\nFixed\n• Fixed Gemini usage accounting so reasoning tokens contribute to output-token and cost totals.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Changed referral summaries to temporarily hide reward history during the indexed-query rollout, preventing slow reward joins.\n• Added referral-reward and Lite-subscription indexes for faster lookups, with Lite subscription IDs now unique.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.11...v1.18.12"
+      ],
+      "tweetIds": [
+        "2084445335259361472"
+      ],
+      "postedAt": "2026-08-04T01:04:29.895Z"
     }
   ]
 }
