@@ -1624,6 +1624,22 @@
         "2084445335259361472"
       ],
       "postedAt": "2026-08-04T01:04:29.895Z"
+    },
+    {
+      "releaseId": 364830710,
+      "tag": "v1.18.13",
+      "name": "v1.18.13",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.13",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-04T12:12:32Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.13 released. TL;DR:\nApp adds 10 locales plus RTL/plural support; Markdown work moves off the UI thread; GitHub Actions gain explicit PR identity; referral and geo usage displays are corrected.\n\n𝗔𝗽𝗽\nAdded\n• Added Hindi, Dutch, Indonesian, Vietnamese, Italian, Urdu, Punjabi, Azerbaijani, Finnish, and Swedish locales.\n• Added initial RTL layout support for Arabic, Urdu, and Punjabi.\n• Added locale-native plural selection for queued/reverted prompts, changed files, and tool-context counts.\n\nChanged\n• Moved Markdown parsing, streaming projection, and syntax highlighting into a worker, reducing main-thread work during long and streaming responses.\n• Expanded localization across app copy and desktop-native menus, pickers, updater/recovery dialogs, WSL states, errors, and accessibility labels.\n\nFixed\n• Fixed mirrored navigation, review arrows, resize handles, title bars, toasts, and attachment controls in RTL layouts while keeping code, terminals, and paths LTR.\n• Fixed blank session titles with New session and Child session fallbacks derived from creation time.\n\n𝗚𝗶𝘁𝗛𝘂𝗯\n• Added PR number and canonical URL to agent context so automation can unambiguously identify the pull request it is handling.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Restored referral reward history and accurate pending, available, and applied states after a query workaround hid reward rows.\n\n𝗗𝗮𝘁𝗮\n• Fixed zero-token countries being highlighted on home and per-model usage maps.\n\n𝗗𝗼𝗰𝘀\n• Added Poolside setup for hosted connections and custom OpenAI-compatible deployments.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.12...v1.18.13"
+      ],
+      "tweetIds": [
+        "2084614324191137975"
+      ],
+      "postedAt": "2026-08-04T12:15:59.982Z"
     }
   ]
 }
