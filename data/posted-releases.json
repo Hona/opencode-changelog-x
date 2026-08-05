@@ -1640,6 +1640,22 @@
         "2084614324191137975"
       ],
       "postedAt": "2026-08-04T12:15:59.982Z"
+    },
+    {
+      "releaseId": 365794547,
+      "tag": "v1.18.14",
+      "name": "v1.18.14",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.14",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-05T20:58:55Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.14 released. TL;DR:\nRetries cover more transient provider failures; ACP flushes updates before end_turn; App tool progress stays visible; xAI login and remote workspace routing are simplified.\n\n𝗔𝗽𝗽\n• Restored subtitles and arguments for pending tool calls, exposing operation details before completion.\n• Changed deletion-only edit and patch results to start collapsed while mixed changes remain expanded.\n\n𝗔𝗴𝗲𝗻𝘁\n• Expanded automatic retries for transient failures surfaced only in error text or response bodies, including rate limits, 5xx/524 responses, timeouts, and network failures.\n\n𝗟𝗟𝗠\n• Preserved structured OpenAI-compatible stream errors instead of reducing them to message text, allowing midstream server failures to be classified and retried.\n\n𝗔𝗖𝗣\n• Fixed ACP turn completion to wait for session idle and deliver queued updates before returning end_turn.\n• Fixed ACP context usage accounting to include cache-write tokens alongside input and cache-read tokens.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed SuperGrok OAuth to one device-code flow for local and headless environments, removing the duplicate loopback callback option.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Fixed remote workspace routing by stripping host directory paths before proxying, so sandboxes resolve their own project root.\n• Improved remote workspace diagnostics by logging upstream 5xx bodies locally while preserving structured responses for clients.\n\n𝗗𝗮𝘁𝗮\n• Reduced Data page HTML payloads by serializing only rendered metric and catalog slices and using lighter map geometry while retaining small-country markers.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.13...v1.18.14"
+      ],
+      "tweetIds": [
+        "2085111203051810947"
+      ],
+      "postedAt": "2026-08-05T21:10:25.161Z"
     }
   ]
 }
