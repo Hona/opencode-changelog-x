@@ -1656,6 +1656,22 @@
         "2085111203051810947"
       ],
       "postedAt": "2026-08-05T21:10:25.161Z"
+    },
+    {
+      "releaseId": 366558754,
+      "tag": "v1.18.15",
+      "name": "v1.18.15",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.15",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-07T06:49:55Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.15 released. TL;DR: App/Desktop reach 62 locales and add JSON export; imported-session chronology and compaction are hardened; TUI adds cursor controls; Go promotes 2x DeepSeek V4 Flash usage.\n\n𝗔𝗽𝗽\nAdded\n• Expanded App and Desktop localization from 28 to 62 locales with native language names, script-aware detection, and Persian/Dhivehi RTL support.\n• Added full-session JSON export from /export, session menus, and the context inspector, matching the opencode export schema.\n\nFixed\n• Fixed the browser App flashing English by loading the persisted or detected locale before first render.\n• Fixed imported-session timelines, optimistic updates, undo/redo, and revert boundaries by ordering messages by creation time instead of assuming IDs are chronological.\n• Fixed recent-session sorting to use persisted update and creation times.\n• Fixed blob-backed attachments in the server-hosted Web UI by permitting blob image and connection sources.\n• Fixed packaged Desktop sidecar version reporting by embedding the release version in its Node build.\n\n𝗧𝗨𝗜\nAdded\n• Added tui.json cursor style and blinking controls across text inputs, with block, underline, line, and terminal-default modes.\n\nFixed\n• Fixed imported-session display, queued labels, revert boundaries, and transcript ordering when message IDs are nonmonotonic.\n• Fixed OSC 52 clipboard copying over SSH when tmux set-clipboard on is enabled.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed latest-turn and pending compaction/subtask selection to use creation time, with parent linkage determining completed turns.\n• Fixed forks and reverts to preserve chronological prefixes and suffixes instead of comparing message IDs.\n• Fixed repeated compaction with retained tool history by summarizing a bounded plain-text transcript rather than replaying potentially orphaned tool protocol messages.\n• Fixed seven-day truncated tool-output cleanup to use file modification time, avoiding incorrect retention when generated IDs wrap.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Fixed public shared-session transcripts to render messages by creation time with deterministic ID tie-breaking.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Updated OpenCode Go’s published limits for a limited-time 2x DeepSeek V4 Flash allowance: 63,300 requests per five-hour window, with a responsive comparison graph.\n\n𝗭𝗲𝗻\n• Added organization-scoped upstream request templating from authenticated workspace identity for providers requiring organization IDs.\n\n𝗗𝗮𝘁𝗮\n• Improved initial page load by minifying JS/CSS, emitting the stylesheet earlier during SSR, and preloading only the primary font weight.\n• Improved dense mobile charts with wider columns and reliable scrolling to the latest data.\n\nBundle +3.1 MB because mostly Web UI assets +9.2 MB and CLI/TUI JS +201.1 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.14...v1.18.15"
+      ],
+      "tweetIds": [
+        "2085621020270940490"
+      ],
+      "postedAt": "2026-08-07T06:56:15.058Z"
     }
   ]
 }
