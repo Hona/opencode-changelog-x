@@ -1672,6 +1672,22 @@
         "2085621020270940490"
       ],
       "postedAt": "2026-08-07T06:56:15.058Z"
+    },
+    {
+      "releaseId": 367603943,
+      "tag": "v1.18.16",
+      "name": "v1.18.16",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.16",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-10T06:07:08Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.16 released. TL;DR:\nHome project handling is more reliable, macOS window behavior is native, config parsing is more tolerant, and Data sync recovers from full-refresh failures.\n\n𝗔𝗽𝗽\nAdded\n• Added right-click access to each Home project menu.\n\nFixed\n• Fixed project picker autocomplete by falling back to current-folder listings when indexed directory search returns nothing.\n• Fixed newly added Home folders not registering immediately, including Git initialization for empty folders.\n• Fixed macOS window lifecycle so closing the last window keeps OpenCode running and Dock activation restores a window.\n\n𝗖𝗼𝗿𝗲\n• Changed config parsing to ignore unknown fields while still rejecting invalid known values.\n\n𝗗𝗮𝘁𝗮\n• Fixed failed daily full-window stats refreshes by immediately falling back to an incremental current-week sync.\n• Increased the Athena query wait ceiling from roughly 10 to 30 minutes for expensive aggregations.\n\n𝗨𝗜\n• Fixed loading buttons to use theme background and border tokens instead of hardcoded light colors.\n• Updated Simplified Chinese context usage terminology to use 词元 for tokens.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.15...v1.18.16"
+      ],
+      "tweetIds": [
+        "2086698246026703094"
+      ],
+      "postedAt": "2026-08-10T06:16:45.667Z"
     }
   ]
 }
