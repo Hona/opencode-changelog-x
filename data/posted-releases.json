@@ -1688,6 +1688,22 @@
         "2086698246026703094"
       ],
       "postedAt": "2026-08-10T06:16:45.667Z"
+    },
+    {
+      "releaseId": 369485660,
+      "tag": "v1.18.17",
+      "name": "v1.18.17",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.17",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-12T20:25:07Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.17 released. TL;DR: App defaults stay current; session retries are bounded and compaction retains better context; Go exposes quota usage; stats move to R2 SQL.\n\n𝗔𝗽𝗽\n• Fixed model selection to follow the server’s current default instead of retaining stale legacy configuration when no default is set.\n\n𝗔𝗴𝗲𝗻𝘁\n• Improved compaction for smaller models with explicit conversation and prior-summary boundaries, stronger carry-forward rules, and up to 15K tokens of recent context instead of a fixed two-turn tail.\n• Fixed runaway provider retries by limiting them to five and adding jitter to exponential backoff.\n\n𝗭𝗲𝗻\nAdded\n• Added an authenticated OpenCode Go usage endpoint reporting rolling, weekly, and monthly status, percentage, and reset time.\n\nChanged\n• Applied Go’s China-region eligibility check to DeepSeek V4 Pro as well as V4 Flash.\n• Changed blocked-account errors to identify fraud or terms violations and provide a support contact.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed GitHub Copilot model discovery to expose PDF input when both vision and application/pdf support are advertised.\n• Fixed MERGE Gateway reasoning variants and provider-option routing.\n• Fixed DeepSeek V4 Flash sampling defaults by applying top_p 0.95 only to official routes and explicitly versioned 0731 IDs.\n• Fixed all Muse-family models, including Muse Glimmer, to receive the correct Meta model-specific system prompt.\n\n𝗗𝗮𝘁𝗮\n• Moved Go analytics aggregation from Athena to Cloudflare R2 SQL using bounded day/week usage and geo queries.\n• Fixed daily totals with UTC-aligned windows and an exclusive handoff between legacy and live inference streams, preventing duplicate counts.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.16...v1.18.17"
+      ],
+      "tweetIds": [
+        "2087640307361779894"
+      ],
+      "postedAt": "2026-08-12T20:40:10.589Z"
     }
   ]
 }
