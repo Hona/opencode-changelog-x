@@ -1704,6 +1704,22 @@
         "2087640307361779894"
       ],
       "postedAt": "2026-08-12T20:40:10.589Z"
+    },
+    {
+      "releaseId": 369579453,
+      "tag": "v1.18.18",
+      "name": "v1.18.18",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.18",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-13T01:15:04Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.18 released. TL;DR: Kimi/Moonshot gets its intended tool-use prompt; Groq, Mistral, and xAI preserve newer reasoning-effort values.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Groq reasoning-effort values outside its old fixed enum being rejected before reaching the API.\n• Fixed Mistral reasoning-effort values outside its old fixed enum being rejected before reaching the API.\n• Fixed xAI Chat and Responses dropping newer effort tiers such as xhigh during option validation.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed Kimi for Coding and Moonshot AI providers, including the China endpoint, using the generic system prompt when model IDs lacked “kimi”; they now receive the Kimi-specific action and tool-use prompt.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.17...v1.18.18"
+      ],
+      "tweetIds": [
+        "2087717138186248414"
+      ],
+      "postedAt": "2026-08-13T01:45:28.521Z"
     }
   ]
 }
