@@ -1720,6 +1720,22 @@
         "2087717138186248414"
       ],
       "postedAt": "2026-08-13T01:45:28.521Z"
+    },
+    {
+      "releaseId": 373516173,
+      "tag": "v1.18.19",
+      "name": "v1.18.19",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.19",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-20T06:22:06Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.19 released. TL;DR: Cloudflare gains native OpenAI/Anthropic passthroughs; Go adds GLM-5.3 and consent-gated Muse Spark; encrypted reasoning is visible; Data includes free-tier usage.\n\n𝗧𝗨𝗜\n• Fixed encrypted reasoning blocks being hidden; active and completed status now remains visible without exposing opaque content.\n• Fixed /connect so providers with stored credentials appear connected.\n\n𝗔𝗽𝗽\n• Fixed saved server name and credential fields becoming uneditable.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added native OpenAI Responses and Anthropic Messages passthroughs for Cloudflare AI Gateway, preserving tools, reasoning variants, encrypted reasoning, and output limits.\n• Added web search for OpenCode Go models.\n\nChanged\n• Changed Qwen sampling to use provider defaults instead of forcing temperature 0.55 and top-p 1.\n\nFixed\n• Fixed Cloudflare credential scoping so gateway tokens reach Workers AI only, not third-party OpenAI or Anthropic upstreams.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\nAdded\n• Added GLM-5.3 to OpenCode Go.\n• Added Muse Spark 1.2 Contributor to Go with geographic restrictions and explicit workspace consent for training-data use.\n\nChanged\n• Increased Hy3's limited-time Go usage allowance to 8x.\n\n𝗭𝗲𝗻\nAdded\n• Added Muse Spark 1.2 and limited-time Muse Spark 1.2 Contributor Free through the Responses API, with geographic enforcement for the contributor tier.\n• Added Gemini 3.7 Flash.\n\nChanged\n• Changed DeepSeek V4 Flash/Pro metering to apply peak rates at 01:00-04:00 and 06:00-10:00 UTC.\n\nFixed\n• Fixed stateful inference continuity by preserving session IDs when proxying to new inference backends.\n\nRemoved\n• Removed ended free promotions for DeepSeek V4 Flash, Laguna S 2.1, and Ling 3.0 Tiny.\n\n𝗟𝗟𝗠\nAdded\n• Added ChatGPT compute-residency propagation to Codex requests over HTTP and WebSocket transports.\n\nChanged\n• Updated ChatGPT OAuth GPT-5.6 variants to 400K context, 272K input, and 128K output limits.\n\nFixed\n• Fixed oversized OpenAI Responses WebSocket requests by immediately falling back to HTTP for that session.\n\n𝗔𝗴𝗲𝗻𝘁\n• Restored session-affinity, session-ID, and parent-session correlation on model requests, including automatic compaction turns.\n• Fixed cost accounting for malformed or non-finite model rates by ignoring invalid components.\n• Fixed truncated grep previews producing malformed Unicode when the boundary split a surrogate pair.\n\n𝗗𝗮𝘁𝗮\n• Added free-tier traffic to public usage rankings, charts, model pages, and geographic aggregates alongside Go usage.\n• Fixed routed model normalization and provider attribution for free/global suffixes and provider-prefixed model IDs.\n\n𝗦𝘁𝗼𝗿𝗮𝗴𝗲\n• Fixed session moves and reverts on older v1 databases lacking newer session-context state.\n\n𝗖𝗟𝗜\n• Updated default Console login and built-in OpenCode OAuth endpoints from console.opencode.ai to opencode.ai/console.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.18...v1.18.19"
+      ],
+      "tweetIds": [
+        "2090325208473403526"
+      ],
+      "postedAt": "2026-08-20T06:29:00.901Z"
     }
   ]
 }
