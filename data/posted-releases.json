@@ -1752,6 +1752,22 @@
         "2090715995157524971"
       ],
       "postedAt": "2026-08-21T08:21:51.749Z"
+    },
+    {
+      "releaseId": 374465008,
+      "tag": "v1.18.21",
+      "name": "v1.18.21",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.21",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-21T14:51:11Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.21 released. TL;DR:\nApp search/archive regressions are fixed; sessions continue past unknown provider finishes; Vertex eu/us routing uses REP; Go and Data model IDs are normalized.\n\n𝗔𝗽𝗽\n• Fixed file search so prior results remain visible while a new query loads.\n• Fixed Archive Session registration so the command palette and Cmd/Ctrl+Shift+Backspace work in both layouts.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed sessions ending early when providers report an unknown finish reason; execution now continues to the next provider turn.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Google Vertex Gemini requests in eu/us multi-regions to use Regional Endpoint Platform domains while preserving global and standard regional routing.\n\n𝗗𝗮𝘁𝗮\n• Fixed renamed-model aggregation so x-preview-f and xiaomi/mimo-v2.5 traffic rolls into Ox Alpha and MiMo-V2.5 instead of splitting usage totals.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added DeepSeek V4 Flash Vision Exp to the published OpenCode Go catalog, including its API model ID and vision-token billing details.\n• Fixed Ox Alpha Free's published model ID from x-preview-f-free to ox-alpha-free and aligned the Console graph identifier.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.20...v1.18.21"
+      ],
+      "tweetIds": [
+        "2090819442422984738"
+      ],
+      "postedAt": "2026-08-21T15:12:55.443Z"
     }
   ]
 }
