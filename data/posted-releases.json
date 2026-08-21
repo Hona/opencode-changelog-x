@@ -1736,6 +1736,22 @@
         "2090325208473403526"
       ],
       "postedAt": "2026-08-20T06:29:00.901Z"
+    },
+    {
+      "releaseId": 374241794,
+      "tag": "v1.18.20",
+      "name": "v1.18.20",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.20",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-21T08:09:31Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.20 released. TL;DR: Subagent failures are actionable, provider retries are more reliable, Cerebras completion caps are preserved, and Ox Alpha Free lands on Zen and Go.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed subagent tasks to propagate assistant and terminal tool failures with a resumable task ID instead of treating failed child runs as successful.\n\n𝗖𝗟𝗜\n• Fixed opencode run to handle permission requests from nested subagents using its existing approve-once or auto-reject policy, preventing blocked runs.\n\n𝗟𝗟𝗠\n• Fixed streams ending with a raw network_error finish reason to enter the normal retry flow.\n• Improved retry detection for unstructured stream errors, network-error variants, and temporary-capacity responses such as xAI overloads.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Cerebras max_completion_tokens handling so the configured provider cap is not overridden by a generic output limit.\n\n𝗭𝗲𝗻\n• Added Ox Alpha Free (x-preview-f-free) as a limited-time free OpenAI-compatible model on Zen and Go, with zero retention and no provider training.\n• Expanded Muse Spark 1.2 Contributor access to dozens of additional countries while retaining restricted-country enforcement.\n\n𝗗𝗮𝘁𝗮\n• Fixed Go market-share charts to attribute usage to model authors rather than serving providers, including Muse Spark under Meta.\n• Changed each selected range to use a consistent top-eight author set across chart buckets.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.19...v1.18.20"
+      ],
+      "tweetIds": [
+        "2090715995157524971"
+      ],
+      "postedAt": "2026-08-21T08:21:51.749Z"
     }
   ]
 }
