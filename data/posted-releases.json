@@ -1768,6 +1768,22 @@
         "2090819442422984738"
       ],
       "postedAt": "2026-08-21T15:12:55.443Z"
+    },
+    {
+      "releaseId": 375714651,
+      "tag": "v1.18.22",
+      "name": "v1.18.22",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.22",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-24T14:37:19Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.22 released. TL;DR: Zen streams request bodies with single-attempt forwarding; Go adds LongCat-2.0 and moves to $10/month; App model headers stay visible; provider compatibility improves.\n\n𝗔𝗽𝗽\n• Fixed provider group headers disappearing while scrolling long model lists.\n• Added edge caching for desktop release downloads while preserving platform filenames.\n\n𝗭𝗲𝗻\nChanged\n• Changed request forwarding to stream large bodies upstream instead of materializing full JSON, reducing proxy memory while preserving model routing and usage accounting.\n• Changed forwarding to one upstream attempt; automatic 429/529 retries and provider-failover replay were removed for non-replayable streams.\n\nFixed\n• Fixed DeepSeek peak pricing to use weekday China Standard Time windows, making weekends off-peak.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed generic OpenAI-compatible GPT-5 endpoints receiving OpenAI-specific textVerbosity defaults they may reject.\n• Fixed device-login verification links by correctly resolving relative and absolute HTTP(S) URLs and rejecting malformed schemes.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\nAdded\n• Added LongCat-2.0 to the OpenCode Go model lineup and usage estimates.\n\nChanged\n• Changed OpenCode Go to $10/month by ending the $5 first-month discount.\n\nFixed\n• Fixed zero-cost Go models such as Ox Alpha Free being blocked by subscription quota checks.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Changed the global upgrade API and generated SDK contract to require an explicit valid semantic version; unsupported content types now return 415.\n\n𝗗𝗮𝘁𝗮\n• Fixed model identifiers to lowercase before suffix normalization, preventing casing variants from splitting usage statistics.\n• Fixed chart tooltips to truncate long labels without obscuring numeric values.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.21...v1.18.22"
+      ],
+      "tweetIds": [
+        "2091899230239490448"
+      ],
+      "postedAt": "2026-08-24T14:43:36.941Z"
     }
   ]
 }
