@@ -1784,6 +1784,22 @@
         "2091899230239490448"
       ],
       "postedAt": "2026-08-24T14:43:36.941Z"
+    },
+    {
+      "releaseId": 376179421,
+      "tag": "v1.18.23",
+      "name": "v1.18.23",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.23",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-25T06:30:49Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.23 released. TL;DR: Cloudflare AI Gateway routing is fixed; GitHub OIDC exchange handles immutable identities; Zen request forwarding is more accurate.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Cloudflare AI Gateway routing for third-party models such as Google and xAI while retaining gateway analytics, caching, and BYOK.\n• Fixed Anthropic model IDs with dotted versions by translating them to dashed native slugs before Gateway dispatch.\n\n𝗚𝗶𝘁𝗛𝘂𝗯\n• Fixed GitHub App OIDC token exchange for repositories using immutable or customized subject claims.\n• Improved Action failure reporting so token-exchange and GitHub API errors no longer mask the original failure.\n\n𝗭𝗲𝗻\nChanged\n• Changed new inference routing to preserve session, project, client, and request attribution headers.\n\nFixed\n• Fixed streaming model rewrites to replace only the root model field, leaving nested metadata intact.\n\nRemoved\n• Removed the automatic first-month 50% Lite discount; checkout now applies only explicit eligible coupons.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed parent-session propagation for OpenCode-managed model requests, restoring child-session lineage.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.22...v1.18.23"
+      ],
+      "tweetIds": [
+        "2092138830136561984"
+      ],
+      "postedAt": "2026-08-25T06:35:42.206Z"
     }
   ]
 }
