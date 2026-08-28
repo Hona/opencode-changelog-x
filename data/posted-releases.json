@@ -1816,6 +1816,22 @@
         "2093193813409828884"
       ],
       "postedAt": "2026-08-28T04:27:49.661Z"
+    },
+    {
+      "releaseId": 378279694,
+      "tag": "v1.18.25",
+      "name": "v1.18.25",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.25",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-28T05:58:20Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.25 released. TL;DR: Azure CLI authentication now works outside Bun; OpenCode Go adds Qwen3.8 Flash.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Azure Microsoft Entra ID sign-in, resource selection, token retrieval, and deployment discovery in Node-based runtimes by removing the authentication plugin’s Bun dependency.\n\n𝗭𝗲𝗻\n• Added Qwen3.8 Flash to OpenCode Go as qwen3.8-flash over its Anthropic-compatible messages endpoint, with published usage limits, pricing, and 0-day retention.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.24...v1.18.25"
+      ],
+      "tweetIds": [
+        "2093218800690942336"
+      ],
+      "postedAt": "2026-08-28T06:07:07.075Z"
     }
   ]
 }
