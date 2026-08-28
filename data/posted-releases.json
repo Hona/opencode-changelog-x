@@ -1800,6 +1800,22 @@
         "2092138830136561984"
       ],
       "postedAt": "2026-08-25T06:35:42.206Z"
+    },
+    {
+      "releaseId": 378250041,
+      "tag": "v1.18.24",
+      "name": "v1.18.24",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.24",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-08-28T04:10:14Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.24 released. TL;DR: v2 config compatibility; Azure CLI auth; per-model Go quotas; weekly model retention.\n\n𝗔𝗽𝗽\n• Fixed archived sessions lingering or reappearing on Home during session-index refreshes.\n\n𝗖𝗼𝗿𝗲\n• Added compatibility loading for supported v2 models, agents, commands, skills, compaction, MCP, LSP, and settings in the v1 runtime; legacy values win conflicts and unsupported fields emit diagnostics.\n• Changed config updates to preserve existing v2-only fields instead of rewriting them from the lowered v1 representation.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added Microsoft Entra ID authentication for Azure through az login, including resource selection, deployment discovery, scoped bearer tokens, and automatic token refresh.\n• Fixed Amazon Bedrock continuation failures by removing reasoning that lacks replayable signatures or redacted payloads before assigning cache points.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\nAdded\n• Added expandable per-model Go usage details for 5-hour, weekly, and monthly windows, showing spend, effective quota, and quota contribution.\n\nChanged\n• Updated the Go lineup with Grok 4.6 and GLM-5.3-Flash; GLM-5.3-Flash replaces Ox Alpha and temporarily receives 2x usage limits.\n• Limited checkout-session creation to five attempts per account per hour.\n\nFixed\n• Fixed the Go usage-limit comparison chart on narrow mobile screens.\n• Fixed canceled subscriptions leaving their latest open invoice unvoided.\n• Hardened redirects: OAuth now accepts only the app client with localhost or HTTPS opencode.ai callbacks, while server actions no longer honor cross-origin referrers.\n\n𝗗𝗮𝘁𝗮\nAdded\n• Added weekly model-retention rankings based on next-week returning users, aggregated over seven recent cohorts and surfaced on model and comparison pages after sufficient sample size.\n\nChanged\n• Replaced geographic world maps with ranked country lists and removed the associated mapping dependencies.\n\nFixed\n• Corrected Ox Alpha and x-preview-f statistics, catalog lookup, and model routes to resolve to GLM-5.3-Flash.\n\n𝗦𝘁𝗼𝗿𝗮𝗴𝗲\n• Fixed legacy database upgrades by recovering migration history from timestamp-only Drizzle journals and tolerating workspace schemas that predate the name column.\n\n𝗨𝗜\n• Fixed stacked dialogs so only the top layer is modal and closing it restores interaction with the underlying dialog.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.23...v1.18.24"
+      ],
+      "tweetIds": [
+        "2093193813409828884"
+      ],
+      "postedAt": "2026-08-28T04:27:49.661Z"
     }
   ]
 }
