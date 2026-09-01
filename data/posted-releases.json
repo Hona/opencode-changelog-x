@@ -1832,6 +1832,22 @@
         "2093218800690942336"
       ],
       "postedAt": "2026-08-28T06:07:07.075Z"
+    },
+    {
+      "releaseId": 380823834,
+      "tag": "v1.18.26",
+      "name": "v1.18.26",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.26",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-01T21:52:15Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.26 released. TL;DR: Claude thinking reuse is more resilient; App session renaming is reliable; Azure auth drops automatic resource discovery; Go and Data views are corrected.\n\n𝗔𝗽𝗽\n• Added a keyboard-accessible tab context menu for renaming or closing tabs, including inactive tabs without switching sessions.\n• Fixed session-title edits to persist on blur, cancel on Escape, and ignore Enter during IME composition.\n\n𝗧𝗨𝗜\n• Restored right alignment for home-screen prompt shortcuts.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added Claude thinking-block binding across Anthropic, Google Vertex AI, and Amazon Bedrock: Claude 5-series defaults to adaptive thinking, prefix-mismatched signed blocks are dropped instead of failing requests, and provider-reported drops are logged.\n\nChanged\n• Changed Azure Entra ID setup to direct resource-name entry and removed automatic resource/deployment discovery, eliminating Azure CLI management queries during plugin startup.\n\nFixed\n• Fixed Amazon Bedrock GPT-5.6 models so the none reasoning effort is accepted and sent to the provider.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed repeated tool metadata updates resetting recorded start times, preserving accurate tool durations.\n• Fixed patch permission requests for non-move edits by omitting empty destination paths, keeping metadata JSON-encodable.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added Hy4 preview to OpenCode Go's model and request-limit displays.\n• Improved Go allowance and bonus transitions with rolling counts, reduced-motion handling, non-Latin numbering fallback, and corrected limits.\n\n𝗗𝗮𝘁𝗮\n• Fixed DeepSeek V4 Flash aliases aggregating as separate models while keeping Vision Exp distinct.\n• Fixed comparison radar legends collapsing and breaking model names at arbitrary characters.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.25...v1.18.26"
+      ],
+      "tweetIds": [
+        "2094906942380442041"
+      ],
+      "postedAt": "2026-09-01T21:55:11.617Z"
     }
   ]
 }
