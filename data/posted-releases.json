@@ -1864,6 +1864,22 @@
         "2095267814525567095"
       ],
       "postedAt": "2026-09-02T21:49:10.028Z"
+    },
+    {
+      "releaseId": 382479085,
+      "tag": "v1.18.28",
+      "name": "v1.18.28",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.28",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-04T15:38:23Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.28 released. TL;DR: migrated Zen BYOK routing; interactive, faster Data; safer quota reset accounting; per-session GitHub Copilot correlation.\n\n𝗔𝗽𝗽\n• Fixed desktop OpenCode provider sign-in to identify itself as opencode-desktop during device authorization.\n\n𝗧𝗨𝗜\n• Updated loading, tool progress, placeholder, truncation, and updater text to use Unicode ellipses consistently.\n\n𝗭𝗲𝗻\nAdded\n• Added migrated-workspace BYOK routing through imported OpenAI, Anthropic, or Google connections, remapping Zen aliases to native model IDs.\n• Added Omen Alpha to OpenCode Go's model and quota listings.\n\nFixed\n• Fixed authenticated model discovery for migrated Zen API keys by forwarding /zen/v1/models to the new /v1/models service.\n• Fixed delayed or out-of-order subscription and Go usage writes from overwriting newer weekly or monthly totals at reset boundaries.\n\n𝗗𝗮𝘁𝗮\n• Improved market-share inspection with per-day hover, focus, and tap details for total tokens, ranked model authors, token volume, and share percentage.\n• Improved stealth-model attribution: Omen Alpha stays under unknown, while unknown or non-catalog providers no longer expose labels or icons in rankings and comparisons.\n• Improved performance with locale-aware HTML edge caching, five-minute query reuse, and indexed SQL-side two-month geography aggregation scoped to Zen data.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added the OpenCode session ID as X-Interaction-Id on GitHub Copilot and Copilot Enterprise requests for stable upstream interaction correlation.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.27...v1.18.28"
+      ],
+      "tweetIds": [
+        "2095901230295888338"
+      ],
+      "postedAt": "2026-09-04T15:46:08.119Z"
     }
   ]
 }
