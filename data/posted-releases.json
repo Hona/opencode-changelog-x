@@ -1880,6 +1880,22 @@
         "2095901230295888338"
       ],
       "postedAt": "2026-09-04T15:46:08.119Z"
+    },
+    {
+      "releaseId": 383062420,
+      "tag": "v1.18.29",
+      "name": "v1.18.29",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.29",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-04T23:47:16Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.29 released. TL;DR: Codex recognizes newer GPT version formats; Console support can reset workspace quotas.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed OpenAI Codex OAuth model discovery for integer-major and multi-digit minor GPT IDs, preventing eligible models such as gpt-6 and gpt-5.10 from being hidden.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added an authenticated support action to zero active Lite or subscription workspace quota counters while preserving quota-window timestamps and returning previous usage totals.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.28...v1.18.29"
+      ],
+      "tweetIds": [
+        "2096024578757742996"
+      ],
+      "postedAt": "2026-09-04T23:56:16.667Z"
     }
   ]
 }
