@@ -14,7 +14,9 @@ import {
 import { RuntimeConfig } from "./runtime-config.js"
 
 export const postedReleaseSchema = z.object({
-  releaseId: z.number().transform(githubReleaseIdFromNumber),
+  releaseId: z.number().nullable().transform((value) => (value === null ? null : githubReleaseIdFromNumber(value))),
+  source: z.enum(["github-release", "git-tag"]).optional(),
+  commitSha: z.string().min(1).nullable().optional(),
   tag: z.string().transform(releaseTagFromString),
   name: z.string().min(1),
   url: z.string().transform(urlStringFromString),
@@ -31,7 +33,10 @@ export const stateFileSchema = z.object({
   version: z.literal(1),
   releases: z.array(postedReleaseSchema),
 }).strict()
-  .refine((state) => new Set(state.releases.map((release) => release.releaseId)).size === state.releases.length, "Posted release ids must be unique")
+  .refine((state) => {
+    const ids = state.releases.map((release) => release.releaseId).filter((id) => id !== null)
+    return new Set(ids).size === ids.length
+  }, "Posted release ids must be unique")
   .refine((state) => new Set(state.releases.map((release) => release.tag)).size === state.releases.length, "Posted release tags must be unique")
 
 export type PostedRelease = z.infer<typeof postedReleaseSchema>

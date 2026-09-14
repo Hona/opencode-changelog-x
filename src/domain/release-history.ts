@@ -1,24 +1,34 @@
 import type { PostedRelease, StateFile } from "../state.js"
-import { releaseTimestamp, type GithubRelease } from "./releases.js"
+import { compareReleaseOrder, releaseMajor, type GithubRelease } from "./releases.js"
 import type { IsoDateString, PostText, ReleaseTag, TweetId } from "./value-objects.js"
 
-function postedReleaseTimestamp(release: PostedRelease) {
-  return release.publishedAt ?? release.postedAt
+function highestByVersion<T extends { tag: ReleaseTag }>(releases: readonly T[]) {
+  return releases.reduce<T | null>((highest, release) => {
+    if (!highest || compareReleaseOrder(release, highest) > 0) return release
+    return highest
+  }, null)
 }
 
 export class ReleaseCatalog {
-  private readonly previousReleaseTagByTag = new Map<GithubRelease["tag"], GithubRelease["tag"] | null>()
+  readonly releases: readonly GithubRelease[]
+  private readonly previousReleaseTagByTag = new Map<ReleaseTag, ReleaseTag | null>()
 
-  constructor(readonly releases: readonly GithubRelease[]) {
-    for (const [index, release] of releases.entries()) {
-      this.previousReleaseTagByTag.set(release.tag, index > 0 ? releases[index - 1]!.tag : null)
+  constructor(releases: readonly GithubRelease[]) {
+    this.releases = [...releases].sort(compareReleaseOrder)
+
+    for (const [index, release] of this.releases.entries()) {
+      const previous = this.releases
+        .slice(0, index)
+        .reverse()
+        .find((candidate) => compareReleaseOrder(candidate, release) < 0)
+      this.previousReleaseTagByTag.set(release.tag, previous?.tag ?? null)
     }
   }
 
   requireTag(tag: string) {
     const release = this.releases.find((release) => release.tag === tag)
     if (!release) {
-      throw new Error(`${tag} was not found in the eligible GitHub releases list`)
+      throw new Error(`${tag} was not found in the eligible releases list`)
     }
     return release
   }
@@ -30,35 +40,53 @@ export class ReleaseCatalog {
 
     return this.previousReleaseTagByTag.get(release.tag) ?? null
   }
+
+  latest() {
+    return this.releases.at(-1) ?? null
+  }
+
+  latestForMajor(major: number) {
+    return highestByVersion(this.releases.filter((release) => releaseMajor(release) === major))
+  }
 }
 
 export class PostedReleaseHistory {
   constructor(private readonly state: StateFile) {}
 
+  private matches(entry: PostedRelease, release: GithubRelease) {
+    if (entry.tag === release.tag) return true
+    return entry.releaseId !== null && release.id !== null && entry.releaseId === release.id
+  }
+
   private assertReleaseIdentity(release: GithubRelease) {
     const saved = this.state.releases.find((entry) => entry.tag === release.tag)
-    if (saved && saved.releaseId !== release.id) {
+    if (saved && saved.releaseId !== null && release.id !== null && saved.releaseId !== release.id) {
       throw new Error(`Release tag ${release.tag} changed GitHub release id from ${saved.releaseId} to ${release.id}`)
     }
   }
 
   latest() {
-    return this.state.releases.reduce<PostedRelease | undefined>((latest, release) => {
-      if (!latest) return release
+    return highestByVersion(this.state.releases) ?? undefined
+  }
 
-      const latestTimestamp = postedReleaseTimestamp(latest)
-      const releaseTimestamp = postedReleaseTimestamp(release)
-
-      if (releaseTimestamp > latestTimestamp) return release
-      if (releaseTimestamp === latestTimestamp && release.releaseId > latest.releaseId) return release
-
-      return latest
-    }, undefined)
+  latestForMajor(major: number) {
+    return highestByVersion(this.state.releases.filter((entry) => releaseMajor(entry) === major))
   }
 
   hasPosted(release: GithubRelease) {
     this.assertReleaseIdentity(release)
-    return this.state.releases.some((entry) => entry.releaseId === release.id)
+    return this.state.releases.some((entry) => this.matches(entry, release))
+  }
+
+  // A release is pending when it is newer than the highest posted release of its
+  // major line. A line with no posted releases starts after the highest posted release overall.
+  isPending(release: GithubRelease) {
+    if (this.hasPosted(release)) return false
+
+    const baseline = this.latestForMajor(releaseMajor(release)) ?? this.latest()
+    if (!baseline) return true
+
+    return compareReleaseOrder(release, baseline) > 0
   }
 
   pendingFrom(catalog: ReleaseCatalog, input: { targetTag?: ReleaseTag; allowPostedTarget: boolean }) {
@@ -70,19 +98,7 @@ export class PostedReleaseHistory {
       return [release]
     }
 
-    const latestPostedRelease = this.latest()
-    return catalog.releases.filter((release) => {
-      if (this.hasPosted(release)) return false
-      if (!latestPostedRelease) return true
-
-      const latestTimestamp = latestPostedRelease.publishedAt ?? latestPostedRelease.postedAt
-      const currentTimestamp = releaseTimestamp(release)
-
-      if (currentTimestamp > latestTimestamp) return true
-      if (currentTimestamp === latestTimestamp && release.id > latestPostedRelease.releaseId) return true
-
-      return false
-    })
+    return catalog.releases.filter((release) => this.isPending(release))
   }
 
   recordPosted(release: GithubRelease, post: PostText, tweetIds: TweetId[], postedAt: IsoDateString) {
@@ -90,6 +106,8 @@ export class PostedReleaseHistory {
 
     const nextRelease: PostedRelease = {
       releaseId: release.id,
+      source: release.source,
+      commitSha: release.commitSha,
       tag: release.tag,
       name: release.name,
       url: release.url,
@@ -104,7 +122,7 @@ export class PostedReleaseHistory {
     return new PostedReleaseHistory({
       version: 1,
       releases: this.state.releases
-        .filter((entry) => entry.releaseId !== release.id)
+        .filter((entry) => !this.matches(entry, release))
         .concat(nextRelease)
         .sort((left, right) => left.postedAt.localeCompare(right.postedAt)),
     })

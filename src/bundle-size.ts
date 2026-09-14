@@ -1,7 +1,12 @@
 import { gunzipSync } from "node:zlib"
 import { Context, Effect, Layer } from "effect"
 import type { ReleaseRange } from "./domain/releases.js"
-import { NpmRegistry, OPENCODE_NPM_PACKAGE, type NpmRegistryService } from "./integrations/npm-registry.js"
+import {
+  NpmRegistry,
+  opencodeNpmPackagesForVersion,
+  type NpmRegistryService,
+  type OpencodeNpmPackages,
+} from "./integrations/npm-registry.js"
 
 const TAG_VERSION_PATTERN = /(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)$/
 const TRAILER = Buffer.from("\n---- Bun! ----\n")
@@ -39,13 +44,23 @@ const LOADER_NAMES = [
   "md",
 ] as const
 
-export const BUNDLE_TARGETS = [
-  { packageName: "opencode-darwin-arm64", label: "macOS arm64" },
-  { packageName: "opencode-linux-x64", label: "Linux x64" },
-  { packageName: "opencode-windows-x64", label: "Windows x64" },
+export const BUNDLE_PLATFORMS = [
+  { platform: "darwin-arm64", label: "macOS arm64" },
+  { platform: "linux-x64", label: "Linux x64" },
+  { platform: "windows-x64", label: "Windows x64" },
 ] as const
 
-export type BundleTarget = (typeof BUNDLE_TARGETS)[number]
+export type BundleTarget = {
+  readonly packageName: string
+  readonly label: string
+}
+
+export function bundleTargetsFor(packages: OpencodeNpmPackages): BundleTarget[] {
+  return BUNDLE_PLATFORMS.map((target) => ({
+    packageName: `${packages.binaryPackagePrefix}${target.platform}`,
+    label: target.label,
+  }))
+}
 export type BundleCategory =
   | "total"
   | "bunRuntime"
@@ -285,8 +300,8 @@ function parseTimestamp(timestamp: string | null | undefined) {
   return Number.isFinite(value) ? value : null
 }
 
-function buildPreviewSnapshotLine(snapshot: SnapshotInfo) {
-  return `Preview snapshot: npm dev ${OPENCODE_NPM_PACKAGE}@${snapshot.version}`
+function buildPreviewSnapshotLine(packageName: string, snapshot: SnapshotInfo) {
+  return `Preview snapshot: npm dev ${packageName}@${snapshot.version}`
 }
 
 function readU32(buffer: Buffer, offset: number) {
@@ -792,15 +807,16 @@ function scanBundleBunVersions(registry: NpmRegistryService, packageName: string
 function inspectReleaseBundles(
   registry: NpmRegistryService,
   version: string,
-  targets: readonly BundleTarget[] = BUNDLE_TARGETS,
+  targets?: readonly BundleTarget[],
 ): Effect.Effect<ReleaseBundleInspection, unknown> {
   return Effect.gen(function* () {
-    const rootMetadata = yield* registry.versionMetadata(OPENCODE_NPM_PACKAGE, version)
+    const packages = opencodeNpmPackagesForVersion(version)
+    const rootMetadata = yield* registry.versionMetadata(packages.rootPackage, version)
     const inspectedTargets = yield* Effect.all(
-      targets.map((target) => Effect.gen(function* () {
+      (targets ?? bundleTargetsFor(packages)).map((target) => Effect.gen(function* () {
         const packageVersion = rootMetadata.optionalDependencies?.[target.packageName]
         if (!packageVersion) {
-          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${version}`))
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${packages.rootPackage}@${version}`))
         }
 
         const inspection = yield* inspectBundle(registry, target.packageName, packageVersion)
@@ -834,13 +850,17 @@ function buildBundleSizeSection(
       return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.fromTag}`))
     }
 
+    const previousPackages = opencodeNpmPackagesForVersion(previousVersion)
+    let currentPackages: OpencodeNpmPackages
     let currentVersion: string
     let previewSnapshot: SnapshotInfo | null = null
 
     if (range.kind === "preview") {
-      previewSnapshot = yield* fetchSnapshotInfo(registry, OPENCODE_NPM_PACKAGE, "dev")
+      // Preview snapshots are 0.0.0-dev builds, so they follow the baseline's package family.
+      currentPackages = previousPackages
+      previewSnapshot = yield* fetchSnapshotInfo(registry, currentPackages.rootPackage, "dev")
       if (!previewSnapshot) {
-        return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE} has no dev dist-tag for preview bundle analysis`))
+        return yield* Effect.fail(new Error(`${currentPackages.rootPackage} has no dev dist-tag for preview bundle analysis`))
       }
 
       const snapshotPublishedAt = parseTimestamp(previewSnapshot.publishedAt)
@@ -850,37 +870,42 @@ function buildBundleSizeSection(
       }
 
       if (snapshotPublishedAt < baselinePublishedAt) {
-        return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE}@dev is older than ${range.fromTag}`))
+        return yield* Effect.fail(new Error(`${currentPackages.rootPackage}@dev is older than ${range.fromTag}`))
       }
 
       currentVersion = previewSnapshot.version
     } else {
       currentVersion = extractVersionFromTag(range.toTag) ?? ""
-    }
-
-    if (!currentVersion) {
-      return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.toTag}`))
+      if (!currentVersion) {
+        return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.toTag}`))
+      }
+      currentPackages = opencodeNpmPackagesForVersion(currentVersion)
     }
 
     const [previousRoot, currentRoot] = yield* Effect.all([
-      registry.versionMetadata(OPENCODE_NPM_PACKAGE, previousVersion),
-      registry.versionMetadata(OPENCODE_NPM_PACKAGE, currentVersion),
+      registry.versionMetadata(previousPackages.rootPackage, previousVersion),
+      registry.versionMetadata(currentPackages.rootPackage, currentVersion),
     ], { concurrency: "unbounded" })
 
+    const previousTargets = bundleTargetsFor(previousPackages)
+    const currentTargets = bundleTargetsFor(currentPackages)
+
     const targetChanges = yield* Effect.all(
-      BUNDLE_TARGETS.map((target): Effect.Effect<TargetBundleChange, unknown> => Effect.gen(function* () {
-        const previousTargetVersion = previousRoot.optionalDependencies?.[target.packageName] ?? null
-        const currentTargetVersion = currentRoot.optionalDependencies?.[target.packageName] ?? null
+      BUNDLE_PLATFORMS.map((target, index): Effect.Effect<TargetBundleChange, unknown> => Effect.gen(function* () {
+        const previousTarget = previousTargets[index]!
+        const currentTarget = currentTargets[index]!
+        const previousTargetVersion = previousRoot.optionalDependencies?.[previousTarget.packageName] ?? null
+        const currentTargetVersion = currentRoot.optionalDependencies?.[currentTarget.packageName] ?? null
         if (!previousTargetVersion) {
-          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${previousVersion}`))
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${previousTarget.packageName} in ${previousPackages.rootPackage}@${previousVersion}`))
         }
         if (!currentTargetVersion) {
-          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${currentVersion}`))
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${currentTarget.packageName} in ${currentPackages.rootPackage}@${currentVersion}`))
         }
 
         const [previousAnalysis, currentAnalysis] = yield* Effect.all([
-          inspectBundle(registry, target.packageName, previousTargetVersion).pipe(Effect.map((item) => item.analysis)),
-          inspectBundle(registry, target.packageName, currentTargetVersion).pipe(Effect.map((item) => item.analysis)),
+          inspectBundle(registry, previousTarget.packageName, previousTargetVersion).pipe(Effect.map((item) => item.analysis)),
+          inspectBundle(registry, currentTarget.packageName, currentTargetVersion).pipe(Effect.map((item) => item.analysis)),
         ], { concurrency: "unbounded" })
 
         return {

@@ -1,7 +1,8 @@
 import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Context, Effect, Layer } from "effect"
+import { Context, Effect, Layer, Option } from "effect"
+import { z } from "zod"
 import type { AppConfig } from "./config.js"
 import {
   createCompareUrl,
@@ -10,13 +11,18 @@ import {
   type GithubRelease,
   type ReleaseRange,
 } from "./domain/releases.js"
+import { parseSemver } from "./domain/semver.js"
 import { gitRefFromString } from "./domain/value-objects.js"
 import type { IsoDateString, ReleaseTag } from "./domain/value-objects.js"
 import { GitCli, type GitCliService } from "./integrations/git-cli.js"
 import { RuntimeConfig } from "./runtime-config.js"
 
+const HEAD_VERSION_MANIFESTS = ["packages/cli/package.json", "packages/opencode/package.json"] as const
+const manifestSchema = z.object({ version: z.string() })
+
 export type EffectUpstreamCheckout = {
   directory: string
+  resolveHeadMajor: () => Effect.Effect<number, unknown>
   resolveRange: (
     release: GithubRelease,
     fromTag: ReleaseTag | null,
@@ -48,8 +54,25 @@ function createEffectCheckout(directory: string, config: AppConfig, git: GitCliS
     return count
   })
 
+  const resolveHeadMajor = Effect.fn("UpstreamCheckout.resolveHeadMajor")(function* () {
+    for (const manifest of HEAD_VERSION_MANIFESTS) {
+      const text = yield* git.run(["show", `HEAD:${manifest}`], { cwd: directory }).pipe(Effect.option)
+      if (Option.isNone(text)) continue
+
+      const version = manifestSchema.parse(JSON.parse(text.value)).version
+      const parsed = parseSemver(version)
+      if (!parsed) {
+        return yield* Effect.fail(new Error(`${manifest} at HEAD has a non-semver version: ${version}`))
+      }
+      return parsed.major
+    }
+
+    return yield* Effect.fail(new Error(`No version manifest found at HEAD (${HEAD_VERSION_MANIFESTS.join(", ")})`))
+  })
+
   return {
     directory,
+    resolveHeadMajor,
     resolveRange: Effect.fn("UpstreamCheckout.resolveRange")(function* (release: GithubRelease, fromTag: ReleaseTag | null) {
       const commitCount = yield* countCommits(fromTag, release.tag)
 

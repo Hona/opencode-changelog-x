@@ -1,11 +1,12 @@
 import { EmbedBuilder, ThreadAutoArchiveDuration, type Message } from "discord.js"
 import { Context, Effect, Layer, Option, Semaphore } from "effect"
 import { PREVIEW_MODEL } from "../constants.js"
+import { ReleaseCatalog } from "../domain/release-history.js"
 import { releaseTimestamp } from "../domain/releases.js"
 import type { IsoDateString, ReleaseTag } from "../domain/value-objects.js"
 import { PostGenerator, type ReleasePostReport } from "../generate.js"
 import { GithubReleases } from "../github.js"
-import { UpstreamRepository } from "../upstream.js"
+import { UpstreamRepository, type EffectUpstreamCheckout } from "../upstream.js"
 import { DiscordSettings } from "../runtime-config.js"
 import { getErrorMessage } from "./errors.js"
 
@@ -96,10 +97,14 @@ export class PreviewCommand extends Context.Service<PreviewCommand, {
       const postGenerator = yield* PostGenerator
       const semaphore = yield* Semaphore.make(1)
 
-      const resolveLatestReleaseBaseline = Effect.fn("PreviewCommand.resolveLatestReleaseBaseline")(function* () {
-        const latestRelease = yield* releases.latest()
+      // The checkout HEAD is the default branch, so the baseline is the latest release
+      // of the version line HEAD belongs to rather than the highest release overall.
+      const resolveLatestReleaseBaseline = Effect.fn("PreviewCommand.resolveLatestReleaseBaseline")(function* (checkout: EffectUpstreamCheckout) {
+        const catalog = new ReleaseCatalog(yield* releases.list())
+        const headMajor = yield* checkout.resolveHeadMajor()
+        const latestRelease = catalog.latestForMajor(headMajor) ?? catalog.latest()
         if (!latestRelease) {
-          return yield* Effect.fail(new Error("No eligible GitHub release found for preview baseline"))
+          return yield* Effect.fail(new Error("No eligible release found for preview baseline"))
         }
 
         return {
@@ -109,15 +114,15 @@ export class PreviewCommand extends Context.Service<PreviewCommand, {
       })
 
       const generatePreview = Effect.fn("PreviewCommand.generatePreview")(function* (message: Message<true>) {
-        const latestRelease = yield* resolveLatestReleaseBaseline()
-        const latestReleaseTag = latestRelease.tag
         const thread = yield* Effect.tryPromise(() => message.startThread({
-          name: buildThreadName(latestReleaseTag),
+          name: buildThreadName(null),
           autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
           reason: "OpenCode changelog preview",
         }))
 
         yield* upstream.withCheckout((checkout) => Effect.gen(function* () {
+            const latestRelease = yield* resolveLatestReleaseBaseline(checkout)
+            const latestReleaseTag = latestRelease.tag
             const range = yield* checkout.resolvePreviewRange(
               latestReleaseTag,
               latestRelease.releaseTimestamp,

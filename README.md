@@ -1,6 +1,6 @@
 # OpenCode Changelog X Bot
 
-Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each unseen release, lets OpenCode inspect the actual code diff, validates the generated X post, publishes it, and records which releases were already handled.
+Polls `anomalyco/opencode` GitHub releases and `v*` git tags, resolves the git tag range for each unseen release, lets OpenCode inspect the actual code diff, validates the generated X post, publishes it, and records which releases were already handled.
 
 ## Stack
 
@@ -21,21 +21,23 @@ Polls `anomalyco/opencode` GitHub releases, resolves the git tag range for each 
 
 ## How It Works
 
-1. Fetch recent GitHub releases from `anomalyco/opencode`.
-2. Skip releases already recorded in `data/posted-releases.json`.
-3. Resolve the previous tag for each release and compute the compare range.
+1. Fetch GitHub releases and semver `v*` git tags from `anomalyco/opencode`. Tags without a GitHub release (the 2.x line only pushes tags) become tag-only releases when they are newer than every GitHub release of their major version line.
+2. Skip releases already recorded in `data/posted-releases.json`. Each major line (1.x, 2.x) advances independently from its highest posted version; a new line starts after the highest posted version overall.
+3. Resolve the previous tag for each release as its semver predecessor (not the previous publish time) and compute the compare range. Releases are processed in semver order.
 4. Feed that tag range into OpenCode and let it inspect the repository with read-only tools.
 5. Print the generated report JSON.
 6. Validate the generated post against X Premium long-post limits.
 7. Post the single X message when not in dry-run mode.
 8. Persist posted release metadata back to `data/posted-releases.json`.
 
+Bundle-size analysis downloads the npm binaries for both sides of the range: `opencode-ai` / `opencode-<platform>` for 1.x and `@opencode/cli` / `@opencode/cli-<platform>` for 2.x. The beta staleness monitor watches the `beta` dist-tag of `@opencode/cli`.
+
 ## Discord Preview Bot
 
 - Runs as a separate long-lived process via `bun run discord`.
 - Listens only in the hardcoded channel `1472697640880701523`.
 - Waits for the exact command `!previewchangelog`.
-- Uses the latest GitHub release tag as the baseline.
+- Uses the latest release tag of the version line the checked-out `HEAD` belongs to (read from `packages/cli/package.json` or `packages/opencode/package.json`) as the baseline.
 - Generates a preview post for commits after that release up to the current upstream `HEAD`.
 - Creates a Discord thread on the command message and posts the generated preview as one or more embeds if needed for Discord limits.
 
@@ -103,4 +105,4 @@ So if `opencode providers list` already shows working credentials for the provid
 
 ## State
 
-The bot stores posted releases in `data/posted-releases.json`. The workflow commits that file back to the repo after successful posts so scheduled runs stay idempotent.
+The bot stores posted releases in `data/posted-releases.json`. The workflow commits that file back to the repo after successful posts so scheduled runs stay idempotent. Tag-only releases are stored with `releaseId: null`, `source: "git-tag"` and the tag's `commitSha`; the tag is the identity in that case.
