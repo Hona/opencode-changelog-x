@@ -1912,6 +1912,22 @@
         "2097531169818521777"
       ],
       "postedAt": "2026-09-09T03:42:56.022Z"
+    },
+    {
+      "releaseId": 388581987,
+      "tag": "v1.18.31",
+      "name": "v1.18.31",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.31",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-14T17:47:30Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.31 released. TL;DR:\nACP restores session state correctly, TUI auth failures are actionable, Go adds DeepSeek V4.1 Flash and migrated routing, and Data retention syncs are more reliable.\n\n𝗧𝗨𝗜\n• Fixed remote-config auth failures to show an SSO re-authentication command and exit nonzero instead of reporting a generic server error.\n\n𝗔𝗖𝗣\n• Fixed load, resume, and fork flows to prefer durable model, effort, and mode state before history or default fallbacks.\n• Fixed model synchronization so same-model updates preserve effort and clients receive refreshed options with an explicit Default effort.\n• Fixed streamed and replayed reasoning blocks to retain separate thought boundaries instead of merging within one assistant message.\n\n𝗭𝗲𝗻\nAdded\n• Added DeepSeek V4.1 Flash to Go with peak/off-peak pricing and limited-time 4x usage limits.\n\nChanged\n• Changed Go’s usage view into an expandable, localized model table showing estimated requests per five hours, monthly allowance, bonuses, and region restrictions.\n• Routed migrated Go workspaces’ inference, model-list, and usage endpoints through the migration service.\n\nFixed\n• Fixed downstream Go accounting by distinguishing subscription allowance from credit-funded inference.\n\n𝗗𝗮𝘁𝗮\n• Fixed full retention sync timeouts by splitting multi-week joins into bounded per-cohort queries and allowing longer cancellable R2 SQL requests.\n• Normalized legacy deepseek-flash statistics into DeepSeek V4.1 Flash without merging V4 or vision usage.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed GitHub Copilot adaptive-thinking models to request summarized reasoning output consistently.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added authenticated batch workspace block and unblock endpoints with deduplication, chunked updates, and per-ID not-found reporting.\n\n𝗨𝗜\n• Added Merge Gateway branding to the shared provider icon set.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.30...v1.18.31"
+      ],
+      "tweetIds": [
+        "2099557358435455103"
+      ],
+      "postedAt": "2026-09-14T17:54:16.991Z"
     }
   ]
 }
