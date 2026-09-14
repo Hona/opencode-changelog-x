@@ -7,8 +7,8 @@ Polls `anomalyco/opencode` GitHub releases and `v*` git tags, resolves the git t
 - TypeScript
 - Effect 4
 - Bun
-- `@opencode-ai/sdk/v2`
-- local `opencode-ai` binary installed via Bun dependencies
+- `@opencode/client` (OpenCode v2 HTTP client)
+- local `opencode` v2 binary installed via the `@opencode/cli` Bun dependency
 - `discord.js`
 - `twitter-api-v2`
 - `twitter-text`
@@ -16,8 +16,8 @@ Polls `anomalyco/opencode` GitHub releases and `v*` git tags, resolves the git t
 ## Hardcoded Model
 
 - provider: `opencode`
-- model: `gpt-5.5`
-- variant: `high`
+- model: `gpt-6-astra`
+- variant: `high` (`low` for Discord previews)
 
 ## How It Works
 
@@ -89,7 +89,7 @@ bun run dry-run -- --tag v1.1.13
 DISCORD_TOKEN=... bun run discord
 ```
 
-Because the project depends on `opencode-ai`, `bun run bot` puts the local `opencode` binary on `PATH`, which is what `@opencode-ai/sdk/v2` spawns.
+Because the project depends on `@opencode/cli`, `bun run bot` puts the local `opencode` binary on `PATH`. The bot spawns `opencode serve` on a free local port, authenticates with HTTP Basic auth (`OPENCODE_SERVER_PASSWORD` when set, otherwise a per-run random password), and talks to it through `@opencode/client`. Each analysis runs in a session created at the upstream checkout with deny-by-default permissions that allow only `read`, `grep`, `glob`, and `shell` commands that start with `git`.
 
 The Discord bot requires the bot account to have access to the configured channel, permission to create threads, permission to send embeds, and the Message Content intent enabled in the Discord developer portal.
 
@@ -97,11 +97,10 @@ The bot clones a temporary checkout of the upstream repo for analysis.
 
 For local runs, the spawned `opencode` server uses the same credential sources as your normal CLI:
 
-- your stored auth data
-- provider environment variables
-- provider config in `opencode.json`
+- your stored auth data (the shared `~/.local/share/opencode` data directory)
+- provider environment variables such as `OPENCODE_API_KEY`
 
-So if `opencode providers list` already shows working credentials for the provider you want, this bot should be able to reuse them locally.
+The global config directory (`~/.config/opencode`) is not loaded: the server runs with `OPENCODE_CONFIG_DIR` pointed at an empty temporary directory and `OPENCODE_CONFIG_CONTENT={}`, so your plugins and MCP servers stay out of the analysis sessions. The upstream repo's own `.opencode/opencode.jsonc` still applies.
 
 ## State
 

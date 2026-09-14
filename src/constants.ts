@@ -1,12 +1,12 @@
 export const MODEL = {
   providerID: "opencode",
-  modelID: "gpt-5.6-sol",
-  variant: "xhigh",
+  modelID: "gpt-6-astra",
+  variant: "high",
 } as const
 
 export const PREVIEW_MODEL = {
   providerID: "opencode",
-  modelID: "gpt-5.6-sol",
+  modelID: "gpt-6-astra",
   variant: "low",
 } as const
 

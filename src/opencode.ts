@@ -1,32 +1,58 @@
 import { spawn } from "node:child_process"
+import { randomBytes } from "node:crypto"
+import { mkdtemp, rm } from "node:fs/promises"
+import { createServer } from "node:net"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { setTimeout as delay } from "node:timers/promises"
-import { createOpencodeClient } from "@opencode-ai/sdk/v2"
+import { OpenCode, type OpenCodeClient } from "@opencode/client"
 import { Context, Effect, Layer } from "effect"
 import { RuntimeConfig } from "./runtime-config.js"
 
 export type EffectRunningOpencode = {
-  client: ReturnType<typeof createOpencodeClient>
+  client: OpenCodeClient
+  directory: string
   getOutput: () => Promise<string>
   close: Effect.Effect<void, unknown>
 }
 
 const OPENCODE_OUTPUT_TAIL_LIMIT = 50_000
+const OPENCODE_STARTUP_TIMEOUT_MS = 30_000
+const OPENCODE_HEALTH_POLL_MS = 250
 export const OPENCODE_SERVER_ARGS = [
   "serve",
-  "--hostname=127.0.0.1",
-  "--port=0",
+  "--hostname",
+  "127.0.0.1",
   "--print-logs",
-  "--log-level=ERROR",
+  "--log-level",
+  "error",
 ]
 
-function serverAuthHeaders(env: NodeJS.ProcessEnv) {
-  const password = env.OPENCODE_SERVER_PASSWORD
-  if (!password) return undefined
+// The v2 server always authenticates with HTTP Basic auth as user "opencode". Reuse the caller's
+// password when set so the environment stays consistent, otherwise mint one for this child only.
+function serverPassword(env: NodeJS.ProcessEnv) {
+  return env.OPENCODE_SERVER_PASSWORD || randomBytes(24).toString("base64url")
+}
 
-  const username = env.OPENCODE_SERVER_USERNAME ?? "opencode"
+export function serverAuthHeaders(password: string) {
   return {
-    Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
+    Authorization: `Basic ${Buffer.from(`opencode:${password}`).toString("base64")}`,
   }
+}
+
+function findFreePort() {
+  return new Promise<number>((resolve, reject) => {
+    const server = createServer()
+    server.unref()
+    server.once("error", reject)
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address()
+      server.close(() => {
+        if (address && typeof address === "object") resolve(address.port)
+        else reject(new Error("Failed to reserve a local port for the opencode server"))
+      })
+    })
+  })
 }
 
 async function killProcessTree(proc: ReturnType<typeof spawn>) {
@@ -54,16 +80,25 @@ async function killProcessTree(proc: ReturnType<typeof spawn>) {
 
 function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
   return Effect.tryPromise(async (signal) => {
-    const proc = spawn("opencode", OPENCODE_SERVER_ARGS, {
+    const port = await findFreePort()
+    const password = serverPassword(process.env)
+    // Only the global config is isolated: the user's plugins and MCP servers are noise for a
+    // read-only analysis agent. The data directory (credentials, database) stays shared.
+    const configDir = await mkdtemp(join(tmpdir(), "opencode-changelog-config-"))
+    const proc = spawn("opencode", [...OPENCODE_SERVER_ARGS, "--port", String(port)], {
       env: {
         ...process.env,
+        OPENCODE_SERVER_PASSWORD: password,
+        OPENCODE_CONFIG_DIR: configDir,
         OPENCODE_CONFIG_CONTENT: JSON.stringify({}),
+        OPENCODE_DISABLE_AUTOUPDATE: "1",
       },
       detached: process.platform !== "win32",
       stdio: ["ignore", "pipe", "pipe"],
     })
 
     let output = ""
+    let exited = false
 
     function appendOutput(chunk: Buffer, stream: NodeJS.WriteStream) {
       const text = chunk.toString()
@@ -74,11 +109,16 @@ function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
       if (echoOutput) {
         stream.write(text)
       }
-      return text
     }
 
-    const exitPromise = new Promise<void>((resolve) => {
-      proc.once("close", () => resolve())
+    proc.stdout?.on("data", (chunk: Buffer) => appendOutput(chunk, process.stdout))
+    proc.stderr?.on("data", (chunk: Buffer) => appendOutput(chunk, process.stderr))
+
+    const exitPromise = new Promise<number | null>((resolve) => {
+      proc.once("close", (code) => {
+        exited = true
+        resolve(code)
+      })
     })
 
     async function closeProcess() {
@@ -97,62 +137,51 @@ function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
 
       await exitPromise
       clearTimeout(forceKillTimer)
+      await rm(configDir, { recursive: true, force: true }).catch(() => undefined)
     }
 
     signal.addEventListener("abort", () => {
       void closeProcess()
     }, { once: true })
 
-    const url = await new Promise<string>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        void closeProcess()
-        reject(new Error(`Timeout waiting for opencode server startup\n${output}`))
-      }, 10_000)
-
-      const onStdout = (chunk: Buffer) => {
-        appendOutput(chunk, process.stdout)
-        const lines = output.split("\n")
-        for (const line of lines) {
-          if (!line.startsWith("opencode server listening")) continue
-          const match = line.match(/on\s+(https?:\/\/[^\s]+)/)
-          if (!match) {
-            clearTimeout(timeout)
-            void closeProcess()
-            reject(new Error(`Failed to parse opencode server URL\n${output}`))
-            return
-          }
-          clearTimeout(timeout)
-          resolve(match[1]!)
-          return
-        }
-      }
-
-      const onStderr = (chunk: Buffer) => {
-        appendOutput(chunk, process.stderr)
-      }
-
-      proc.stdout?.on("data", onStdout)
-      proc.stderr?.on("data", onStderr)
-      proc.once("error", (error) => {
-        clearTimeout(timeout)
-        void closeProcess()
-        reject(error)
-      })
-      proc.once("close", (code) => {
-        clearTimeout(timeout)
-        void closeProcess()
-        reject(new Error(`Opencode server exited early with code ${code}\n${output}`))
-      })
-    })
-
-    const client = createOpencodeClient({
+    const url = `http://127.0.0.1:${port}`
+    const client = OpenCode.make({
       baseUrl: url,
-      directory: repoDir,
-      headers: serverAuthHeaders(process.env),
+      headers: serverAuthHeaders(password),
     })
+
+    const spawnError = new Promise<never>((_, reject) => {
+      proc.once("error", reject)
+    })
+
+    try {
+      await Promise.race([
+        spawnError,
+        (async () => {
+          const deadline = Date.now() + OPENCODE_STARTUP_TIMEOUT_MS
+          while (true) {
+            if (exited) {
+              throw new Error(`Opencode server exited early with code ${proc.exitCode}\n${output}`)
+            }
+            if (Date.now() > deadline) {
+              throw new Error(`Timeout waiting for opencode server startup on ${url}\n${output}`)
+            }
+            const healthy = await client.health.get({ signal: AbortSignal.timeout(OPENCODE_STARTUP_TIMEOUT_MS) })
+              .then((health) => health.healthy)
+              .catch(() => false)
+            if (healthy) return
+            await delay(OPENCODE_HEALTH_POLL_MS)
+          }
+        })(),
+      ])
+    } catch (error) {
+      await closeProcess()
+      throw error
+    }
 
     return {
       client,
+      directory: repoDir,
       async getOutput() {
         await delay(100)
         return output.trim()
