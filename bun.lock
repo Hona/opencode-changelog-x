@@ -11,6 +11,7 @@
         "effect": "4.0.0-beta.66",
         "twitter-api-v2": "^1.29.0",
         "twitter-text": "^3.1.0",
+        "unbunjs": "2.0.0",
         "zod": "^4.3.6",
       },
       "devDependencies": {
@@ -149,6 +150,8 @@
     "twitter-text": ["twitter-text@3.1.0", "", { "dependencies": { "@babel/runtime": "^7.3.1", "core-js": "^2.5.0", "punycode": "1.4.1", "twemoji-parser": "^11.0.2" } }, "sha512-nulfUi3FN6z0LUjYipJid+eiwXvOLb8Ass7Jy/6zsXmZK3URte043m8fL3FyDzrK+WLpyqhHuR/TcARTN/iuGQ=="],
 
     "typescript": ["typescript@6.0.2", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ=="],
+
+    "unbunjs": ["unbunjs@2.0.0", "", { "bin": { "unbun": "dist/cli.js" } }, "sha512-zSWtJfv+zF88BjpVEYAP01mxApS12ochTLwCWFxmcfkPsMaCAxcapO0oyaRthA8yqVsqHGamtLCEv4LdbMdtLw=="],
 
     "undici": ["undici@6.24.1", "", {}, "sha512-sC+b0tB1whOCzbtlx20fx3WgCXwkW627p4EA9uM+/tNNPkSS+eSEld6pAs9nDv7WbY1UUljBMYPtu9BCOrCWKA=="],
 

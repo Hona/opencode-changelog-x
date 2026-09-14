@@ -30,7 +30,7 @@ Polls `anomalyco/opencode` GitHub releases and `v*` git tags, resolves the git t
 7. Post the single X message when not in dry-run mode.
 8. Persist posted release metadata back to `data/posted-releases.json`.
 
-Bundle-size analysis downloads the npm binaries for both sides of the range: `opencode-ai` / `opencode-<platform>` for 1.x and `@opencode/cli` / `@opencode/cli-<platform>` for 2.x. The beta staleness monitor watches the `beta` dist-tag of `@opencode/cli`.
+Bundle-size analysis downloads the npm binaries for both sides of the range: `opencode-ai` / `opencode-<platform>` for 1.x and `@opencode/cli` / `@opencode/cli-<platform>` for 2.x. Each binary is a Bun standalone executable; its embedded module-graph payload is parsed with [`unbunjs`](https://github.com/cc-friend/unbun), and every module's bytes are attributed to a category (CLI/TUI JS, Web UI assets, native addons, WASM, source maps, bytecode, module info). The rest of the file is counted as the Bun runtime. 2.x binaries ship ESM bytecode alongside the source, which shows up under the Bytecode metric. The beta staleness monitor watches the `beta` dist-tag of `@opencode/cli`.
 
 ## Discord Preview Bot
 
