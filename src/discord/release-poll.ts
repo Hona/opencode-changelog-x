@@ -78,7 +78,7 @@ export class ReleasePoll extends Context.Service<ReleasePoll, {
         yield* Effect.sleep("30 seconds")
         while (true) {
           yield* dispatchOnce()
-          yield* Effect.sleep("10 minutes")
+          yield* Effect.sleep("15 minutes")
         }
       })
 

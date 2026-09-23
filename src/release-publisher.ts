@@ -10,6 +10,8 @@ import { TwitterPublisher } from "./twitter.js"
 import { UpstreamRepository } from "./upstream.js"
 import { getCharacterLength, validatePost } from "./validate.js"
 
+const MAX_RELEASES_PER_RUN = 1
+
 export class ReleasePublisher extends Context.Service<ReleasePublisher, {
   readonly run: Effect.Effect<void, unknown>
 }>()("app/ReleasePublisher") {
@@ -28,21 +30,25 @@ export class ReleasePublisher extends Context.Service<ReleasePublisher, {
         const releases = yield* releasesApi.list({ known: state.releases })
         const catalog = new ReleaseCatalog(releases)
         let history = new PostedReleaseHistory(state)
-        const resolvedPending = history.pendingFrom(catalog, {
+        const allPending = history.pendingFrom(catalog, {
           targetTag: config.targetTag,
           allowPostedTarget: config.dryRun,
         })
 
-        if (resolvedPending.length === 0) {
+        if (allPending.length === 0) {
           yield* Effect.sync(() => console.log("No unposted releases found."))
           return
         }
+
+        // A tag burst (for example a new major line) would otherwise post every pending release
+        // back to back in one run. Cap the run and let the VPS re-dispatch drain the rest.
+        const resolvedPending = config.targetTag ? allPending : allPending.slice(0, MAX_RELEASES_PER_RUN)
 
         yield* Effect.sync(() => {
           if (config.targetTag) {
             console.log(`Selected ${config.targetTag} for ${config.dryRun ? "dry-run preview" : "publishing"}.`)
           } else {
-            console.log(`Found ${resolvedPending.length} unposted release(s).`)
+            console.log(`Found ${allPending.length} unposted release(s); processing ${resolvedPending.map((release) => release.tag).join(", ")} this run.`)
           }
           const latestPostedRelease = history.latest()
           if (!config.targetTag && latestPostedRelease) {
