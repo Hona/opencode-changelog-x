@@ -1982,6 +1982,24 @@
         "2102581362855465134"
       ],
       "postedAt": "2026-09-23T02:10:35.437Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "ea5ae2329569e4fbf063be451480b58e29de6816",
+      "tag": "v2.0.2",
+      "name": "v2.0.2",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.2",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-12T07:57:13Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.2 released. TL;DR:\nDesktop settings are redesigned with search, session status moves into a per-session summary panel, TinyFish joins web search, and missing files now return a proper 404.\n\n𝗔𝗽𝗽\nAdded\n• Added a redesigned Settings with its own route and a search box that covers pages, individual settings, projects, and servers, with keyboard navigation and scroll-to-result highlighting.\n• Added server-level preferences in Settings for the default shell (picked from shells found on that server) and the third-party web search provider, both saved to the global config.\n• Added a session summary panel that replaces the old status popover. It shows the server, project, MCP, plugin, skill, and LSP state for the current session, with a toggle command and shortcut.\n• Added MCP choices on the new-session screen for new worktrees. The choices are kept per draft and applied before the first prompt, and the prompt waits for any required MCP sign-in or pending toggle.\n\nChanged\n• Changed project editing from a modal dialog to a nested autosaving settings view. It covers name, icon, color, and the worktree startup script, with hints for $OPENCODE_WORKTREE_BASE and $OPENCODE_WORKTREE_PATH.\n• Changed project extensions to list configured language servers next to detected ones, show their enabled or disabled state from config, and handle lsp=true/false.\n• Improved settings load times: Workspaces, Extensions, and About open without waiting on inventory, MCP, or contributor requests, and hovering Worktrees prefetches only what it needs.\n• Changed the summary panel to slide the conversation into spare space instead of covering the session timeline.\n\nFixed\n• Fixed startup on Safari versions before 17.4 by polyfilling Map.groupBy and Promise.withResolvers.\n• Fixed the file viewer to show a clear not-found state for missing files instead of a generic load error.\n\n𝗧𝗨𝗜\n• Removed preview session tabs. Opening a session now always creates a normal tab, so there are no more italic preview tabs, double-click-to-keep, or \"Keep open\" menu item.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added TinyFish as a web search provider. It works with a TINYFISH_API_KEY or saved key and falls back to keyless mode otherwise.\n• Changed the error for calls to unknown or unavailable tools to tell the model to choose from the available tool list, which helps it recover instead of retrying bad names.\n• Improved the code mode JS interpreter's spec compliance. Built-ins now live on real per-run prototype chains, so instanceof, in, destructuring of inherited methods, Object.prototype methods, and built-in name/length behave like JavaScript.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added API endpoints to read and patch global preferences (shell, websearch) in the highest-precedence global config file, preserving existing JSONC formatting.\n• Added an endpoint that lists the shells available for terminal and agent execution.\n• Fixed file reads to return a typed 404 for missing files instead of failing as an internal error.\n\n𝗦𝗗𝗞\n• Updated the generated clients with the new preferences and shell endpoints plus a typed file-not-found error helper.\n\n𝗗𝗼𝗰𝘀\n• Expanded the V1 plugin migration guide.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.1...v2.0.2"
+      ],
+      "tweetIds": [
+        "2102586800124330285"
+      ],
+      "postedAt": "2026-09-23T02:32:12.171Z"
     }
   ]
 }
