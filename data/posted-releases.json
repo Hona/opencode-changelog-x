@@ -2054,6 +2054,24 @@
         "2102598331289804973"
       ],
       "postedAt": "2026-09-23T03:18:01.442Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "b084acc55ea2cdb50e9c2ec49a8d9ab3608d43ad",
+      "tag": "v2.0.6",
+      "name": "v2.0.6",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.6",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-17T11:17:26Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.6 released. TL;DR:\nYou can now attach any file in the App, the TUI gets /reload to rebuild all locations, provider retries last longer and sort errors better, and plugins can tap WebSocket frames.\n\n𝗧𝗨𝗜\n• Added a /reload command (\"Reload locations\") that rebuilds every loaded location and shows progress and result toasts.\n• Added the model a subagent was explicitly given, including its variant, to the subagent tool row.\n• Fixed blank Enter in an existing session so it applies the selected agent and model before promoting queued prompts.\n• Fixed the MCP dialog showing an auth error hint when Enter would start sign-in for that integration.\n\n𝗔𝗽𝗽\nAdded\n• Added support for attaching any file type. Images, PDFs and text files the model can read are still sent inline. Other files go to the model as a path: the file's original path on a local server, or a copy uploaded to the server's temp directory on a remote one.\n• Added project settings actions: rename, open in the file manager (desktop, local server) and close from a context menu, plus the worktree path under each project and a better empty search state.\n• Added an animated wordmark loading screen on the desktop's first launch.\n\nFixed\n• Fixed transport errors wrapped by the client (for example, network changes that drop loopback requests) so they are retried instead of breaking startup data loading.\n• Fixed pasting from the clipboard so text is inserted as text instead of being taken as an image attachment.\n• Fixed the embedded browser view staying on top of the app after the right panel closes.\n• Fixed the start screen so it re-centers beside open summary panels.\n\nChanged\n• Changed the desktop app to stop showing a pointer cursor on elements that are not links.\n• Changed Anthropic provider copy to drop the Claude Pro/Max wording. It now says API key access and \"Login with Anthropic\".\n• Changed bundled themes: removed the legacy OpenCode theme and renamed OC-2 to OpenCode.\n\n𝗔𝗴𝗲𝗻𝘁\n• Changed provider-failure retries to 10 attempts, with exponential backoff capped at 10s between tries, for about 84s of total wait instead of about 30s.\n• Fixed shell-recovery notices after a restart so they no longer wake idle sessions.\n• Fixed session warming so it skips subagent sessions.\n• Improved code mode so errors crossing between the sandbox and host code keep cause, code, errno, syscall and path, and new Error(message, { cause }) is supported.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed OpenAI, Azure and xAI so a transport set in provider config is honored instead of always being forced to WebSocket.\n• Fixed Responses-style streams that send a bare string error, so the message is kept instead of being lost.\n• Changed error classification so HTTP 402 and OpenCode Zen usage, credit or budget limits count as quota errors instead of retryable throttles.\n• Fixed 4xx responses carrying a server_error code (as some gateways send) being retried. They are now treated as rejected requests.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added POST /api/location/reload, which shuts down and rebuilds every loaded location. Pending permissions and forms are rejected, running sessions continue on fresh services at the next step, and a location.shutdown event lets clients resync.\n• Added an experimental fs.write endpoint that writes raw bytes to an absolute or location-relative path and creates missing parent directories.\n• Changed /api/status to /api/info, which now also returns the server's temp directory path.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Added experimental ws.send and ws.receive session hooks, so plugins can inspect or rewrite provider WebSocket frames in both directions.\n\n𝗖𝗟𝗜\n• Added the OPENCODE_CLI_CONFIG_CONTENT environment variable for inline CLI config, deep-merged over cli.json.\n\n𝗠𝗖𝗣\n• Fixed startup bursts by starting remote MCP servers that share an endpoint URL one at a time instead of concurrently.\n\n𝗦𝗗𝗞\n• Updated generated clients with server.info, location.reload and file.write, and kept client state intact when locations reload.\n\n𝗗𝗮𝘁𝗮\n• Changed stats to merge Union Alpha routes into a single model and hide its underlying provider.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.5...v2.0.6"
+      ],
+      "tweetIds": [
+        "2102602498661892310"
+      ],
+      "postedAt": "2026-09-23T03:34:35.046Z"
     }
   ]
 }
