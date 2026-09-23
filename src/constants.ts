@@ -1,12 +1,12 @@
 export const MODEL = {
   providerID: "opencode",
-  modelID: "gemini-3.8-flash",
+  modelID: "claude-opus-5-5",
   variant: "high",
 } as const
 
 export const PREVIEW_MODEL = {
   providerID: "opencode",
-  modelID: "gemini-3.8-flash",
+  modelID: "claude-opus-5-5",
   variant: "high",
 } as const
 

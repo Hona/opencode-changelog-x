@@ -16,7 +16,7 @@ Polls `anomalyco/opencode` GitHub releases and `v*` git tags, resolves the git t
 ## Hardcoded Model
 
 - provider: `opencode`
-- model: `gemini-3.8-flash`
+- model: `claude-opus-5-5`
 - variant: `high` (for both published posts and Discord previews)
 
 ## How It Works
