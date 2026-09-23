@@ -5,7 +5,7 @@
 The Discord bot (`bun run discord`) is the single long-running process on the VPS. It handles:
 
 - `!previewchangelog` command in the hardcoded channel
-- Release polling - checks `origin/master:data/posted-releases.json` every 15 minutes and dispatches this repo's `poll.yml` via `gh` CLI only when an upstream release is unposted. Each `poll.yml` run posts at most one release, so a backlog drains at one post per poll.
+- Release polling - checks `origin/master:data/posted-releases.json` every 5 minutes and dispatches this repo's `poll.yml` via `gh` CLI only when an upstream release is unposted. Each `poll.yml` run posts at most one release, so a backlog drains at one post per poll.
 - Upstream publish monitoring — checks `anomalyco/opencode` `publish.yml` workflow_dispatch runs every 5 minutes and posts triggered/completed/failed release alerts to Discord
 
 Twitter release posting runs in GitHub Actions (the `poll.yml` workflow), not on the VPS.
