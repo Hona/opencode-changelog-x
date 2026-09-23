@@ -2090,6 +2090,24 @@
         "2102606038327333114"
       ],
       "postedAt": "2026-09-23T03:48:38.912Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "7673ed6bd6547ee0dcb81aab55f1392fb751d652",
+      "tag": "v2.0.8",
+      "name": "v2.0.8",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.8",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-18T09:12:25Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.8 released. TL;DR:\nTUI adds /btw side questions and live update progress, the App streams large attachments to the server with progress and can scan pairing QR codes, and desktop IPC now sends binary data as raw bytes.\n\n𝗧𝗨𝗜\nAdded\n• Added /btw <question> (also in the command palette, with an unbound session.aside keybind). It gives a one-shot answer using the session's context and current model without adding anything to the conversation. The answer opens in a scrollable dialog, and you can press C to copy it.\n• Added click-through on completed subagent notices so they open the child session.\n• Added an \"Updating OpenCode\" state to the update dialog so auto-installs show progress instead of looking idle or already current.\n\nFixed\n• Fixed model favorites, recents and variants getting out of sync between TUI instances. The preferences file is now written under a lock and watched for changes.\n• Fixed the tokens/sec throughput display to count reasoning tokens along with output tokens.\n• Fixed slash command detection when the prompt contains collapsed pasted text, so the full pasted content reaches the command.\n• Fixed block tool output losing its spacing when layout space is tight.\n\nChanged\n• Renamed the v2 theme background tokens from surface.offset/overlay to raised.base/high, and added raised.max. v1 theme migration now produces the new keys.\n\n𝗔𝗽𝗽\nAdded\n• Added streaming uploads for large or non-native attachments sent to remote servers. Files stream from disk into the server's temp directory, with a progress toast and per-file cancel, and sending waits for uploads still in flight.\n• Added QR pairing scan to the web Add Server dialog. It fills in the server URL and password, offers the other addresses as suggestions, and checks for a secure context and camera availability.\n• Added a \"Toggle debug bar\" command that works in production builds. It shows provider TTFT, time to first answer, TPS and end-to-end latency for the latest request.\n\nChanged\n• Changed attachment delivery: only images and PDFs the model reads natively, up to 20 MB, go inline. Text and larger files now reach the model as server-side paths instead of being base64-encoded into the request, and queued prompts keep those path attachments when edited.\n\nFixed\n• Fixed new local sessions starting in the current subdirectory instead of the project root.\n• Fixed tool calls that stayed stuck as running or streaming after a session settled. The message list now resyncs when the session settles.\n• Fixed desktop IPC corrupting binary payloads (clipboard images, picked files, draft blobs). IPC now uses structured clone instead of a shared MessagePack buffer, which also removes the optional msgpackr-extract native dependency.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed attachment errors for inline data URLs repeating the entire encoded file. Size and decode errors now name the attachment instead.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.7...v2.0.8"
+      ],
+      "tweetIds": [
+        "2102610031900287065"
+      ],
+      "postedAt": "2026-09-23T04:04:31.076Z"
     }
   ]
 }
