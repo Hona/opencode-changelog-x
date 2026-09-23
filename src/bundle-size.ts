@@ -1,51 +1,37 @@
 import { gunzipSync } from "node:zlib"
 import { Context, Effect, Layer } from "effect"
+import { parseBuffer, type BunModule, type ParsedBunBinary } from "unbunjs"
 import type { ReleaseRange } from "./domain/releases.js"
-import { NpmRegistry, OPENCODE_NPM_PACKAGE, type NpmRegistryService } from "./integrations/npm-registry.js"
+import {
+  NpmRegistry,
+  opencodeNpmPackagesForVersion,
+  type NpmRegistryService,
+  type OpencodeNpmPackages,
+} from "./integrations/npm-registry.js"
 
 const TAG_VERSION_PATTERN = /(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)$/
-const TRAILER = Buffer.from("\n---- Bun! ----\n")
-const OFFSETS_SIZE = 32
-// Bun's CompiledModuleGraphFile is six StringPointers followed by four u8 fields.
-const MODULE_RECORD_SIZE = 52
-const LEGACY_OFFSETS_SIZE = 24
-const LEGACY_MODULE_RECORD_SIZE = 36
 const BYTE_DECIMALS = 1
 const SIGNIFICANT_BUNDLE_DELTA_BYTES = 1024 * 1024
 const BUNDLE_SUMMARY_MAX_LENGTH = 240
 const NATIVE_EXTENSIONS = new Set([".dll", ".dylib", ".node", ".so"])
 
-const LOADER_NAMES = [
-  "jsx",
-  "js",
-  "ts",
-  "tsx",
-  "css",
-  "file",
-  "json",
-  "jsonc",
-  "toml",
-  "wasm",
-  "napi",
-  "base64",
-  "dataurl",
-  "text",
-  "bunsh",
-  "sqlite",
-  "sqlite_embedded",
-  "html",
-  "yaml",
-  "json5",
-  "md",
+export const BUNDLE_PLATFORMS = [
+  { platform: "darwin-arm64", label: "macOS arm64" },
+  { platform: "linux-x64", label: "Linux x64" },
+  { platform: "windows-x64", label: "Windows x64" },
 ] as const
 
-export const BUNDLE_TARGETS = [
-  { packageName: "opencode-darwin-arm64", label: "macOS arm64" },
-  { packageName: "opencode-linux-x64", label: "Linux x64" },
-  { packageName: "opencode-windows-x64", label: "Windows x64" },
-] as const
+export type BundleTarget = {
+  readonly packageName: string
+  readonly label: string
+}
 
-export type BundleTarget = (typeof BUNDLE_TARGETS)[number]
+export function bundleTargetsFor(packages: OpencodeNpmPackages): BundleTarget[] {
+  return BUNDLE_PLATFORMS.map((target) => ({
+    packageName: `${packages.binaryPackagePrefix}${target.platform}`,
+    label: target.label,
+  }))
+}
 export type BundleCategory =
   | "total"
   | "bunRuntime"
@@ -75,61 +61,7 @@ export const BUNDLE_CATEGORIES = [
   "bundleMetadata",
 ] as const satisfies readonly BundleCategory[]
 
-type StringPointer = {
-  offset: number
-  length: number
-}
-
-type ExtractedModuleGraph = {
-  graphBytes: Buffer
-  containerSize: number
-}
-
-type ParsedModule = {
-  name: string
-  contentsSize: number
-  sourceMapSize: number
-  bytecodeSize: number
-  moduleInfoSize: number
-  loader: string
-  side: "server" | "client"
-}
-
-type ModuleGraphLayout = {
-  offsetsSize: number
-  moduleRecordSize: number
-  bytecodePointerOffset: number
-  moduleInfoPointerOffset: number | null
-  loaderOffset: number
-  sideOffset: number | null
-}
-
-const MODULE_GRAPH_LAYOUTS: ModuleGraphLayout[] = [
-  {
-    offsetsSize: OFFSETS_SIZE,
-    moduleRecordSize: MODULE_RECORD_SIZE,
-    bytecodePointerOffset: 24,
-    moduleInfoPointerOffset: 32,
-    loaderOffset: 49,
-    sideOffset: 51,
-  },
-  {
-    offsetsSize: OFFSETS_SIZE,
-    moduleRecordSize: LEGACY_MODULE_RECORD_SIZE,
-    bytecodePointerOffset: 24,
-    moduleInfoPointerOffset: null,
-    loaderOffset: 33,
-    sideOffset: null,
-  },
-  {
-    offsetsSize: LEGACY_OFFSETS_SIZE,
-    moduleRecordSize: LEGACY_MODULE_RECORD_SIZE,
-    bytecodePointerOffset: 24,
-    moduleInfoPointerOffset: null,
-    loaderOffset: 33,
-    sideOffset: null,
-  },
-]
+export type ParsedStandaloneBinary = Pick<ParsedBunBinary, "offsets" | "modules">
 
 type SnapshotInfo = {
   version: string
@@ -285,29 +217,8 @@ function parseTimestamp(timestamp: string | null | undefined) {
   return Number.isFinite(value) ? value : null
 }
 
-function buildPreviewSnapshotLine(snapshot: SnapshotInfo) {
-  return `Preview snapshot: npm dev ${OPENCODE_NPM_PACKAGE}@${snapshot.version}`
-}
-
-function readU32(buffer: Buffer, offset: number) {
-  if (offset < 0 || offset + 4 > buffer.length) {
-    throw new Error(`Out-of-bounds u32 read at offset ${offset}`)
-  }
-
-  return buffer.readUInt32LE(offset)
-}
-
-function readU64(buffer: Buffer, offset: number) {
-  if (offset < 0 || offset + 8 > buffer.length) {
-    throw new Error(`Out-of-bounds u64 read at offset ${offset}`)
-  }
-
-  const value = buffer.readBigUInt64LE(offset)
-  if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
-    throw new Error(`Value at offset ${offset} exceeds JavaScript safe integer range`)
-  }
-
-  return Number(value)
+function buildPreviewSnapshotLine(packageName: string, snapshot: SnapshotInfo) {
+  return `Preview snapshot: npm dev ${packageName}@${snapshot.version}`
 }
 
 function readFixedString(buffer: Buffer, offset: number, length: number) {
@@ -319,31 +230,6 @@ function readFixedString(buffer: Buffer, offset: number, length: number) {
     .subarray(offset, offset + length)
     .toString("utf8")
     .replace(/\0.*$/, "")
-}
-
-function readTableString(table: Buffer, offset: number) {
-  if (offset < 0 || offset >= table.length) return ""
-
-  const end = table.indexOf(0, offset)
-  return table.subarray(offset, end === -1 ? table.length : end).toString("utf8")
-}
-
-function readPointer(buffer: Buffer, offset: number): StringPointer {
-  return {
-    offset: readU32(buffer, offset),
-    length: readU32(buffer, offset + 4),
-  }
-}
-
-function slicePointer(buffer: Buffer, pointer: StringPointer) {
-  if (pointer.length === 0) return Buffer.alloc(0)
-
-  const end = pointer.offset + pointer.length
-  if (pointer.offset < 0 || end > buffer.length) {
-    throw new Error(`Out-of-bounds pointer slice at ${pointer.offset}+${pointer.length}`)
-  }
-
-  return buffer.subarray(pointer.offset, end)
 }
 
 function getExtension(filepath: string) {
@@ -391,273 +277,7 @@ function extractBinaryFromTarball(tarball: Buffer) {
   return binary
 }
 
-function extractGraphFromPE(binary: Buffer): ExtractedModuleGraph | null {
-  if (readFixedString(binary, 0, 2) !== "MZ") return null
-
-  const peHeaderOffset = readU32(binary, 0x3c)
-  if (readFixedString(binary, peHeaderOffset, 4) !== "PE\0\0") {
-    throw new Error("Invalid PE signature while reading opencode bundle")
-  }
-
-  const numberOfSections = binary.readUInt16LE(peHeaderOffset + 6)
-  const optionalHeaderSize = binary.readUInt16LE(peHeaderOffset + 20)
-  const sectionHeadersOffset = peHeaderOffset + 24 + optionalHeaderSize
-
-  for (let index = 0; index < numberOfSections; index += 1) {
-    const offset = sectionHeadersOffset + index * 40
-    const name = readFixedString(binary, offset, 8)
-    if (name !== ".bun") continue
-
-    const rawSize = readU32(binary, offset + 16)
-    const rawOffset = readU32(binary, offset + 20)
-    const graphLength = readU64(binary, rawOffset)
-    const graphStart = rawOffset + 8
-    const graphEnd = graphStart + graphLength
-
-    if (graphEnd > binary.length) {
-      throw new Error("The PE .bun section extends past the binary bounds")
-    }
-
-    return {
-      graphBytes: binary.subarray(graphStart, graphEnd),
-      containerSize: rawSize,
-    }
-  }
-
-  throw new Error("The PE binary does not contain a .bun section")
-}
-
-function extractGraphFromMachO(binary: Buffer): ExtractedModuleGraph | null {
-  if (readU32(binary, 0) !== 0xfeedfacf) return null
-
-  const numberOfCommands = readU32(binary, 16)
-  let offset = 32
-
-  for (let index = 0; index < numberOfCommands; index += 1) {
-    const command = readU32(binary, offset)
-    const commandSize = readU32(binary, offset + 4)
-
-    if (commandSize < 8) {
-      throw new Error("Encountered an invalid Mach-O load command")
-    }
-
-    if (command === 0x19) {
-      const segmentName = readFixedString(binary, offset + 8, 16)
-      const fileSize = readU64(binary, offset + 48)
-      const sectionCount = readU32(binary, offset + 64)
-
-      if (segmentName === "__BUN") {
-        let sectionOffset = offset + 72
-
-        for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex += 1) {
-          const sectionName = readFixedString(binary, sectionOffset, 16)
-          const sectionSegment = readFixedString(binary, sectionOffset + 16, 16)
-
-          if (sectionSegment === "__BUN" && sectionName === "__bun") {
-            const fileOffset = readU32(binary, sectionOffset + 48)
-            const graphLength = readU64(binary, fileOffset)
-            const graphStart = fileOffset + 8
-            const graphEnd = graphStart + graphLength
-
-            if (graphEnd > binary.length) {
-              throw new Error("The Mach-O __BUN section extends past the binary bounds")
-            }
-
-            return {
-              graphBytes: binary.subarray(graphStart, graphEnd),
-              containerSize: fileSize,
-            }
-          }
-
-          sectionOffset += 80
-        }
-      }
-    }
-
-    offset += commandSize
-  }
-
-  throw new Error("The Mach-O binary does not contain a __BUN/__bun section")
-}
-
-function extractGraphFromElf(binary: Buffer): ExtractedModuleGraph | null {
-  if (readFixedString(binary, 0, 4) !== "\u007fELF") return null
-  if (binary[4] !== 2 || binary[5] !== 1) {
-    throw new Error("Only 64-bit little-endian ELF binaries are supported")
-  }
-
-  const programHeaderOffset = readU64(binary, 32)
-  const sectionHeaderOffset = readU64(binary, 40)
-  const programHeaderEntrySize = binary.readUInt16LE(54)
-  const programHeaderCount = binary.readUInt16LE(56)
-  const sectionHeaderEntrySize = binary.readUInt16LE(58)
-  const sectionHeaderCount = binary.readUInt16LE(60)
-  const sectionNameTableIndex = binary.readUInt16LE(62)
-
-  const sectionNameHeaderOffset = sectionHeaderOffset + sectionNameTableIndex * sectionHeaderEntrySize
-  const sectionNameTableOffset = readU64(binary, sectionNameHeaderOffset + 24)
-  const sectionNameTableSize = readU64(binary, sectionNameHeaderOffset + 32)
-  const sectionNameTable = binary.subarray(sectionNameTableOffset, sectionNameTableOffset + sectionNameTableSize)
-
-  for (let index = 0; index < sectionHeaderCount; index += 1) {
-    const headerOffset = sectionHeaderOffset + index * sectionHeaderEntrySize
-    const nameOffset = readU32(binary, headerOffset)
-    const name = readTableString(sectionNameTable, nameOffset)
-    if (name !== ".bun") continue
-
-    const sectionOffset = readU64(binary, headerOffset + 24)
-    const sectionSize = readU64(binary, headerOffset + 32)
-    const graphLength = readU64(binary, sectionOffset)
-    const graphStart = sectionOffset + 8
-    const graphEnd = graphStart + graphLength
-
-    if (graphEnd > binary.length) {
-      throw new Error("The ELF .bun section extends past the binary bounds")
-    }
-
-    let containerSize = sectionSize
-    for (let programIndex = 0; programIndex < programHeaderCount; programIndex += 1) {
-      const header = programHeaderOffset + programIndex * programHeaderEntrySize
-      const type = readU32(binary, header)
-      const fileOffset = readU64(binary, header + 8)
-      if (type !== 1 || fileOffset !== sectionOffset) continue
-      containerSize = readU64(binary, header + 32)
-      break
-    }
-
-    return {
-      graphBytes: binary.subarray(graphStart, graphEnd),
-      containerSize,
-    }
-  }
-
-  throw new Error("The ELF binary does not contain a .bun section")
-}
-
-function extractGraphFromTrailer(binary: Buffer): ExtractedModuleGraph | null {
-  const trailerOffset = binary.lastIndexOf(TRAILER)
-  if (trailerOffset === -1) return null
-
-  let graphStart: number | null = null
-
-  for (const offsetsSize of [OFFSETS_SIZE, LEGACY_OFFSETS_SIZE]) {
-    const offsetsStart = trailerOffset - offsetsSize
-    if (offsetsStart < 8) continue
-
-    const byteCount = readU64(binary, offsetsStart)
-    if (byteCount > offsetsStart) continue
-
-    graphStart = offsetsStart - byteCount
-    break
-  }
-
-  if (graphStart === null) {
-    throw new Error("The Bun bundle trailer points outside the binary")
-  }
-
-  const graphEnd = trailerOffset + TRAILER.length
-  let containerSize = graphEnd - graphStart
-
-  // Older Bun builds append the graph blob and finish with a final u64 equal to
-  // the full file size. Treat that trailing footer as part of the bundle area.
-  if (binary.length >= 8) {
-    const trailingValue = binary.readBigUInt64LE(binary.length - 8)
-    if (trailingValue <= BigInt(Number.MAX_SAFE_INTEGER) && Number(trailingValue) === binary.length) {
-      containerSize += 8
-    }
-  }
-
-  return {
-    graphBytes: binary.subarray(graphStart, graphEnd),
-    containerSize,
-  }
-}
-
-function extractStandaloneModuleGraph(binary: Buffer) {
-  const candidates = [extractGraphFromPE, extractGraphFromMachO, extractGraphFromElf] as const
-
-  for (const extract of candidates) {
-    try {
-      const result = extract(binary)
-      if (result) return result
-    } catch {
-      break
-    }
-  }
-
-  return extractGraphFromTrailer(binary) ?? (() => {
-    throw new Error("Unsupported executable format while analyzing the compiled bundle")
-  })()
-}
-
-function parseModuleGraphWithLayout(graphBytes: Buffer, layout: ModuleGraphLayout) {
-  const trailerOffset = graphBytes.length - TRAILER.length
-  const offsetsStart = trailerOffset - layout.offsetsSize
-  if (offsetsStart < 8) {
-    throw new Error("The Bun module graph offsets are out of bounds")
-  }
-
-  const byteCount = readU64(graphBytes, offsetsStart)
-  if (byteCount > offsetsStart) {
-    throw new Error("The Bun module graph offsets point outside the payload")
-  }
-
-  const payload = graphBytes.subarray(0, byteCount)
-  const modulesPointer = readPointer(graphBytes, offsetsStart + 8)
-  const modulesBytes = slicePointer(payload, modulesPointer)
-
-  if (modulesBytes.length % layout.moduleRecordSize !== 0) {
-    throw new Error("The Bun module table has an unexpected size")
-  }
-
-  const modules: ParsedModule[] = []
-  for (let offset = 0; offset < modulesBytes.length; offset += layout.moduleRecordSize) {
-    const record = modulesBytes.subarray(offset, offset + layout.moduleRecordSize)
-    const namePointer = readPointer(record, 0)
-    const contentsPointer = readPointer(record, 8)
-    const sourceMapPointer = readPointer(record, 16)
-    const bytecodePointer = readPointer(record, layout.bytecodePointerOffset)
-    const moduleInfoPointer =
-      layout.moduleInfoPointerOffset !== null ? readPointer(record, layout.moduleInfoPointerOffset) : null
-
-    modules.push({
-      name: slicePointer(payload, namePointer).toString("utf8").replace(/\0$/, ""),
-      contentsSize: contentsPointer.length,
-      sourceMapSize: sourceMapPointer.length,
-      bytecodeSize: bytecodePointer.length,
-      moduleInfoSize: moduleInfoPointer?.length ?? 0,
-      loader: LOADER_NAMES[record.readUInt8(layout.loaderOffset)] ?? `loader#${record.readUInt8(layout.loaderOffset)}`,
-      side: layout.sideOffset !== null && record.readUInt8(layout.sideOffset) === 1 ? "client" : "server",
-    })
-  }
-
-  return modules
-}
-
-function parseModuleGraph(graphBytes: Buffer) {
-  if (graphBytes.length < LEGACY_OFFSETS_SIZE + TRAILER.length) {
-    throw new Error("The Bun module graph is too small to be valid")
-  }
-
-  const trailerOffset = graphBytes.length - TRAILER.length
-  if (!graphBytes.subarray(trailerOffset).equals(TRAILER)) {
-    throw new Error("The Bun module graph is missing its expected trailer")
-  }
-
-  let lastError: Error | null = null
-
-  for (const layout of MODULE_GRAPH_LAYOUTS) {
-    try {
-      return parseModuleGraphWithLayout(graphBytes, layout)
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error))
-    }
-  }
-
-  throw lastError ?? new Error("Could not parse the Bun module graph")
-}
-
-function classifyModule(module: ParsedModule) {
+function classifyModule(module: BunModule) {
   const extension = getExtension(module.name)
 
   if (module.side === "server" && module.loader === "js") {
@@ -699,13 +319,13 @@ function extractBunVersions(binary: Buffer) {
   return [...versions].sort()
 }
 
-function analyzeStandaloneBinary(binary: Buffer): BundleAnalysis {
-  const extracted = extractStandaloneModuleGraph(binary)
-  const modules = parseModuleGraph(extracted.graphBytes)
+export function analyzeParsedBinary(totalLength: number, parsed: ParsedStandaloneBinary): BundleAnalysis {
+  // byte_count is the embedded module-graph payload; everything else is the Bun runtime.
+  const payloadSize = parsed.offsets.byte_count
 
   const analysis: BundleAnalysis = {
-    total: binary.length,
-    bunRuntime: binary.length - extracted.containerSize,
+    total: totalLength,
+    bunRuntime: totalLength - payloadSize,
     cliTuiJs: 0,
     webUiAssets: 0,
     nativeAddons: 0,
@@ -717,11 +337,11 @@ function analyzeStandaloneBinary(binary: Buffer): BundleAnalysis {
     bundleMetadata: 0,
   }
 
-  for (const module of modules) {
-    analysis.sourceMaps += module.sourceMapSize
-    analysis.bytecode += module.bytecodeSize
-    analysis.moduleInfo += module.moduleInfoSize
-    analysis[classifyModule(module)] += module.contentsSize
+  for (const module of parsed.modules) {
+    analysis.sourceMaps += module.sourcemap_length
+    analysis.bytecode += module.bytecode_length
+    analysis.moduleInfo += module.module_info_length
+    analysis[classifyModule(module)] += module.contents_length
   }
 
   const bundleContentBytes =
@@ -734,13 +354,17 @@ function analyzeStandaloneBinary(binary: Buffer): BundleAnalysis {
     analysis.moduleInfo +
     analysis.otherEmbedded
 
-  analysis.bundleMetadata = extracted.containerSize - bundleContentBytes
+  analysis.bundleMetadata = payloadSize - bundleContentBytes
 
   if (analysis.bunRuntime < 0 || analysis.bundleMetadata < 0) {
     throw new Error("Parsed an invalid standalone bundle breakdown")
   }
 
   return analysis
+}
+
+function analyzeStandaloneBinary(binary: Buffer): BundleAnalysis {
+  return analyzeParsedBinary(binary.length, parseBuffer(binary))
 }
 
 function fetchSnapshotInfo(registry: NpmRegistryService, packageName: string, tag: string): Effect.Effect<SnapshotInfo | null, unknown> {
@@ -792,15 +416,16 @@ function scanBundleBunVersions(registry: NpmRegistryService, packageName: string
 function inspectReleaseBundles(
   registry: NpmRegistryService,
   version: string,
-  targets: readonly BundleTarget[] = BUNDLE_TARGETS,
+  targets?: readonly BundleTarget[],
 ): Effect.Effect<ReleaseBundleInspection, unknown> {
   return Effect.gen(function* () {
-    const rootMetadata = yield* registry.versionMetadata(OPENCODE_NPM_PACKAGE, version)
+    const packages = opencodeNpmPackagesForVersion(version)
+    const rootMetadata = yield* registry.versionMetadata(packages.rootPackage, version)
     const inspectedTargets = yield* Effect.all(
-      targets.map((target) => Effect.gen(function* () {
+      (targets ?? bundleTargetsFor(packages)).map((target) => Effect.gen(function* () {
         const packageVersion = rootMetadata.optionalDependencies?.[target.packageName]
         if (!packageVersion) {
-          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${version}`))
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${packages.rootPackage}@${version}`))
         }
 
         const inspection = yield* inspectBundle(registry, target.packageName, packageVersion)
@@ -834,13 +459,17 @@ function buildBundleSizeSection(
       return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.fromTag}`))
     }
 
+    const previousPackages = opencodeNpmPackagesForVersion(previousVersion)
+    let currentPackages: OpencodeNpmPackages
     let currentVersion: string
     let previewSnapshot: SnapshotInfo | null = null
 
     if (range.kind === "preview") {
-      previewSnapshot = yield* fetchSnapshotInfo(registry, OPENCODE_NPM_PACKAGE, "dev")
+      // Preview snapshots are 0.0.0-dev builds, so they follow the baseline's package family.
+      currentPackages = previousPackages
+      previewSnapshot = yield* fetchSnapshotInfo(registry, currentPackages.rootPackage, "dev")
       if (!previewSnapshot) {
-        return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE} has no dev dist-tag for preview bundle analysis`))
+        return yield* Effect.fail(new Error(`${currentPackages.rootPackage} has no dev dist-tag for preview bundle analysis`))
       }
 
       const snapshotPublishedAt = parseTimestamp(previewSnapshot.publishedAt)
@@ -850,37 +479,42 @@ function buildBundleSizeSection(
       }
 
       if (snapshotPublishedAt < baselinePublishedAt) {
-        return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE}@dev is older than ${range.fromTag}`))
+        return yield* Effect.fail(new Error(`${currentPackages.rootPackage}@dev is older than ${range.fromTag}`))
       }
 
       currentVersion = previewSnapshot.version
     } else {
       currentVersion = extractVersionFromTag(range.toTag) ?? ""
-    }
-
-    if (!currentVersion) {
-      return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.toTag}`))
+      if (!currentVersion) {
+        return yield* Effect.fail(new Error(`Could not derive an npm version from ${range.toTag}`))
+      }
+      currentPackages = opencodeNpmPackagesForVersion(currentVersion)
     }
 
     const [previousRoot, currentRoot] = yield* Effect.all([
-      registry.versionMetadata(OPENCODE_NPM_PACKAGE, previousVersion),
-      registry.versionMetadata(OPENCODE_NPM_PACKAGE, currentVersion),
+      registry.versionMetadata(previousPackages.rootPackage, previousVersion),
+      registry.versionMetadata(currentPackages.rootPackage, currentVersion),
     ], { concurrency: "unbounded" })
 
+    const previousTargets = bundleTargetsFor(previousPackages)
+    const currentTargets = bundleTargetsFor(currentPackages)
+
     const targetChanges = yield* Effect.all(
-      BUNDLE_TARGETS.map((target): Effect.Effect<TargetBundleChange, unknown> => Effect.gen(function* () {
-        const previousTargetVersion = previousRoot.optionalDependencies?.[target.packageName] ?? null
-        const currentTargetVersion = currentRoot.optionalDependencies?.[target.packageName] ?? null
+      BUNDLE_PLATFORMS.map((target, index): Effect.Effect<TargetBundleChange, unknown> => Effect.gen(function* () {
+        const previousTarget = previousTargets[index]!
+        const currentTarget = currentTargets[index]!
+        const previousTargetVersion = previousRoot.optionalDependencies?.[previousTarget.packageName] ?? null
+        const currentTargetVersion = currentRoot.optionalDependencies?.[currentTarget.packageName] ?? null
         if (!previousTargetVersion) {
-          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${previousVersion}`))
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${previousTarget.packageName} in ${previousPackages.rootPackage}@${previousVersion}`))
         }
         if (!currentTargetVersion) {
-          return yield* Effect.fail(new Error(`No optional dependency entry for ${target.packageName} in ${OPENCODE_NPM_PACKAGE}@${currentVersion}`))
+          return yield* Effect.fail(new Error(`No optional dependency entry for ${currentTarget.packageName} in ${currentPackages.rootPackage}@${currentVersion}`))
         }
 
         const [previousAnalysis, currentAnalysis] = yield* Effect.all([
-          inspectBundle(registry, target.packageName, previousTargetVersion).pipe(Effect.map((item) => item.analysis)),
-          inspectBundle(registry, target.packageName, currentTargetVersion).pipe(Effect.map((item) => item.analysis)),
+          inspectBundle(registry, previousTarget.packageName, previousTargetVersion).pipe(Effect.map((item) => item.analysis)),
+          inspectBundle(registry, currentTarget.packageName, currentTargetVersion).pipe(Effect.map((item) => item.analysis)),
         ], { concurrency: "unbounded" })
 
         return {

@@ -25,7 +25,7 @@ export class ReleasePublisher extends Context.Service<ReleasePublisher, {
 
       const run = Effect.gen(function* () {
         const state = yield* stateStore.load()
-        const releases = yield* releasesApi.list()
+        const releases = yield* releasesApi.list({ known: state.releases })
         const catalog = new ReleaseCatalog(releases)
         let history = new PostedReleaseHistory(state)
         const resolvedPending = history.pendingFrom(catalog, {

@@ -1,3 +1,4 @@
+import { compareVersionStrings, semverFromString } from "./semver.js"
 import {
   gitRefFromString,
   githubReleaseIdFromNumber,
@@ -12,8 +13,12 @@ import {
   type UrlString,
 } from "./value-objects.js"
 
+export type ReleaseSource = "github-release" | "git-tag"
+
 export type GithubRelease = {
-  id: GitHubReleaseId
+  id: GitHubReleaseId | null
+  source: ReleaseSource
+  commitSha: string | null
   tag: ReleaseTag
   name: string
   url: UrlString
@@ -43,6 +48,7 @@ export function releaseTimestamp(release: { publishedAt: IsoDateString | null; c
 
 export function createGithubRelease(input: {
   id: unknown
+  commitSha?: string | null
   tag: unknown
   name: unknown
   url: unknown
@@ -56,6 +62,8 @@ export function createGithubRelease(input: {
 
   return {
     id: githubReleaseIdFromNumber(input.id),
+    source: "github-release",
+    commitSha: input.commitSha ?? null,
     tag,
     name,
     url: urlStringFromString(input.url),
@@ -66,10 +74,38 @@ export function createGithubRelease(input: {
   }
 }
 
-export function compareReleaseOrder(left: GithubRelease, right: GithubRelease) {
-  const timestampComparison = releaseTimestamp(left).localeCompare(releaseTimestamp(right))
-  if (timestampComparison !== 0) return timestampComparison
-  return left.id - right.id
+export function createTagRelease(input: {
+  owner: string
+  repo: string
+  tag: unknown
+  commitSha: string
+  taggedAt: unknown
+}): GithubRelease {
+  const tag = releaseTagFromString(input.tag)
+  const taggedAt = isoDateStringFromString(input.taggedAt)
+
+  return {
+    id: null,
+    source: "git-tag",
+    commitSha: input.commitSha,
+    tag,
+    name: tag,
+    url: urlStringFromString(`https://github.com/${input.owner}/${input.repo}/releases/tag/${tag}`),
+    draft: false,
+    prerelease: semverFromString(tag).prerelease.length > 0,
+    createdAt: taggedAt,
+    publishedAt: taggedAt,
+  }
+}
+
+export function releaseMajor(release: { tag: ReleaseTag }) {
+  return semverFromString(release.tag).major
+}
+
+export function compareReleaseOrder(left: { tag: ReleaseTag }, right: { tag: ReleaseTag }) {
+  const versionComparison = compareVersionStrings(left.tag, right.tag)
+  if (versionComparison !== 0) return versionComparison
+  return left.tag.localeCompare(right.tag)
 }
 
 export function createCompareUrl(input: {

@@ -128,6 +128,6 @@ describe("BetaMonitor", () => {
     await runtime.dispose()
 
     expect(sent).toHaveLength(1)
-    expect(edits).toEqual(["~~Beta release was stale~~ — resolved (`opencode-ai@0.0.0-beta-test`)"])
+    expect(edits).toEqual(["~~Beta release was stale~~ — resolved (`@opencode/cli@0.0.0-beta-test`)"])
   })
 })

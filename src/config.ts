@@ -33,7 +33,7 @@ export type DiscordConfig = AppConfig & {
 
 const GITHUB_OWNER = "anomalyco"
 const GITHUB_REPO = "opencode"
-const GITHUB_RELEASE_LIMIT = 20
+const GITHUB_RELEASE_LIMIT = 100
 const OPENCODE_TIMEOUT_MS = 600_000
 const STATE_FILE = "data/posted-releases.json"
 const DISCORD_PREVIEW_CHANNEL_ID = "1472697640880701523"

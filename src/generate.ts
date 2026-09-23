@@ -19,7 +19,7 @@ const generatedPostSchema = z.object({
     post: z.string().min(1),
 });
 
-const STYLED_OPENCODE = "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚";
+export const STYLED_OPENCODE = "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚";
 
 type GeneratedPost = {
     post: string;
@@ -42,7 +42,7 @@ function normalizePost(post: GeneratedPost) {
     return post.post.replace(/\r/g, "").trim();
 }
 
-function normalizeBodyBullets(post: string) {
+export function normalizeBodyBullets(post: string) {
     const lines = post.split("\n");
 
     return lines
@@ -53,14 +53,30 @@ function normalizeBodyBullets(post: string) {
         .join("\n");
 }
 
-function extractText(result: unknown) {
-    const parts =
-        (
-            result as {
-                data?: { parts?: Array<{ type?: string; text?: string }> };
-            }
-        ).data?.parts ?? [];
-    const text = parts
+type ContextMessage = {
+    type?: string;
+    id?: string;
+    text?: string;
+    model?: { providerID?: string; id?: string; variant?: string };
+    content?: Array<{ type?: string; text?: string; name?: string }>;
+    finish?: string;
+    tokens?: unknown;
+    error?: unknown;
+};
+
+// Returns the assistant message that answered the most recent user message in a session.context result.
+export function findLatestAssistantMessage(messages: unknown) {
+    const list = Array.isArray(messages) ? (messages as ContextMessage[]) : [];
+    const lastUserIndex = list.findLastIndex((message) => message.type === "user");
+    return list
+        .slice(lastUserIndex + 1)
+        .filter((message) => message.type === "assistant")
+        .at(-1);
+}
+
+export function extractText(messages: unknown) {
+    const assistant = findLatestAssistantMessage(messages);
+    const text = (assistant?.content ?? [])
         .filter((part) => part.type === "text" && typeof part.text === "string")
         .map((part) => part.text?.trim())
         .filter((part): part is string => Boolean(part))
@@ -70,36 +86,24 @@ function extractText(result: unknown) {
     return text || undefined;
 }
 
-function describePromptResult(result: unknown) {
-    const data = (result as { data?: { info?: unknown; parts?: unknown[] } }).data;
-    const info = data?.info as
-        | {
-              id?: string;
-              sessionID?: string;
-              finish?: string;
-              modelID?: string;
-              providerID?: string;
-              variant?: string;
-              tokens?: { input?: number; output?: number; reasoning?: number };
-              error?: unknown;
-          }
-        | undefined;
-    const parts = data?.parts ?? [];
-    const partSummary = parts.map((part) => {
-        const item = part as { type?: string; text?: string };
-        const text = typeof item.text === "string" ? item.text : "";
-        return `${item.type ?? "unknown"}${text ? `(${text.trim().length})` : ""}`;
+export function describePromptResult(messages: unknown) {
+    const list = Array.isArray(messages) ? (messages as ContextMessage[]) : [];
+    const assistant = findLatestAssistantMessage(messages);
+    const contentSummary = (assistant?.content ?? []).map((part) => {
+        const text = typeof part.text === "string" ? part.text : "";
+        const name = part.type === "tool" && part.name ? `:${part.name}` : "";
+        return `${part.type ?? "unknown"}${name}${text ? `(${text.trim().length})` : ""}`;
     });
 
     return [
-        `message=${info?.id ?? "unknown"}`,
-        `session=${info?.sessionID ?? "unknown"}`,
-        `finish=${info?.finish ?? "missing"}`,
-        `model=${info?.providerID ?? "unknown"}/${info?.modelID ?? "unknown"}`,
-        `variant=${info?.variant ?? "unknown"}`,
-        `tokens=${JSON.stringify(info?.tokens ?? {})}`,
-        `error=${JSON.stringify(info?.error ?? null)}`,
-        `parts=${partSummary.join(", ") || "none"}`,
+        `messages=${list.length}`,
+        `message=${assistant?.id ?? "none"}`,
+        `finish=${assistant?.finish ?? "missing"}`,
+        `model=${assistant?.model?.providerID ?? "unknown"}/${assistant?.model?.id ?? "unknown"}`,
+        `variant=${assistant?.model?.variant ?? "unknown"}`,
+        `tokens=${JSON.stringify(assistant?.tokens ?? {})}`,
+        `error=${JSON.stringify(assistant?.error ?? null)}`,
+        `content=${contentSummary.join(", ") || "none"}`,
     ].join("; ");
 }
 
@@ -107,14 +111,18 @@ function parseGeneratedPost(text: string) {
     return generatedPostSchema.parse(JSON.parse(text));
 }
 
-function insertSectionBeforeCompareLine(post: string, section: string) {
+const MODEL_BUNDLE_LINE = /^(No noticeable bundle change|Bundle [+\-−])/i;
+
+// The prompt examples end with a bundle sentence, and some models imitate it even though the real
+// bundle data is only known here. Drop any model-written bundle lines so the measured one is the only one.
+export function insertSectionBeforeCompareLine(post: string, section: string) {
     const lines = post.replace(/\r/g, "").trim().split("\n");
     const compareLine = lines.pop();
     if (!compareLine) {
         throw new Error("Generated post is missing its final Compare line");
     }
 
-    while (lines.at(-1) === "") {
+    while (lines.length > 0 && (lines.at(-1) === "" || MODEL_BUNDLE_LINE.test(lines.at(-1)!.trim()))) {
         lines.pop();
     }
 
@@ -196,24 +204,23 @@ function validatePostShape(range: ReleaseRange, post: string) {
     }
 }
 
-const SYSTEM_PROMPT = `You are a technical release analyst working in a git repository.
+export const SYSTEM_PROMPT = `You are a technical release analyst working in a git repository.
 
 Inspect code and diffs with read-only tools only.
 Never edit files, write files, or run commands that change the repository.
 Prefer git diff, git log, grep, glob, and read.`;
 
-const READ_ONLY_PERMISSIONS = [
-    { permission: "*", pattern: "*", action: "deny" as const },
-    { permission: "read", pattern: "*", action: "allow" as const },
-    { permission: "grep", pattern: "*", action: "allow" as const },
-    { permission: "glob", pattern: "*", action: "allow" as const },
-    { permission: "list", pattern: "*", action: "allow" as const },
-    { permission: "codesearch", pattern: "*", action: "allow" as const },
-    { permission: "lsp", pattern: "*", action: "allow" as const },
-    { permission: "bash", pattern: "git *", action: "allow" as const },
+// v2 permission rules: the last matching rule wins. Action names follow the v2 built-in tools
+// (`shell` replaced `bash`; `list`, `codesearch`, and `lsp` are no longer permission actions).
+export const READ_ONLY_PERMISSIONS = [
+    { action: "*", resource: "*", effect: "deny" as const },
+    { action: "read", resource: "*", effect: "allow" as const },
+    { action: "grep", resource: "*", effect: "allow" as const },
+    { action: "glob", resource: "*", effect: "allow" as const },
+    { action: "shell", resource: "git *", effect: "allow" as const },
 ];
 
-const CHANGELOG_TAXONOMY = `Use this product map when choosing changelog sections. It is a dependency tree, not an output outline:
+export const CHANGELOG_TAXONOMY = `Use this product map when choosing changelog sections. It is a dependency tree, not an output outline:
 
 OpenCode runtime
 - Core: shared foundational package and cross-cutting runtime behavior.
@@ -256,6 +263,91 @@ Rules for sections:
 - If two areas changed, create two sections. If a change spans two areas, place it under the area users will notice first.
 - Omit empty sections instead of merging them into a broad bucket.
 - Prefer the most specific accurate section: use TUI instead of CLI for terminal UI changes, use Data instead of Console for OpenCode Data and stats changes, use Zen instead of Console for Zen-only changes, and use VS Code or Zed for editor-extension changes.`;
+
+export const PRODUCT_HEADING_MAP = `  Agent -> 𝗔𝗴𝗲𝗻𝘁
+  ACP -> 𝗔𝗖𝗣
+  App -> 𝗔𝗽𝗽
+  CLI -> 𝗖𝗟𝗜
+  Console -> 𝗖𝗼𝗻𝘀𝗼𝗹𝗲
+  Core -> 𝗖𝗼𝗿𝗲
+  Data -> 𝗗𝗮𝘁𝗮
+  Docs -> 𝗗𝗼𝗰𝘀
+  Enterprise -> 𝗘𝗻𝘁𝗲𝗿𝗽𝗿𝗶𝘀𝗲
+  GitHub -> 𝗚𝗶𝘁𝗛𝘂𝗯
+  Infra -> 𝗜𝗻𝗳𝗿𝗮
+  LLM -> 𝗟𝗟𝗠
+  LSP -> 𝗟𝗦𝗣
+  MCP -> 𝗠𝗖𝗣
+  Plugin -> 𝗣𝗹𝘂𝗴𝗶𝗻
+  Providers -> 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀
+  Release -> 𝗥𝗲𝗹𝗲𝗮𝘀𝗲
+  SDK -> 𝗦𝗗𝗞
+  Server -> 𝗦𝗲𝗿𝘃𝗲𝗿
+  Slack -> 𝗦𝗹𝗮𝗰𝗸
+  Storage -> 𝗦𝘁𝗼𝗿𝗮𝗴𝗲
+  Sync -> 𝗦𝘆𝗻𝗰
+  TUI -> 𝗧𝗨𝗜
+  UI -> 𝗨𝗜
+  VS Code -> 𝗩𝗦 𝗖𝗼𝗱𝗲
+  Zen -> 𝗭𝗲𝗻
+  Zed -> 𝗭𝗲𝗱`;
+
+export type PostFormatRuleOptions = {
+    firstLinePrefix: string;
+    compareUrl: string;
+    fromLabel: string;
+    toLabel: string;
+};
+
+export function buildPostFormatRules(options: PostFormatRuleOptions) {
+    return `Rules:
+- Produce exactly one X post.
+- Keep the total output within ${POST_MAX_LENGTH} characters.
+- Plain text only. No code fences. No markdown.
+- X/Twitter does NOT support markdown. **bold**, *italic*, __underline__ will render literally as asterisks/underscores.
+- Use exact mathematical-bold product headings from the heading map below.
+- Use plain ASCII for action subsection headings.
+- Use '•' (U+2022) for bullets. Do not use '-' or '*' for bullets.
+- Do not use markdown bold, Unicode italic, emoji, box drawing, or decorative heading characters.
+- Product heading map:
+${PRODUCT_HEADING_MAP}
+- Line breaks are allowed.
+- Never use separator lines or divider rows of any kind, including "---", "___", or repeated "─" characters.
+- Do not spend characters or vertical space on visual dividers.
+- The post must start exactly with "${options.firstLinePrefix}".
+- The first line should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
+- After the first line, structure the body as product sections using the taxonomy above.
+- Section order: If present, TUI and App must be the first product headings. Order TUI and App by your perceived importance. Order all remaining product headings by your perceived importance.
+- Inside each product section, only use action subsections when the section has 3+ bullets and at least two distinct action groups.
+- Action subsections must be one of: Added, Changed, Fixed, Removed.
+- If a product section has one or two bullets, do not use action subsections. Put bullets directly under the product heading.
+- If a product section has 3+ bullets but they all share the same action, do not use an action subsection. Put bullets directly under the product heading.
+- Keep each bullet to one user-visible behavior change. Do not pack unrelated changes into one bullet.
+- Start bullets with direct verbs like Added, Fixed, Changed, Removed, Improved, Restored, or Updated.
+- Do not copy commit messages. Rewrite them into concise user-facing behavior.
+- Do not include raw commit prefixes like fix:, feat:, chore:, ci:, refactor:, or release:.
+- Do not include PR numbers or commit hashes.
+- The body can use product headings, action subsection headings, and '•' bullet points.
+- Use blank lines between sections when it improves readability.
+- The final line must be exactly: "Compare: ${options.compareUrl}"
+- The final line is the GitHub compare link between tags ${options.fromLabel} and ${options.toLabel}.
+- Do not add any other text after the final line.
+- Do not split the release into multiple tweets.
+- Keep the tone technical and evidence-driven, not marketing copy.
+- Prefer high-level technical summaries over exact variable, class, function, file, or test names.
+- Only mention exact names when they are user-facing or ecosystem-facing: provider names, model names, package names, CLI commands, config keys, protocols, platforms.
+- For each point, emphasize what changed and why it matters.
+- Compress implementation detail into short subsystem summaries rather than listing many touched paths.
+- Avoid exhaustive enumerations.
+- Good: "improves async context propagation across session/runtime paths"
+- Bad: "adds InstanceRef and runtime attach logic"
+- Good: "adds Vertex Anthropic prompt-cache accounting"
+- Bad: "reads cacheCreationInputTokens in Session.getUsage"
+- Good: "fixes Azure provider option remapping"
+- Bad: "transform.ts removed the special-case for @ai-sdk/azure"
+- Do not invent changes.
+- Use this GitHub compare URL between tags: ${options.compareUrl}`;
+}
 
 export function buildGenerationPrompt(range: ReleaseRange) {
     const firstTweetPrefix = getExpectedFirstPrefix(range);
@@ -306,84 +398,17 @@ JSON schema:
   "post": "full post text"
 }
 
-Rules:
-- Produce exactly one X post.
-- Keep the total output within ${POST_MAX_LENGTH} characters.
-- Plain text only. No code fences. No markdown.
-- X/Twitter does NOT support markdown. **bold**, *italic*, __underline__ will render literally as asterisks/underscores.
-- Use exact mathematical-bold product headings from the heading map below.
-- Use plain ASCII for action subsection headings.
-- Use '•' (U+2022) for bullets. Do not use '-' or '*' for bullets.
-- Do not use markdown bold, Unicode italic, emoji, box drawing, or decorative heading characters.
-- Product heading map:
-  Agent -> 𝗔𝗴𝗲𝗻𝘁
-  ACP -> 𝗔𝗖𝗣
-  App -> 𝗔𝗽𝗽
-  CLI -> 𝗖𝗟𝗜
-  Console -> 𝗖𝗼𝗻𝘀𝗼𝗹𝗲
-  Core -> 𝗖𝗼𝗿𝗲
-  Data -> 𝗗𝗮𝘁𝗮
-  Docs -> 𝗗𝗼𝗰𝘀
-  Enterprise -> 𝗘𝗻𝘁𝗲𝗿𝗽𝗿𝗶𝘀𝗲
-  GitHub -> 𝗚𝗶𝘁𝗛𝘂𝗯
-  Infra -> 𝗜𝗻𝗳𝗿𝗮
-  LLM -> 𝗟𝗟𝗠
-  LSP -> 𝗟𝗦𝗣
-  MCP -> 𝗠𝗖𝗣
-  Plugin -> 𝗣𝗹𝘂𝗴𝗶𝗻
-  Providers -> 𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀
-  Release -> 𝗥𝗲𝗹𝗲𝗮𝘀𝗲
-  SDK -> 𝗦𝗗𝗞
-  Server -> 𝗦𝗲𝗿𝘃𝗲𝗿
-  Slack -> 𝗦𝗹𝗮𝗰𝗸
-  Storage -> 𝗦𝘁𝗼𝗿𝗮𝗴𝗲
-  Sync -> 𝗦𝘆𝗻𝗰
-  TUI -> 𝗧𝗨𝗜
-  UI -> 𝗨𝗜
-  VS Code -> 𝗩𝗦 𝗖𝗼𝗱𝗲
-  Zen -> 𝗭𝗲𝗻
-  Zed -> 𝗭𝗲𝗱
-- Line breaks are allowed.
-- Never use separator lines or divider rows of any kind, including "---", "___", or repeated "─" characters.
-- Do not spend characters or vertical space on visual dividers.
-- The post must start exactly with "${firstTweetPrefix}".
-- The first line should be the high-level summary only: 2-4 short TL;DR points, separated cleanly.
-- After the first line, structure the body as product sections using the taxonomy above.
-- Section order: If present, TUI and App must be the first product headings. Order TUI and App by your perceived importance. Order all remaining product headings by your perceived importance.
-- Inside each product section, only use action subsections when the section has 3+ bullets and at least two distinct action groups.
-- Action subsections must be one of: Added, Changed, Fixed, Removed.
-- If a product section has one or two bullets, do not use action subsections. Put bullets directly under the product heading.
-- If a product section has 3+ bullets but they all share the same action, do not use an action subsection. Put bullets directly under the product heading.
-- Keep each bullet to one user-visible behavior change. Do not pack unrelated changes into one bullet.
-- Start bullets with direct verbs like Added, Fixed, Changed, Removed, Improved, Restored, or Updated.
-- Do not copy commit messages. Rewrite them into concise user-facing behavior.
-- Do not include raw commit prefixes like fix:, feat:, chore:, ci:, refactor:, or release:.
-- Do not include PR numbers or commit hashes.
-- The body can use product headings, action subsection headings, and '•' bullet points.
-- Bundle information, if present, appears as one plain sentence immediately before the final Compare line.
-- Use blank lines between sections when it improves readability.
-- The final line must be exactly: "Compare: ${range.compareUrl}"
-- The final line is the GitHub compare link between tags ${range.fromTag ?? "<previous-tag>"} and ${range.toTag}.
-- Do not add any other text after the final line.
-- Do not split the release into multiple tweets.
+${buildPostFormatRules({
+    firstLinePrefix: firstTweetPrefix,
+    compareUrl: range.compareUrl,
+    fromLabel: range.fromTag ?? "<previous-tag>",
+    toLabel: range.toTag,
+})}
+- Do not write a bundle-size sentence. The tool measures the bundle and inserts that sentence before the final Compare line itself. The bundle lines in the examples below show the final layout only.
 - Mention the range "${displayRange}" only if it fits naturally.
-- Keep the tone technical and evidence-driven, not marketing copy.
-- Prefer high-level technical summaries over exact variable, class, function, file, or test names.
-- Only mention exact names when they are user-facing or ecosystem-facing: provider names, model names, package names, CLI commands, config keys, protocols, platforms.
-- For each point, emphasize what changed and why it matters.
-- Compress implementation detail into short subsystem summaries rather than listing many touched paths.
-- Avoid exhaustive enumerations.
 - If this is a preview, describe the changes as unreleased work after the latest GitHub release. Do not say they were already released.
-- Good: "improves async context propagation across session/runtime paths"
-- Bad: "adds InstanceRef and runtime attach logic"
-- Good: "adds Vertex Anthropic prompt-cache accounting"
-- Bad: "reads cacheCreationInputTokens in Session.getUsage"
-- Good: "fixes Azure provider option remapping"
-- Bad: "transform.ts removed the special-case for @ai-sdk/azure"
-- Do not invent changes.
 - For truly small releases, keep the post tight. Do not pad it with unnecessary sections.
 - If a feature added in a release is truly massive, use the extra space for a structured breakdown in the same post.
-- Use this GitHub compare URL between tags: ${range.compareUrl}
 
 <example>
 ${STYLED_OPENCODE} v1.14.21 released. TL;DR:
@@ -454,25 +479,127 @@ Release metadata:
 - Release URL: ${range.release?.url ?? "none (preview)"}`;
 }
 
-type PromptBody = {
-    sessionID: string;
-    model: {
-        providerID: string;
-        modelID: string;
-    };
-    variant: string;
-    system: string;
-    parts: Array<{
-        type: "text";
-        text: string;
-    }>;
-};
-
-type ModelConfig = {
+export type ModelConfig = {
     providerID: string;
     modelID: string;
     variant: string;
 };
+
+export type ReadOnlySessionOptions = {
+    model: ModelConfig;
+    system: string;
+    title?: string;
+};
+
+export type PromptSessionOptions = {
+    sessionID: string;
+    text: string;
+    timeoutMs: number;
+};
+
+export const SYSTEM_INSTRUCTION_KEY = "changelog-system";
+
+export function describeError(error: unknown): string {
+    if (error instanceof Error) {
+        const cause = (error as { cause?: unknown }).cause;
+        const detail = cause === undefined ? "" : describeError(cause);
+        const message = error.message || error.name;
+        return detail && detail !== message ? `${message} (${detail})` : message;
+    }
+    return typeof error === "string" ? error : JSON.stringify(error);
+}
+
+const failWithServerOutput = Effect.fn("failWithServerOutput")(function* (opencode: EffectRunningOpencode, lines: string[]) {
+    const serverOutput = yield* Effect.promise(() => opencode.getOutput());
+    return yield* Effect.fail(new Error(
+        [
+            ...lines,
+            serverOutput ? `Recent opencode output:\n${serverOutput}` : "Recent opencode output: <empty>",
+        ].join("\n"),
+    ));
+});
+
+// The v2 API has no per-prompt system prompt. Session-scoped instruction entries are appended to the
+// initial instructions, so the system prompt is attached once when the session is created.
+export const createReadOnlySession = Effect.fn("createReadOnlySession")(function* (opencode: EffectRunningOpencode, options: ReadOnlySessionOptions) {
+    const { client } = opencode;
+    const created = yield* Effect.tryPromise(() => client.session.create({
+        title: options.title,
+        model: {
+            providerID: options.model.providerID,
+            id: options.model.modelID,
+            variant: options.model.variant,
+        },
+        location: { directory: opencode.directory },
+        permissions: READ_ONLY_PERMISSIONS,
+    })).pipe(Effect.result);
+    if (created._tag === "Failure") {
+        return yield* failWithServerOutput(opencode, [
+            `OpenCode session creation failed: ${describeError(created.failure)}`,
+        ]);
+    }
+
+    const sessionID = created.success.id;
+    const instructed = yield* Effect.tryPromise(() => client.session.instructions.entry.put({
+        sessionID,
+        key: SYSTEM_INSTRUCTION_KEY,
+        value: options.system,
+    })).pipe(Effect.result);
+    if (instructed._tag === "Failure") {
+        return yield* failWithServerOutput(opencode, [
+            `OpenCode session ${sessionID} rejected the system instructions: ${describeError(instructed.failure)}`,
+        ]);
+    }
+    return sessionID;
+});
+
+export const promptSession = Effect.fn("promptSession")(function* (opencode: EffectRunningOpencode, options: PromptSessionOptions) {
+    const { client } = opencode;
+    const { sessionID } = options;
+
+    yield* Effect.tryPromise(() => client.session.prompt({ sessionID, text: options.text }));
+
+    const signal = AbortSignal.timeout(options.timeoutMs);
+    while (true) {
+        const waited = yield* Effect.tryPromise(() => client.session.wait({ sessionID }, { signal })).pipe(Effect.result);
+        if (waited._tag === "Success") break;
+        if (signal.aborted) {
+            yield* Effect.promise(() => client.session.interrupt({ sessionID }).catch(() => undefined));
+            return yield* failWithServerOutput(opencode, [
+                `OpenCode session ${sessionID} did not finish within ${options.timeoutMs}ms; the turn was interrupted`,
+            ]);
+        }
+        // Bun's fetch drops idle long-polls after 6 minutes; keep waiting while the turn is still running.
+        const active = yield* Effect.tryPromise(() => client.session.active()).pipe(Effect.result);
+        if (active._tag === "Success" && sessionID in active.success) {
+            yield* Effect.sleep("1 second");
+            continue;
+        }
+        if (active._tag === "Success") break;
+        return yield* failWithServerOutput(opencode, [
+            `OpenCode session ${sessionID} wait failed: ${describeError(waited.failure)}`,
+            `Session status check failed: ${describeError(active.failure)}`,
+        ]);
+    }
+
+    const messages = yield* Effect.tryPromise(() => client.session.context({ sessionID }));
+    const assistant = findLatestAssistantMessage(messages);
+    if (assistant?.error) {
+        return yield* failWithServerOutput(opencode, [
+            `OpenCode assistant turn failed: ${describeError(assistant.error)}`,
+            describePromptResult(messages),
+        ]);
+    }
+
+    const output = extractText(messages);
+    if (!output) {
+        return yield* failWithServerOutput(opencode, [
+            "OpenCode returned no text output",
+            describePromptResult(messages),
+        ]);
+    }
+    return output;
+});
 
 function createGenerator(
     config: AppConfig,
@@ -481,39 +608,11 @@ function createGenerator(
     activeModel: ModelConfig,
 ) {
     const prompt = Effect.fn("PostGenerator.prompt")(function* (sessionID: string, text: string) {
-        const result = yield* Effect.tryPromise(() => opencode.client.session.prompt(
-            {
-                sessionID,
-                model: {
-                    providerID: activeModel.providerID,
-                    modelID: activeModel.modelID,
-                },
-                variant: activeModel.variant,
-                system: SYSTEM_PROMPT,
-                parts: [
-                    {
-                        type: "text",
-                        text,
-                    },
-                ],
-            } satisfies PromptBody,
-            {
-                signal: AbortSignal.timeout(config.opencodeTimeoutMs),
-            },
-        ));
-
-        const output = extractText(result);
-        if (!output) {
-            const serverOutput = yield* Effect.promise(() => opencode.getOutput());
-            return yield* Effect.fail(new Error(
-                [
-                    "OpenCode returned no text output",
-                    describePromptResult(result),
-                    serverOutput ? `Recent opencode output:\n${serverOutput}` : "Recent opencode output: <empty>",
-                ].join("\n"),
-            ));
-        }
-        return output;
+        return yield* promptSession(opencode, {
+            sessionID,
+            text,
+            timeoutMs: config.opencodeTimeoutMs,
+        });
     });
 
     const generatePost = Effect.fn("PostGenerator.generatePost")(function* (sessionID: string, range: ReleaseRange) {
@@ -522,21 +621,11 @@ function createGenerator(
     });
 
     const generateReport = Effect.fn("PostGenerator.generateReport")(function* (range: ReleaseRange) {
-        const session = yield* Effect.tryPromise(() => opencode.client.session.create({
-            permission: READ_ONLY_PERMISSIONS,
-        }));
-        const sessionID = session.data?.id;
-        if (!sessionID) {
-            const response = session.response;
-            const serverOutput = yield* Effect.promise(() => opencode.getOutput());
-            return yield* Effect.fail(new Error(
-                [
-                    `OpenCode session creation returned no session ID (${response?.status ?? "unknown"} ${response?.statusText ?? "response"})`,
-                    `Response error: ${JSON.stringify(session.error ?? null)}`,
-                    serverOutput ? `Recent opencode output:\n${serverOutput}` : "Recent opencode output: <empty>",
-                ].join("\n"),
-            ));
-        }
+        const sessionID = yield* createReadOnlySession(opencode, {
+            model: activeModel,
+            system: SYSTEM_PROMPT,
+            title: `changelog ${range.toLabel}`,
+        });
 
         const generatedPost = yield* generatePost(sessionID, range);
         const bundleSizeSection = yield* bundleSize.buildSection(range);

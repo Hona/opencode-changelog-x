@@ -2,19 +2,19 @@ import { describe, expect, test } from "bun:test"
 import { MODEL, PREVIEW_MODEL } from "../src/constants.js"
 
 describe("generation models", () => {
-  test("uses GPT 5.6 Sol with xhigh reasoning for published tweets", () => {
+  test("uses Gemini 3.8 Flash with high reasoning for published tweets", () => {
     expect(MODEL).toEqual({
       providerID: "opencode",
-      modelID: "gpt-5.6-sol",
-      variant: "xhigh",
+      modelID: "gemini-3.8-flash",
+      variant: "high",
     })
   })
 
-  test("uses GPT 5.6 Sol with low reasoning for previews", () => {
+  test("uses Gemini 3.8 Flash with high reasoning for previews", () => {
     expect(PREVIEW_MODEL).toEqual({
       providerID: "opencode",
-      modelID: "gpt-5.6-sol",
-      variant: "low",
+      modelID: "gemini-3.8-flash",
+      variant: "high",
     })
   })
 })

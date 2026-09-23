@@ -1,5 +1,5 @@
 import { Context, Effect, Layer } from "effect"
-import { PostedReleaseHistory } from "../domain/release-history.js"
+import { PostedReleaseHistory, ReleaseCatalog } from "../domain/release-history.js"
 import { GithubReleases } from "../github.js"
 import { GitCli } from "../integrations/git-cli.js"
 import { GithubCli } from "../integrations/github-cli.js"
@@ -45,20 +45,18 @@ export class ReleasePoll extends Context.Service<ReleasePoll, {
       const releases = yield* GithubReleases
       const originState = yield* OriginPostedReleaseState
 
-      const getUnpostedLatestRelease = Effect.fn("ReleasePoll.getUnpostedLatestRelease")(function* () {
-        const [latestRelease, state] = yield* Effect.all([
-          releases.latest(),
-          originState.load(),
-        ])
+      const getPendingReleases = Effect.fn("ReleasePoll.getPendingReleases")(function* () {
+        const state = yield* originState.load()
+        const catalog = new ReleaseCatalog(yield* releases.list({ known: state.releases }))
 
-        if (!latestRelease) {
-          return yield* Effect.fail(new Error("No eligible GitHub release found for release polling"))
+        if (catalog.releases.length === 0) {
+          return yield* Effect.fail(new Error("No eligible release found for release polling"))
         }
-        return new PostedReleaseHistory(state).hasPosted(latestRelease) ? null : latestRelease
+        return new PostedReleaseHistory(state).pendingFrom(catalog, { allowPostedTarget: false })
       })
 
       const dispatchOnceUnsafe = Effect.fn("ReleasePoll.dispatchOnce")(function* () {
-        const pendingRelease = yield* getUnpostedLatestRelease()
+        const pendingRelease = (yield* getPendingReleases()).at(-1)
         if (!pendingRelease) {
           yield* Effect.sync(() => console.log("No unposted release found; skipping release poll dispatch."))
           return

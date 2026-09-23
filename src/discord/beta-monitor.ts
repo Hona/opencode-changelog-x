@@ -4,11 +4,13 @@ import { Context, Effect, Layer } from "effect"
 import { z } from "zod"
 import { isoDateStringFromString, type IsoDateString } from "../domain/value-objects.js"
 import { GithubCli } from "../integrations/github-cli.js"
-import { NpmRegistry, OPENCODE_NPM_PACKAGE } from "../integrations/npm-registry.js"
+import { NpmRegistry, OPENCODE_CLI_NPM_PACKAGES } from "../integrations/npm-registry.js"
 import { RuntimeConfig } from "../runtime-config.js"
 import type { AlertChannel } from "./types.js"
 
 const BETA_STALE_THRESHOLD_MS = 3 * 60 * 60 * 1000
+// The 2.x line is the one actively publishing beta builds.
+const BETA_NPM_PACKAGE = OPENCODE_CLI_NPM_PACKAGES.rootPackage
 
 type BetaNpmStatus = {
   version: string
@@ -40,7 +42,7 @@ function formatBetaAge(ageMs: number): string {
 }
 
 function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null): string {
-  let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${OPENCODE_NPM_PACKAGE}@${status.version}\`)`
+  let msg = `**Beta release is stale** — last published ${formatBetaAge(status.ageMs)} ago (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
   if (failureUrl) {
     msg += `\n[Last failure](<${failureUrl}>)`
   }
@@ -48,7 +50,7 @@ function formatBetaStaleAlert(status: BetaNpmStatus, failureUrl: string | null):
 }
 
 function formatBetaResolvedAlert(status: BetaNpmStatus): string {
-  return `~~Beta release was stale~~ — resolved (\`${OPENCODE_NPM_PACKAGE}@${status.version}\`)`
+  return `~~Beta release was stale~~ — resolved (\`${BETA_NPM_PACKAGE}@${status.version}\`)`
 }
 
 export class BetaMonitor extends Context.Service<BetaMonitor, {
@@ -88,15 +90,15 @@ export class BetaMonitor extends Context.Service<BetaMonitor, {
       })
 
       const checkBetaNpmStaleness = Effect.fn("BetaMonitor.checkBetaNpmStaleness")(function* () {
-        const data = yield* npm.packument(OPENCODE_NPM_PACKAGE)
+        const data = yield* npm.packument(BETA_NPM_PACKAGE)
         const betaVersion = data["dist-tags"]?.beta
         if (!betaVersion) {
-          return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE} has no beta dist-tag`))
+          return yield* Effect.fail(new Error(`${BETA_NPM_PACKAGE} has no beta dist-tag`))
         }
 
         const rawPublishedAt = data.time?.[betaVersion]
         if (!rawPublishedAt) {
-          return yield* Effect.fail(new Error(`${OPENCODE_NPM_PACKAGE}@${betaVersion} is missing publish time`))
+          return yield* Effect.fail(new Error(`${BETA_NPM_PACKAGE}@${betaVersion} is missing publish time`))
         }
 
         const publishedAt = isoDateStringFromString(rawPublishedAt)

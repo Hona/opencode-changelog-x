@@ -1,7 +1,26 @@
 import { Context, Effect, Layer } from "effect"
 import { z } from "zod"
+import { semverFromString } from "../domain/semver.js"
 
-export const OPENCODE_NPM_PACKAGE = "opencode-ai"
+export type OpencodeNpmPackages = {
+  readonly rootPackage: string
+  readonly binaryPackagePrefix: string
+}
+
+export const OPENCODE_LEGACY_NPM_PACKAGES: OpencodeNpmPackages = {
+  rootPackage: "opencode-ai",
+  binaryPackagePrefix: "opencode-",
+}
+
+export const OPENCODE_CLI_NPM_PACKAGES: OpencodeNpmPackages = {
+  rootPackage: "@opencode/cli",
+  binaryPackagePrefix: "@opencode/cli-",
+}
+
+// 1.x ships as opencode-ai; 2.x moved to the @opencode scope.
+export function opencodeNpmPackagesForVersion(version: string): OpencodeNpmPackages {
+  return semverFromString(version).major >= 2 ? OPENCODE_CLI_NPM_PACKAGES : OPENCODE_LEGACY_NPM_PACKAGES
+}
 
 const NPM_METADATA_TIMEOUT_MS = 15_000
 const NPM_TARBALL_TIMEOUT_MS = 5 * 60 * 1000
