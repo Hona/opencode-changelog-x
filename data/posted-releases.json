@@ -2144,6 +2144,24 @@
         "2102615763211440346"
       ],
       "postedAt": "2026-09-23T04:27:17.524Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "9eb6902aaf3c35ce985b67c605a775992249066b",
+      "tag": "v2.0.11",
+      "name": "v2.0.11",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.11",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-20T08:57:34Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.11 released. TL;DR:\nThe desktop app starts faster, TUI toasts can now be tied to a session, the OpenAI Responses WebSocket transport is more reliable, and the CLI supports Vite+ installs.\n\n𝗔𝗽𝗽\nAdded\n• Added empty and \"URL can't be reached\" states to the in-app browser panel. Failed loads, including unreachable targets behind the server proxy, now show a clear error instead of a blank or stale page.\n\nChanged\n• Improved desktop startup: the renderer boots alongside the main bundle, its first assets are served before the main bundle runs, and its initial modules ship as one chunk.\n• Improved first-window time by moving startup work the first window doesn't need off the critical path.\n• Changed desktop IPC so the renderer no longer loads the Effect runtime to talk to the main process.\n• Changed windows to receive their saved stores before the first render, so saved state no longer loads after the window paints.\n• Changed the browser address bar to select the URL on focus, restore the current URL after a blocked navigation, and disable reload when there is no page.\n\nFixed\n• Fixed tab interactions on mobile: touch dragging works again with a larger activation distance, and tab context menus no longer block the page.\n• Fixed vertical tabs changing sessions at the end of a drag, and matched the hover and pressed styles of the vertical Home and New Session buttons.\n• Fixed the conversation timeline so it centers in the space beside an open summary panel at medium widths.\n• Fixed the shortcuts settings search field losing focus while typing.\n• Fixed file references in user messages showing as attachments. Only inline or data-backed files now count as attachments.\n\n𝗧𝗨𝗜\n• Added right-aligned skill, agent, and reference labels to @ autocomplete options, and truncated long entries in the middle.\n• Removed MCP resources from @ mention autocomplete.\n• Changed \"Session failed\" toasts to also appear for background sessions, using the session title and offering an Open action.\n• Fixed the question form border to use the theme's focused action color.\n\n𝗟𝗟𝗠\n• Fixed OpenAI Responses-compatible error frames failing to decode. Unusual gateway error shapes (plain strings, numeric codes, extra fields) are now always classified, and the raw body is used as the fallback message.\n• Fixed WebSocket streams dropping with inbound queue overflow errors under bursty traffic by removing the fixed-size inbound queues.\n• Changed session WebSocket transport to stay on HTTP after 5 consecutive mid-stream socket losses, instead of paying a retry on every step. Also raised the connect timeout to 15s.\n\n𝗔𝗴𝗲𝗻𝘁\n• Fixed skill and MCP instruction discovery to respect session-level permissions as well as agent permissions, so denied skills and servers are no longer advertised to the model.\n• Added a Headers built-in to code mode, with normalized names, set-cookie handling, and JSON serialization across tool boundaries.\n• Changed code mode keys(), values(), and entries() on arrays, strings, Map, Set, URLSearchParams, Headers, and Uint8Array to return live iterators instead of arrays.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed a startup race where a models.dev catalog refresh could be missed, leaving the bundled snapshot in use until the next scheduled refresh.\n• Updated the bundled models.dev model catalog snapshot.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Added a sessionID option to TUI plugin toasts. When that session isn't open, the toast uses the session title and offers an Open action.\n\n𝗖𝗟𝗜\n• Added Vite+ (vp) support: opencode detects global vp installs and upgrades or uninstalls through vp.\n\nBundle +2.0 MB because mostly Web UI assets +6.1 MB and Bytecode +38.6 KB\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.10...v2.0.11"
+      ],
+      "tweetIds": [
+        "2102617271478763574"
+      ],
+      "postedAt": "2026-09-23T04:33:17.167Z"
     }
   ]
 }
