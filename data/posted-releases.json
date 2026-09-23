@@ -1964,6 +1964,24 @@
         "2102579844521328822"
       ],
       "postedAt": "2026-09-23T02:04:33.951Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "afc3359eda634d9df012df5fe599e6bbfe26a655",
+      "tag": "v2.0.1",
+      "name": "v2.0.1",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.1",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-12T05:01:45Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.1 released. TL;DR:\nDesktop agent navigation preserves keyboard focus, TUI startup no longer blocks on theme palette detection, opencode2 is restored as a working CLI alias, and Bedrock Converse omits blank tool descriptions.\n\n𝗔𝗽𝗽\n• Fixed desktop browser navigation during agent runs stealing user keyboard focus from the active window.\n• Fixed session timeline grouping to preserve compaction and model-switch notices as standalone dividers rather than absorbing them into adjacent message groups.\n\n𝗧𝗨𝗜\n• Improved startup responsiveness when using a named theme by deferring terminal palette detection to the background instead of blocking UI readiness.\n\n𝗔𝗴𝗲𝗻𝘁\n• Improved sandboxed script execution in the agent runner with a standard JavaScript error prototype chain and error types, fixing instanceof checks, constructor resolution, and property destructuring.\n\n𝗖𝗟𝗜\n• Restored opencode2 as a working command-line alias across the installer, packages, and container images to forward directly to opencode.\n\n𝗟𝗟𝗠\n• Fixed AWS Bedrock Converse tool calls by omitting empty or whitespace-only tool descriptions that cause API validation errors.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.0...v2.0.1"
+      ],
+      "tweetIds": [
+        "2102581362855465134"
+      ],
+      "postedAt": "2026-09-23T02:10:35.437Z"
     }
   ]
 }
