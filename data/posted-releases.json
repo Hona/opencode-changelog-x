@@ -2108,6 +2108,24 @@
         "2102610031900287065"
       ],
       "postedAt": "2026-09-23T04:04:31.076Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "6608799d35d96c2821a48ac1d4b26a3b84b4e433",
+      "tag": "v2.0.9",
+      "name": "v2.0.9",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.9",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-19T05:12:53Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.9 released. TL;DR:\nDesktop starts faster, provider compaction and transport config now lives under settings, V2 themes switch to a new base format with a built-in opencode theme, and malformed tool arguments are repaired before validation.\n\n𝗔𝗽𝗽\nChanged\n• Improved desktop startup: the first window now opens as soon as Electron is ready, without waiting for the background service to connect.\n• Improved desktop cold start. The renderer now uses the V8 code cache, the browser pane and node-pty load only when first needed, the CLI version ships with the build instead of being found by spawning the CLI, and declarations and source maps are left out of the asar.\n• Replaced electron-store and electron-window-state with small built-in JSON stores for settings and window bounds.\n• Changed composer drafts to load image bytes only when needed instead of keeping them all in memory.\n\nFixed\n• Fixed failed sends staying in prompt history after the prompt is put back in the composer.\n• Fixed very long toast messages, such as server errors that include a whole data URL, being kept in memory. They are now cut off at 2000 characters.\n• Fixed WSL commands on Windows being expanded by the distro's default shell before they ran. They now run with --exec.\n\n𝗧𝗨𝗜\n• Added the native V2 opencode theme as a built-in theme.\n• Changed the V2 theme file format, which breaks existing custom V2 themes. Files now need one complete base token tree plus light and/or dark hue palettes. version and mergeMode are gone, @context:elevated and @context:overlay are replaced by a @dialog surface, and the default and subdued tokens are renamed base and muted.\n• Changed theme state resolution: a contextual action base is now the fallback for any unspecified state, and explicit state overrides still take priority.\n• Fixed markdown rendering and sizing in the /btw answer dialog.\n• Fixed session tab status colors picking the wrong hue step.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed provider config: compaction and transport now go under settings, and a model's settings override its provider's. Compaction is now { type: \"summary\" | \"native\" } instead of mode local/provider.\n• Removed the native compaction threshold option and model-level transport. Automatic compaction now uses the model's usable input budget, and transport can only be set per provider.\n• Added typed settings.timeout and settings.chunkTimeout to provider config.\n• Fixed the OpenCode console provider losing its config when a refresh fails. The last good config is now kept for the same connection.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added automatic repair of malformed tool arguments before validation, only where the input schema makes the fix unambiguous. This covers JSON objects or arrays sent as strings, numbers and booleans sent as strings, null or {} placeholders in optional fields, and extra keys on closed objects.\n• Changed Code Mode to reject TypeScript-only syntax instead of stripping it, which drops the bundled TypeScript compiler.\n• Improved skill guidance so the model knows a skill the user invoked directly is already in the conversation and does not load it again.\n• Fixed finished job results piling up in memory. Consumed results are now capped at the 25 most recent.\n\n𝗟𝗟𝗠\n• Fixed OpenAI Responses and Alibaba provider options so one malformed option no longer throws away the valid options next to it.\n• Changed Anthropic provider options to pass through new values for fields like service_tier and thinking display instead of dropping them.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Added tool.list() for Effect and Promise plugins. It returns the currently registered tools with their effective IDs after all transforms.\n• Clarified the browser plugin's tabs.open description: new tabs open in the Review pane by default, and agents should pass focus: false only when the user asks for a background tab.\n\n𝗦𝗗𝗞\n• Fixed importing the published SDK and server packages from Node. They are now built as Node ESM bundles.\n• Improved client startup by checking for a starting service every 25 ms.\n\n𝗗𝗼𝗰𝘀\n• Added a v2 announcement banner to the legacy docs and a v1 docs link in the docs header.\n\nBundle -13.7 MB because mostly Bytecode -27.6 MB and CLI/TUI JS -10.7 MB\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.8...v2.0.9"
+      ],
+      "tweetIds": [
+        "2102613901057605645"
+      ],
+      "postedAt": "2026-09-23T04:19:53.596Z"
     }
   ]
 }
