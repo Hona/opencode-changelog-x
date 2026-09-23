@@ -2162,6 +2162,24 @@
         "2102617271478763574"
       ],
       "postedAt": "2026-09-23T04:33:17.167Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "2670273ff17da96f85c5826ced57aa1b368754fa",
+      "tag": "v2.0.12",
+      "name": "v2.0.12",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.12",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-21T09:56:54Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.12 released. TL;DR:\nFiles the agent references now open as rich artifact tabs in the App, the agent gets a browser.preview tool, Anthropic thinking-budget variants are capped at 32k again, and plugin tools can now be cancelled.\n\n𝗔𝗽𝗽\nAdded\n• Added rich artifact tabs. Local links and inline file paths in the timeline now open in the side panel, including path:line citations and files outside the workspace. A tab only opens after the file is confirmed to exist.\n• Added previews for images, SVG, audio, video, PDF, Markdown, Mermaid, CSV/TSV tables and fonts, with a Preview/Source toggle. Other files show highlighted source. Tables show the first 1,000 rows, and media over 25 MB shows a placeholder instead of loading.\n• Added a browser.preview tool to the desktop browser plugin. The agent can use it to show a file it created in the Review pane instead of pasting or describing it.\n• Added the option to open HTML artifacts in the desktop browser pane as file:// pages. This only works on the built-in local sidecar, and both page loads and subresource requests outside the session workspace are blocked.\n\nFixed\n• Fixed browser focus requests from background sessions. The Review pane and the matching browser tab are now already selected when you switch back to that session.\n• Fixed the Review pane loading forever in projects without VCS. It now shows the empty state.\n• Restored spacing in the server status settings view.\n\n𝗧𝗨𝗜\n• Added a Copy session ID action to the session tab right-click menu, with a toast confirming the copy.\n\n𝗔𝗴𝗲𝗻𝘁\nAdded\n• Added toLocaleString, Error.isError and Map.getOrInsert to the code-mode sandbox.\n\nChanged\n• Improved code-mode tool search so whole-word path matches rank above substring matches (for example, zones matches get_zones ahead of timezones).\n\nFixed\n• Fixed code-mode error locations so line and column point at the code the model submitted, not the internal wrapper.\n• Improved \"is not a function\" errors in code mode to name the full call chain, like native JS engines do.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed Anthropic thinking-budget variants so high and max stay under Anthropic's 32k output limit (high is 16,000 and max is 31,999 tokens), instead of growing with the model's advertised output limit. This applies to Anthropic, Claude on Bedrock (Converse and AI SDK paths) and Anthropic models on SAP AI Core.\n• Updated the bundled models.dev model catalog snapshot.\n\n𝗣𝗹𝘂𝗴𝗶𝗻\n• Fixed cancellation for Promise-based plugin tools. They now receive an AbortSignal in their tool context, and cancelling a tool call aborts the running Promise execution and its progress updates.\n\n𝗖𝗟𝗜\n• Fixed fatal startup errors being printed to stdout. They now go to stderr, so the desktop app and service startup can show why the server failed to start.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.11...v2.0.12"
+      ],
+      "tweetIds": [
+        "2102618568839897398"
+      ],
+      "postedAt": "2026-09-23T04:38:26.419Z"
     }
   ]
 }
