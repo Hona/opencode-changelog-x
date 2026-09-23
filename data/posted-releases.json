@@ -2072,6 +2072,24 @@
         "2102602498661892310"
       ],
       "postedAt": "2026-09-23T03:34:35.046Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "ca27d3328fcd0d470588149c902a963452f1abaf",
+      "tag": "v2.0.7",
+      "name": "v2.0.7",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.7",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-17T19:29:51Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.7 released. TL;DR:\nConfig policies can now deny tool permissions, a new reload command applies config changes without a restart, Console login works against custom servers, and ACP cancellation is more reliable.\n\n𝗧𝗨𝗜\nAdded\n• Renamed /reload to Reload configuration and made it bindable through a new keybind entry. It rebuilds loaded locations and cancels pending permissions and forms.\n\nFixed\n• Fixed tokens-per-second so it counts provider latency. Step timing now starts when the request is sent instead of when the first output arrives.\n• Fixed vertical session tabs taking up space too early. They now switch to vertical only when the session content keeps a wider preferred width.\n• Fixed spinners collapsing to zero width and drawing over the row gap when placed next to long labels.\n• Changed /update so \"upgrade\" still finds it in search but is no longer a separate slash alias.\n\n𝗔𝗽𝗽\n• Fixed a reload loop in settings, where listing projects could create directory stores that triggered cache eviction and rehydration.\n• Disabled macOS security-code autofill suggestions in the desktop app unless a field explicitly asks for a one-time code.\n\n𝗖𝗼𝗿𝗲\n• Added permission policies under experimental.policies. A \"permission\" action with a wildcard resource matched against action:resource can deny tool permissions, and denied requests show \"Blocked by configuration policy\".\n• Changed provider.use policy matching so it only applies to provider-use rules, which lets provider and permission policies live side by side. User-global policy still overrides repo-authored policy.\n\n𝗖𝗟𝗜\n• Added opencode reload to reload configuration on a running server from the command line.\n• Added repeatable --answer key=value to opencode auth login so provider auth forms can be filled without an interactive terminal. Answers are validated against the form fields.\n• Added custom Console logins: the OpenCode Console OAuth method now has a hidden server URL field (defaults to the standard Console) that --answer can override.\n• Removed background update polling from the server process, so update checks are now handled only by clients.\n\n𝗔𝗖𝗣\n• Fixed cancellation: cancelling a session/prompt request now interrupts the turn the same way session/cancel does, and also aborts outstanding permission and file-write requests to the client.\n• Fixed session/close so it waits for the active turn to wind down before detaching, and no longer ignores real errors.\n• Added a check on session/load and session/resume that rejects sessions whose directory doesn't match the requested cwd.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added a dispatch timestamp to step-start session events, and message creation times now use it. This is also exposed in the OpenAPI spec and generated clients.\n• Fixed the integration list returning before plugins finished activating, which could leave providers missing.\n\n𝗗𝗼𝗰𝘀\n• Added a CLI settings reference, improved the installation guide, and reorganized the docs sidebar.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.6...v2.0.7"
+      ],
+      "tweetIds": [
+        "2102606038327333114"
+      ],
+      "postedAt": "2026-09-23T03:48:38.912Z"
     }
   ]
 }
