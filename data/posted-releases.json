@@ -2036,6 +2036,24 @@
         "2102595485810983282"
       ],
       "postedAt": "2026-09-23T03:06:42.963Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "79169fe966d58fb0e0a5e41133716184a0ab4ca6",
+      "tag": "v2.0.5",
+      "name": "v2.0.5",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.5",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-16T16:34:56Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.5 released. TL;DR:\nSubagents can run on a model you name, Code Mode scripts can call fetch, the TUI gets an execute details dialog, and dropped WebSocket reads now retry.\n\n𝗧𝗨𝗜\nAdded\n• Added an execute details dialog. Click an execute call to see its script and output with syntax highlighting and line numbers. It updates live while the call runs, scrolls in both directions, and has copy keys for the code and the output.\n• Added fetch requests to the execute call list, shown as method and URL next to regular tool calls.\n\nChanged\n• Changed notifications and sounds into two separate toggles and removed the old attention.enabled master switch. Both are now off by default, so turn on attention.notifications or attention.sound to get alerts.\n\nFixed\n• Fixed long shell commands taking over the transcript. Command previews are capped at two lines with an ellipsis until you expand them, and the spinner no longer pushes the command text out of line.\n• Fixed mini mode prompts failing with \"Event stream is reconnecting\". Prompts and shell turns now wait for the stream to reconnect, the footer shows a reconnecting state, and startup no longer waits for the model catalog to refresh.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added an optional model parameter to the subagent tool, written as providerID/modelID or providerID/modelID#variant. Unknown models and variants are rejected with clear errors, and continuing an existing subagent session can switch its model.\n• Added a models tool that searches available models by name, ID or provider. Your own provider is listed first, results are paged, and older versions of a model family are hidden unless requested, so the agent can resolve a model name before starting a subagent.\n• Added fetch inside Code Mode scripts for HTTP requests, with a 30s timeout and a Response-like result (status, headers, text, json, bytes).\n• Improved Code Mode performance: the tool catalog is reused across steps and signatures are rendered only when search returns them.\n• Changed the model identity block in the system prompt to show the model name, provider ID and model ID on separate lines.\n\n𝗟𝗟𝗠\n• Fixed WebSocket read failures after the provider had already accepted the request. These are now retried or continued based on how much output was saved, instead of failing the turn.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed the OpenCode Console config refresh from every 10 minutes to every minute, so model catalog and provider changes show up much faster.\n\n𝗠𝗖𝗣\n• Fixed MCP OAuth token refresh against servers that echo the connection's extra query parameters back in the resource. Tokens now stay tied to the configured server URL, so a refresh names the same resource as the original login.\n\n𝗔𝗽𝗽\n• Fixed the debug tools toggle so it also works in local-channel builds, not only dev builds.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.4...v2.0.5"
+      ],
+      "tweetIds": [
+        "2102598331289804973"
+      ],
+      "postedAt": "2026-09-23T03:18:01.442Z"
     }
   ]
 }
