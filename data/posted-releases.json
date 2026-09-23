@@ -2000,6 +2000,24 @@
         "2102586800124330285"
       ],
       "postedAt": "2026-09-23T02:32:12.171Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "d44b52ca66b6bf69626c0384626d1a9cd9555977",
+      "tag": "v2.0.3",
+      "name": "v2.0.3",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.3",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-12T23:47:55Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.3 released. TL;DR:\nSessions get a turn diff API, the TUI system theme probes the terminal after first paint, snapshot diffs use a few batched git calls, and mobile timeline scrolling in the App is steadier.\n\n𝗧𝗨𝗜\n• Changed the system theme so terminal palette probing starts only after the first frame paints, which keeps OSC queries from delaying startup or mixing with the first frame's output.\n• Added a cached terminal palette so the system theme renders with the right colors on launch, then refreshes quietly in the background.\n• Fixed the system theme so a failed palette probe no longer switches the active theme back to opencode. It now falls back in place and probes again when the terminal mode changes.\n• Added logging for stalled or failed TUI plugin setup, cleanup, install, and load steps to make slow plugin startup easier to diagnose.\n\n𝗔𝗽𝗽\nAdded\n• Added a configuration file action to the MCP, Plugins, Skills, and LSP summary menus. It opens the relevant opencode.json on local servers and copies its path on remote servers.\n\nChanged\n• Renamed the Server summary panel to Extensions, gave the menus section titles, updated the Skills and LSP icons, and tightened spacing and indicator alignment.\n\nFixed\n• Fixed mobile timeline touch scrolling. iOS momentum scrolling no longer jumps or snaps back when rows above the viewport resize, and touch drags inside nested scrollable blocks no longer unpin the timeline.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added GET /api/session/:sessionID/diff, which returns per-file diffs for the latest turn or a from/to range of turns. Diffs of a running turn compare against the working copy, context lines are optional, and ranges that cross a location change are rejected.\n\n𝗔𝗴𝗲𝗻𝘁\n• Added idle markers to session history, so a turn is everything between two idle points. Prompts steered in mid-run count as part of the same turn, and a shutdown resume does not start a new turn.\n• Improved snapshot and revert diffs: three batched git calls per diff instead of three per file, capped patch output for very large diffs, and correct handling of non-ASCII paths.\n\n𝗦𝗗𝗞\n• Added session.diff to the generated Effect and Promise clients and the OpenAPI spec. Live client data now inserts idle markers as execution events arrive, so turn boundaries are correct before the next read.\n\n𝗖𝗟𝗜\n• Changed the update screen shown when a new CLI replaces a background service from a different version. It now closes its own renderer when done instead of handing it to the TUI.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.2...v2.0.3"
+      ],
+      "tweetIds": [
+        "2102590677771043170"
+      ],
+      "postedAt": "2026-09-23T02:47:36.670Z"
     }
   ]
 }
