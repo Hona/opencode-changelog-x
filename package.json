@@ -14,8 +14,8 @@
     "check": "bun run typecheck"
   },
   "dependencies": {
-    "@opencode/cli": "2.0.3",
-    "@opencode/client": "2.0.3",
+    "@opencode/cli": "2.0.14",
+    "@opencode/client": "2.0.14",
     "discord.js": "^14.26.0",
     "effect": "4.0.0-beta.66",
     "twitter-api-v2": "^1.29.0",

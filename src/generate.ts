@@ -111,14 +111,18 @@ function parseGeneratedPost(text: string) {
     return generatedPostSchema.parse(JSON.parse(text));
 }
 
-function insertSectionBeforeCompareLine(post: string, section: string) {
+const MODEL_BUNDLE_LINE = /^(No noticeable bundle change|Bundle [+\-−])/i;
+
+// The prompt examples end with a bundle sentence, and some models imitate it even though the real
+// bundle data is only known here. Drop any model-written bundle lines so the measured one is the only one.
+export function insertSectionBeforeCompareLine(post: string, section: string) {
     const lines = post.replace(/\r/g, "").trim().split("\n");
     const compareLine = lines.pop();
     if (!compareLine) {
         throw new Error("Generated post is missing its final Compare line");
     }
 
-    while (lines.at(-1) === "") {
+    while (lines.length > 0 && (lines.at(-1) === "" || MODEL_BUNDLE_LINE.test(lines.at(-1)!.trim()))) {
         lines.pop();
     }
 
@@ -400,7 +404,7 @@ ${buildPostFormatRules({
     fromLabel: range.fromTag ?? "<previous-tag>",
     toLabel: range.toTag,
 })}
-- Bundle information, if present, appears as one plain sentence immediately before the final Compare line.
+- Do not write a bundle-size sentence. The tool measures the bundle and inserts that sentence before the final Compare line itself. The bundle lines in the examples below show the final layout only.
 - Mention the range "${displayRange}" only if it fits naturally.
 - If this is a preview, describe the changes as unreleased work after the latest GitHub release. Do not say they were already released.
 - For truly small releases, keep the post tight. Do not pad it with unnecessary sections.

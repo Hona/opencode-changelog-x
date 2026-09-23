@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { READ_ONLY_PERMISSIONS, buildGenerationPrompt, describeError, describePromptResult, extractText } from "../src/generate.js"
+import { READ_ONLY_PERMISSIONS, buildGenerationPrompt, describeError, describePromptResult, extractText, insertSectionBeforeCompareLine } from "../src/generate.js"
 import type { ReleaseRange } from "../src/domain/releases.js"
 import { gitRefFromString, releaseTagFromString, urlStringFromString } from "../src/domain/value-objects.js"
 
@@ -86,5 +86,41 @@ describe("describeError", () => {
     expect(describeError(new Error("UnexpectedStatus", { cause: { status: 404 } }))).toBe('UnexpectedStatus ({"status":404})')
     expect(describeError("plain")).toBe("plain")
     expect(describeError({ code: 1 })).toBe('{"code":1}')
+  })
+})
+
+describe("insertSectionBeforeCompareLine", () => {
+  const compare = "Compare: https://github.com/anomalyco/opencode/compare/v1.18.31...v1.18.32"
+
+  test("inserts the measured bundle line before the Compare line", () => {
+    const post = `Body\n\n• Fixed a thing.\n\n${compare}`
+
+    expect(insertSectionBeforeCompareLine(post, "No noticeable bundle change")).toBe(
+      `Body\n\n• Fixed a thing.\n\nNo noticeable bundle change\n\n${compare}`,
+    )
+  })
+
+  test("replaces a model-written bundle line instead of duplicating it", () => {
+    const post = `Body\n\n• Fixed a thing.\n\nNo noticeable bundle change\n\n${compare}`
+
+    expect(insertSectionBeforeCompareLine(post, "Bundle +1.8 MB because assets grew.")).toBe(
+      `Body\n\n• Fixed a thing.\n\nBundle +1.8 MB because assets grew.\n\n${compare}`,
+    )
+  })
+
+  test("drops repeated model-written bundle lines", () => {
+    const post = `Body\n\nBundle -2 MB because maps shrank.\n\nNo noticeable bundle change\n\n${compare}`
+
+    expect(insertSectionBeforeCompareLine(post, "No noticeable bundle change")).toBe(
+      `Body\n\nNo noticeable bundle change\n\n${compare}`,
+    )
+  })
+
+  test("keeps ordinary trailing bullets", () => {
+    const post = `Body\n\n• Bundled the CLI with Bun.\n\n${compare}`
+
+    expect(insertSectionBeforeCompareLine(post, "No noticeable bundle change")).toBe(
+      `Body\n\n• Bundled the CLI with Bun.\n\nNo noticeable bundle change\n\n${compare}`,
+    )
   })
 })

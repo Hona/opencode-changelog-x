@@ -16,8 +16,8 @@ Polls `anomalyco/opencode` GitHub releases and `v*` git tags, resolves the git t
 ## Hardcoded Model
 
 - provider: `opencode`
-- model: `gpt-6-astra`
-- variant: `high` (`low` for Discord previews)
+- model: `gemini-3.8-flash`
+- variant: `high` (for both published posts and Discord previews)
 
 ## How It Works
 

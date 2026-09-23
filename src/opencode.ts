@@ -166,8 +166,8 @@ function startOpencodeEffect(repoDir: string, echoOutput: boolean) {
             if (Date.now() > deadline) {
               throw new Error(`Timeout waiting for opencode server startup on ${url}\n${output}`)
             }
-            const healthy = await client.health.get({ signal: AbortSignal.timeout(OPENCODE_STARTUP_TIMEOUT_MS) })
-              .then((health) => health.healthy)
+            const healthy = await client.server.info({ signal: AbortSignal.timeout(OPENCODE_STARTUP_TIMEOUT_MS) })
+              .then((info) => info.pid > 0)
               .catch(() => false)
             if (healthy) return
             await delay(OPENCODE_HEALTH_POLL_MS)
