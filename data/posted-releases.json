@@ -2126,6 +2126,24 @@
         "2102613901057605645"
       ],
       "postedAt": "2026-09-23T04:19:53.596Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "b8cedc1a7a5e2916bbb65dc1d4b620729c261638",
+      "tag": "v2.0.10",
+      "name": "v2.0.10",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.10",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-19T13:40:52Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.10 released. TL;DR:\nOpenCode V2 now installs through Homebrew, with built-in upgrades for brew installs. The TUI's running and needs-attention status colors are back to their earlier mapping.\n\n𝗖𝗟𝗜\n• Added Homebrew install for macOS and Linux on arm64 and x64: brew install anomalyco/tap/opencode-v2 for stable, or anomalyco/tap/opencode-beta for beta. The formula installs ripgrep too and conflicts with the legacy opencode formula, since both provide an opencode binary.\n• Added brew as an upgrade method. OpenCode now spots installs under the Homebrew Cellar, checks Homebrew's release channel for new versions and upgrades with brew upgrade instead of npm or the curl installer. It also skips package-manager cleanup for brew installs.\n\n𝗧𝗨𝗜\n• Restored the status colors in session tabs and the footer: running or busy sessions, the active tab number and the /btw spinner use the interactive color again. Questions, permission prompts and unread markers go back to the accent color, so sessions waiting on you stand out from ones that are still working.\n\n𝗥𝗲𝗹𝗲𝗮𝘀𝗲\n• Added a Homebrew tap step to the beta and stable release pipelines. It hashes each platform archive, writes the formula, pushes it to the tap and registers the build with the update service.\n\n𝗗𝗼𝗰𝘀\n• Removed the V2 announcement banner from the legacy docs site.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.9...v2.0.10"
+      ],
+      "tweetIds": [
+        "2102615763211440346"
+      ],
+      "postedAt": "2026-09-23T04:27:17.524Z"
     }
   ]
 }
