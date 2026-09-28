@@ -2288,6 +2288,24 @@
         "2103637222448922850"
       ],
       "postedAt": "2026-09-26T00:06:12.354Z"
+    },
+    {
+      "releaseId": 397942755,
+      "source": "github-release",
+      "commitSha": "51ef4be1d3c122f18fefb510dca8d778571f4f18",
+      "tag": "v1.18.33",
+      "name": "v1.18.33",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.33",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-28T04:22:46Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.33 released. TL;DR:\nGPT-6 Sol and Luna now work with Codex sign-in, Cloudflare AI Gateway respects timeout settings, browser launches only accept http(s) URLs, and debug config output hides secrets.\n\n𝗧𝗨𝗜\n• Changed clickable links, Open docs, and retry-dialog actions to go through a shared browser opener that refuses anything other than http and https URLs.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\nAdded\n• Added gpt-6-sol and gpt-6-luna to the models allowed when signing in with ChatGPT/Codex OAuth.\n\nFixed\n• Fixed Cloudflare AI Gateway models ignoring timeout, headerTimeout, and chunkTimeout (SSE idle). Gateway and Workers AI requests now go through the same timeout-aware fetch as other providers.\n• Changed Gemini thinking defaults to use a list of older models instead of checking for gemini-3. Newer Gemini models now get thinkingLevel high by default, and OpenRouter Gemini models get high reasoning effort, while Gemini 1.x and 2.x keep the older behavior.\n• Fixed Gemma 4 reasoning variants so they only offer minimal (thinking off) and high (thinking on).\n• Tightened Gemini 2.5 model detection so thinking budgets and variants no longer match any ID that merely contains 2.5.\n• Updated gitlab-ai-provider to 6.18.0.\n\n𝗠𝗖𝗣\n• Fixed MCP OAuth browser launches on Windows and WSL, where the launcher can exit before OpenCode checks it. A failed launch is now reported instead of silently hanging.\n• Added a check that rejects MCP authorization URLs using any scheme other than http or https, with an error naming the server.\n\n𝗖𝗟𝗜\n• Fixed opencode debug config printing credentials. API keys, tokens, secrets, passwords, header values, and URLs carrying credentials or secret query parameters are now shown as ***. The config used at runtime is unchanged.\n• Changed opencode web, account login, and the DigitalOcean and Snowflake Cortex OAuth flows to open the browser only for http and https URLs.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\nChanged\n• Changed legacy Console sign-in and workspace access to require a Black subscription. Other accounts are redirected to the new Console, and sign-in no longer creates new accounts or default workspaces.\n• Moved Go subscriptions to the new Console. Legacy Go checkout now fails, and the Go workspace page redirects to /console/go.\n\nAdded\n• Added GPT 6 Luna and the limited-time free models Space Bunny Free and LongCat 2.5 Preview Free to Go pages. The limits graph shows unlimited models as ∞.\n• Made DeepSeek V4.1 Flash's higher Go allowance permanent and removed the limited-time 4x promo.\n\n𝗗𝗮𝘁𝗮\n• Fixed the model comparison radar showing missing benchmarks as zero. Reasoning and tool-use axes now fall back to capability support (50/100 if supported, 0 if not), show fallbacks as hollow points, and explain each score in hover tooltips.\n• Fixed Hy4 preview traffic being counted under an unknown provider instead of Tencent.\n• Added Muse Spark Contributor pricing entries without letting them skew benchmark normalization, and grouped Space Bunny under stealth-model stats.\n\n𝗗𝗼𝗰𝘀\n• Documented Claude Opus 5.5, GPT 6 Sol, GPT 6 Luna, and Qwen3.8 Max in the Zen docs, and updated the Go model pages.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.32...v1.18.33"
+      ],
+      "tweetIds": [
+        "2104427933481791630"
+      ],
+      "postedAt": "2026-09-28T04:28:12.566Z"
     }
   ]
 }
