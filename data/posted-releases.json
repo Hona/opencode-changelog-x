@@ -2360,6 +2360,24 @@
         "2105429036583325867"
       ],
       "postedAt": "2026-09-30T22:46:14.164Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "8a8bd622a3d7dc29ccf30ec17f84e363ed95ed72",
+      "tag": "v2.0.21",
+      "name": "v2.0.21",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.21",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-30T23:02:08Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.21 released. TL;DR:\nThe desktop browser lets you comment on page elements, ACP now uses the server's default model and agent and picks up catalog changes live, non-interactive runs keep going when the agent asks a question, and prompt caching works better on OpenRouter and Cloudflare AI Gateway.\n\n𝗔𝗽𝗽\nAdded\n• Added element comments in the desktop in-app browser. Turn on inspect mode, click an element and write a comment. The agent receives the element's role, accessible name, text, selector and browser ref. Comments come back into the composer after a revert or fork.\n• Added clickable session IDs in markdown. Session IDs mentioned in a transcript now open as a session tab. A toast appears if the session is missing or archived on the current server.\n• Added grouping of adjacent file reads into one collapsible timeline row.\n• Changed the open \"Used\" tool group header to stay pinned while you scroll through its contents.\n\nFixed\n• Fixed agent-response and error system notifications firing for sessions that have no open tab. They now follow the same rule as sounds.\n• Fixed new-session project selection when the current directory doesn't match a known worktree path. The app now falls back to the resolved project ID.\n• Updated the ChatGPT usage-limit wording and links so they no longer promise a reset time.\n\n𝗧𝗨𝗜\n• Tightened spacing in expanded instruction groups.\n• Updated OpenTUI to 0.5.14.\n\n𝗔𝗴𝗲𝗻𝘁\n• Changed browser tools to be hidden by default. The agent only gets them while a desktop browser is attached to the session.\n• Added element targeting to the browser evaluate tool. Scripts can run against an element ref from a snapshot or from a user's browser comment.\n• Fixed the read tool re-adding AGENTS.md files from the project root or its parent directories, which initial instructions already include.\n• Changed question cancellations that include a message: the model now gets the message as tool feedback and continues, instead of the step ending.\n\n𝗖𝗟𝗜\n• Changed opencode run so a question from the agent is cancelled with an explanation and the model continues on stated assumptions. Previously the run was marked failed. V1 compatibility mode keeps the old behavior.\n\n𝗔𝗖𝗣\n• Changed new ACP sessions to use the server's default model and agent instead of fixing them at creation time.\n• Added live catalog refresh. Model, agent and command changes now push updated config options and slash commands to connected ACP clients.\n• Fixed model, mode and effort selection against a stale catalog. ACP now reloads the catalog and retries before rejecting.\n\n𝗟𝗟𝗠\n• Added prompt-cache breakpoints for OpenRouter: automatic caching for Anthropic models and system plus conversation-tail breakpoints for Qwen. Other upstreams, such as Gemini, get no breakpoints because extra ones would add cache writes.\n• Fixed OpenAI Chat-compatible cache_control placement. Breakpoints now go on text content parts of assistant and tool messages instead of on the message itself.\n• Added context-overflow detection for Cloudflare Workers AI 413 errors and Amazon Nova on Bedrock input-length errors, so compaction and recovery can kick in.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Changed Cloudflare AI Gateway to route Claude and OpenAI models through the gateway's native Anthropic and OpenAI passthrough endpoints. This avoids request shapes the REST API rejects, such as system prompt blocks and minimal reasoning effort.\n• Fixed GitHub Copilot Responses dropping settings based on model-name guesses. Reasoning effort and summary, temperature, top_p and service tier are now passed through as configured, and system prompts are sent with the system role.\n\n𝗖𝗼𝗿𝗲\n• Added x-opencode-session-id and x-opencode-parent-session-id headers to model requests, next to the existing session headers, so gateways and proxies can link requests to sessions.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Added an optional message to the cancel-form endpoint, so clients can tell the asker why a form wasn't answered. The change is reflected in OpenAPI and the generated clients.\n\n𝗗𝗮𝘁𝗮\n• Fixed the stats site's document background so it matches the page theme.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.20...v2.0.21"
+      ],
+      "tweetIds": [
+        "2105434463543181747"
+      ],
+      "postedAt": "2026-09-30T23:07:48.074Z"
     }
   ]
 }
