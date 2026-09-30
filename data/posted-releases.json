@@ -2342,6 +2342,24 @@
         "2105043957726269724"
       ],
       "postedAt": "2026-09-29T21:16:04.216Z"
+    },
+    {
+      "releaseId": 400477810,
+      "source": "github-release",
+      "commitSha": "aec0b9a6d8898f68f923aaf08b7306d931fd9d76",
+      "tag": "v1.18.34",
+      "name": "v1.18.34",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.34",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-09-30T22:39:45Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.34 released. TL;DR:\nmacOS CLI binaries are now Developer ID signed, LLM requests carry namespaced session headers, the Go page adds Go Plus plans, and OpenCode Data gets daily model rankings.\n\n𝗧𝗨𝗜\n• Fixed plugin names in the /status dialog on Windows. File-based plugin paths are now split using the platform's path separator instead of always \"/\".\n\n𝗥𝗲𝗹𝗲𝗮𝘀𝗲\n• Added Developer ID signing for the macOS CLI builds (arm64, x64, x64-baseline) with hardened runtime and entitlements. The signed zips replace the unsigned release assets.\n• Fixed local macOS compiles by re-signing them ad hoc. Embedding the bundle breaks the linker's signature, and macOS 27+ kills binaries with invalid pages.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added x-opencode-session-id and x-opencode-parent-session-id headers to model requests for every provider, in both the legacy and v2 session runners. The existing affinity and session headers are still sent.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\nAdded\n• Added Go Plus ($40/month) to the Go page, with a side-by-side chart of Go and Go Plus limits per model.\n• Added a warning for referral-link visitors that the referral program has ended and links no longer earn credit.\n\nChanged\n• Changed the Go page hero, plan cards, and model limits list, and removed several older models from the list.\n• Changed OpenCode Black so it cannot renew: renewals made in the billing portal are automatically set to cancel at period end, and the workspace billing page no longer offers \"Manage Subscription\".\n\nFixed\n• Fixed Go page layout and the limits chart on mobile screens.\n\n𝗗𝗮𝘁𝗮\n• Added a daily view to model rankings next to the weekly one. Rank changes are hidden in the daily view so partial days don't show misleading movement.\n• Fixed usage attribution by resolving model labs from the model catalog. Duplicate \"unknown\" rows are dropped, and per-model country data falls back to them when needed.\n• Fixed chart tooltips so they stay readable.\n\n𝗭𝗲𝗻\n• Updated the Zen docs with GPT 6.1 Sol endpoint and pricing (corrected cached-input rates) and the Jev API data-retention policy.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.33...v1.18.34"
+      ],
+      "tweetIds": [
+        "2105429036583325867"
+      ],
+      "postedAt": "2026-09-30T22:46:14.164Z"
     }
   ]
 }
