@@ -2432,6 +2432,24 @@
         "2107307613692047410"
       ],
       "postedAt": "2026-10-06T03:11:01.895Z"
+    },
+    {
+      "releaseId": 405094028,
+      "source": "github-release",
+      "commitSha": "53d1eabb61e21162157817bf677da0a4ad3332e3",
+      "tag": "v1.18.35",
+      "name": "v1.18.35",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.18.35",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-10-06T20:18:39Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.18.35 released. TL;DR:\nImages in xAI tool results now reach the model, OpenCode Data pages get Markdown, JSON and llms.txt versions for agents, and Space Bunny becomes a paid Go model.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed images returned by tools not reaching xAI models by updating the xAI SDK integration to 3.0.139.\n• Fixed xAI requests failing completely on an unsupported image type: tool-result images other than PNG, JPEG or WebP (for example GIF) are now dropped instead of causing an invalid_image error.\n• Updated the GitLab AI provider to 6.19.0.\n\n𝗗𝗮𝘁𝗮\nAdded\n• Added Markdown and JSON versions of the home, lab and model pages, plus Markdown for model comparisons. Add .md or .json to the URL, or send Accept: text/markdown.\n• Added /data/llms.txt so agents can find these formats and their URL patterns.\n• Added 301 redirects from lab and model URL variants to the canonical page, keeping any extension and query string.\n\nFixed\n• Fixed canonical links, 404 handling and missing sitemap entries on data pages.\n• Fixed stealth model pages so they show public specs (context and output limits, modalities, knowledge cutoff, release date) taken from their OpenCode listings.\n• Added a configurable hidden-model list that removes the listed models from usage, geo and retention stats.\n\n𝗭𝗲𝗻\n• Changed Space Bunny in Go from a limited-time free model (space-bunny-free) to a paid model (space-bunny) at $0.15 input, $0.60 output and $0.03 cached per 1M tokens, with per-plan usage limits.\n\n𝗜𝗻𝗳𝗿𝗮\n• Removed the old S3 data lake and its ingestion pipeline from the stats stack.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.34...v1.18.35"
+      ],
+      "tweetIds": [
+        "2107568479855673632"
+      ],
+      "postedAt": "2026-10-06T20:27:37.164Z"
     }
   ]
 }
