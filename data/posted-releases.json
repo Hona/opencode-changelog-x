@@ -2468,6 +2468,24 @@
         "2108125744614215897"
       ],
       "postedAt": "2026-10-08T09:21:59.470Z"
+    },
+    {
+      "releaseId": null,
+      "source": "git-tag",
+      "commitSha": "9b4ec5714d481559990db0a816d5dec19541a814",
+      "tag": "v2.0.26",
+      "name": "v2.0.26",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v2.0.26",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-10-08T19:45:43Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v2.0.26 released. TL;DR:\nFaster and more robust session snapshots, guided Google Cloud credential setup for Vertex, unguessable remote-access URLs, and clickable transcript links in the TUI.\n\n𝗧𝗨𝗜\n• Added plain-click opening for links in the transcript, including links that wrap across rows. Ctrl, Alt, and Shift clicks are left to the terminal's own link handling.\n• Fixed expanding or collapsing a low-verbosity activity summary so its header stays on the same screen row instead of jumping the scroll position.\n• Fixed the home footer overlapping the hint row in short terminals. It is now hidden below 14 rows.\n• Updated OpenTUI to 0.5.17.\n\n𝗔𝗴𝗲𝗻𝘁\nChanged\n• Improved time to first token: the workspace snapshot taken at the start of each turn now runs while the provider request is in flight. Tools still wait for the snapshot before running.\n• Changed snapshot capture to work on a temporary Git index that is renamed into place. Concurrent OpenCode processes no longer fight over index.lock, and a killed process cannot leave a half-written index.\n• Added background packing of loose snapshot objects and merging of small packs. Nothing is pruned, so old snapshots stay restorable.\n• Improved revert speed: file restores are batched into one checkout per snapshot tree instead of two Git processes per file.\n• Improved working-tree diffs: untracked files are diffed in about three Git processes total instead of two per file.\n\nFixed\n• Fixed snapshot capture recovering from an unreadable snapshot index by rebuilding it, instead of failing on every turn.\n• Fixed snapshot stores that several processes create at the same time. Store setup is now atomic, so no process sees a half-initialized store.\n• Fixed files whose names contain glob characters like * or [ by treating paths literally in snapshot capture, diff, and restore.\n• Fixed large snapshot diffs on every platform by batching path lists to fit command-line limits.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Added a Google Cloud credentials sign-in option for Vertex that uses gcloud auth or environment credentials. The project picker is prefilled from gcloud configurations and the ADC quota project. The location picker offers global, us, eu, and configured regions.\n• Changed Vertex to reload providers and models immediately when the selected credential changes or is updated.\n• Fixed an ambient GOOGLE_VERTEX_API_KEY overriding Google credentials when a project or location is set. This now matches the precedence used by Google's Gen AI SDK.\n\n𝗖𝗟𝗜\n• Changed remote access (opencode pair --remote and the service remote setting) to use a random, unguessable subdomain instead of a predictable per-channel one. Tunnel hostnames show up in public certificate logs, so the old address was discoverable.\n• The random remote route is kept across service restarts and replaced with a new one when remote access is turned off and on again. Older boolean configs are migrated automatically, and the route is hidden from service get output.\n\n𝗗𝗼𝗰𝘀\n• Added Step 5 Preview Free to the Zen and Go model lists and removed Fledge Alpha Free.\n\n𝗥𝗲𝗹𝗲𝗮𝘀𝗲\n• Added a CHANGELOG.md for V2 releases. Reviewed release notes are now written to it during publishing, with highlights listed first.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v2.0.25...v2.0.26"
+      ],
+      "tweetIds": [
+        "2108283741671944416"
+      ],
+      "postedAt": "2026-10-08T19:49:48.924Z"
     }
   ]
 }
