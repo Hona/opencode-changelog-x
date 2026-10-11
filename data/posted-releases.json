@@ -2486,6 +2486,24 @@
         "2108283741671944416"
       ],
       "postedAt": "2026-10-08T19:49:48.924Z"
+    },
+    {
+      "releaseId": 409318008,
+      "source": "github-release",
+      "commitSha": "733b2c627e5aec39cb33cc22373bdce33053ef2c",
+      "tag": "v1.19.0",
+      "name": "v1.19.0",
+      "url": "https://github.com/anomalyco/opencode/releases/tag/v1.19.0",
+      "draft": false,
+      "prerelease": false,
+      "publishedAt": "2026-10-11T01:39:22Z",
+      "tweets": [
+        "𝙊𝙥𝙚𝙣𝘾𝙤𝙙𝙚 v1.19.0 released. TL;DR:\nThe TUI no longer installs updates on its own and adds a /update flow, opencode upgrade --major moves you to OpenCode 2, GitHub Copilot interleaved reasoning no longer errors, and PTY websocket connections are checked more strictly.\n\n𝗧𝗨𝗜\nAdded\n• Added a /update dialog. It checks for new versions every 10 minutes and offers a newer OpenCode 1 release first. OpenCode 2.0 is offered only when v1 is already current. Nothing installs until you confirm, then it asks you to restart.\n• Added an update hint under the home-screen logo, such as \"/update to install vX\" or \"/update to upgrade to OpenCode 2.0\". After an install it changes to \"/exit\" to restart.\n\nChanged\n• Changed update behavior so patch releases are never installed silently in the background. autoupdate true and \"notify\" now do the same thing, and false turns update checks off.\n• Changed how skipping works: skipping a v1 version hides it until a newer one ships, and dismissing the OpenCode 2.0 offer hides it for 7 days.\n\nFixed\n• Fixed syntax highlighting for C++ module interface files (.cppm, .ccm, .cxxm, .c++m, .ixx).\n\n𝗖𝗟𝗜\n• Added opencode upgrade --major to replace OpenCode 1 with OpenCode 2. It works with curl, Homebrew, npm, pnpm, bun and yarn. With a package manager it removes opencode-ai, installs @opencode/cli, and reinstalls your current v1 if the v2 install fails.\n• Changed opencode upgrade to mention that OpenCode 2 is available, both after an upgrade and when you're already on the latest version.\n\n𝗣𝗿𝗼𝘃𝗶𝗱𝗲𝗿𝘀\n• Fixed GitHub Copilot streams with interleaved thinking (Claude). Several reasoning tokens in one response no longer cause an error. The latest one is kept and sent back with all the reasoning text joined, the same way the Copilot VS Code client does it.\n• Added support for OpenAI's \"ultrafast\" service tier in both the Chat and Responses APIs.\n\n𝗦𝗲𝗿𝘃𝗲𝗿\n• Tightened PTY websocket connections. The origin is now checked on every connection, not only ones with a ticket, and bad origins or invalid tickets get a 403 before the server looks up the PTY. A missing PTY can no longer be detected from a 404.\n\n𝗭𝗲𝗻\n• Changed requests to free Zen models that have no API key so they go to the new inference backend anonymously, with credentials removed.\n• Fixed proxied 404 errors being replaced by the site's \"route not found\" page. They now come back as 400 with the original inference error.\n\n𝗖𝗼𝗻𝘀𝗼𝗹𝗲\n• Added Claude Haiku 5.5 and Step 5 Preview Free (limited time) to the Go model lists, plan limits, privacy FAQ and workspace promo. The Go page also shows more model provider logos.\n• Added an optional monthly inference spend field to the Enterprise contact form. It is validated and included in sales leads.\n\n𝗗𝗮𝘁𝗮\n• Changed stats to count usage of the Exo stealth model under an unknown provider instead of naming a real model author.\n\n𝗥𝗲𝗹𝗲𝗮𝘀𝗲\n• Changed OpenCode 1 releases and the v1 web app deploy to come from the dedicated v1 branch.\n\nNo noticeable bundle change\n\nCompare: https://github.com/anomalyco/opencode/compare/v1.18.35...v1.19.0"
+      ],
+      "tweetIds": [
+        "2109098428521496737"
+      ],
+      "postedAt": "2026-10-11T01:47:05.330Z"
     }
   ]
 }
